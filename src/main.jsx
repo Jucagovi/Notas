@@ -5,10 +5,10 @@ import App from "./App.jsx";
 import { PrimeReactContext, PrimeReactProvider } from "primereact/api";
 // Necesario para la carga de estilos de PrimeFlex.
 import "primeflex/primeflex.css";
-// Carga de estilo para los componentes.
-import "primereact/resources/themes/soho-dark/theme.css";
 // Necesario para los iconos.
 import "primeicons/primeicons.css";
+// Carga de estilo para los componentes.
+import "primereact/resources/themes/nano/theme.css";
 
 // Temas a elegir para el proveedor PrimeReact
 

@@ -1,13 +1,9 @@
 import React from "react";
-import MenuBarra from "../Menu/MenuBarra";
 
 const Cabecera = () => {
   return (
     <>
-      <div className='border-round-sm font-bold'>
-        Cabecera
-        <MenuBarra />
-      </div>
+      <div className='border-round-sm font-bold'>Cabecera</div>
     </>
   );
 };

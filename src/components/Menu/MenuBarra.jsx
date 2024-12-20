@@ -1,8 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router";
 
 import { Menubar } from "primereact/menubar";
 
 const MenuBarra = () => {
+  const navegar = useNavigate();
+
   const items = [
     {
       label: "Inicio",
