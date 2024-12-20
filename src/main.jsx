@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router";
 import App from "./App.jsx";
 // Necesarios para la carga de componentes de PrimeReact.
 import { PrimeReactContext, PrimeReactProvider } from "primereact/api";
@@ -57,8 +58,10 @@ primereact/resources/themes/arya-purple/theme.css
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <PrimeReactProvider>
-      <App />
-    </PrimeReactProvider>
+    <BrowserRouter>
+      <PrimeReactProvider>
+        <App />
+      </PrimeReactProvider>
+    </BrowserRouter>
   </StrictMode>
 );

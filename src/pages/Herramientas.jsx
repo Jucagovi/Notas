@@ -1,5 +1,4 @@
 import React from "react";
-import ColumnaMenu from "../../layouts/ColumnaMenu.jsx";
 
 const Herramientas = () => {
   // Elementos del menú.
@@ -15,9 +14,7 @@ const Herramientas = () => {
   ];
   return (
     <>
-      <ColumnaMenu elementosMenu={items}>
-        <h1>Herramientas</h1>
-      </ColumnaMenu>
+      <h1>Herramientas</h1>
     </>
   );
 };

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Calendar } from "primereact/calendar";
-import ColumnaSimple from "../../layouts/ColumnaSimple";
+import ColumnaSimple from "../layout/ColumnaSimple";
 
 const Inicio = () => {
   const [date, setDate] = useState(null);

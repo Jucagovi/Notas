@@ -1,12 +1,11 @@
-import Inicio from "./pages/Inicio.jsx";
-import PrincipalLayout from "../layouts/PrincipalLayout.jsx";
-import Mantenimiento from "./pages/Mantenimiento.jsx";
+import PrincipalLayout from "./layout/PrincipalLayout.jsx";
+import Rutas from "./routes/Rutas.jsx";
 
 function App() {
   return (
     <>
       <PrincipalLayout>
-        <Mantenimiento />
+        <Rutas />
       </PrincipalLayout>
     </>
   );

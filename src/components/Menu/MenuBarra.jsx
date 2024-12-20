@@ -10,32 +10,42 @@ const MenuBarra = () => {
     {
       label: "Inicio",
       icon: "pi pi-home",
-    },
-    {
-      label: "Mantenimiento",
-      icon: "pi pi-server",
       command: () => {
-        console.log("/installation");
+        navegar("/");
       },
     },
     {
-      label: "Prácticas",
+      label: "Notas",
+      icon: "pi pi-server",
+      command: () => {
+        navegar("/notas");
+      },
+    },
+    {
+      label: "Informes",
+      icon: "pi pi-server",
+      command: () => {
+        navegar("/informes");
+      },
+    },
+    {
+      label: "Herramientas",
       icon: "pi pi-search",
       items: [
         {
-          label: "Components",
+          label: "Ciclos",
           icon: "pi pi-bolt",
         },
         {
-          label: "Blocks",
+          label: "Módulos",
           icon: "pi pi-server",
         },
         {
-          label: "UI Kit",
+          label: "Prácticas",
           icon: "pi pi-pencil",
         },
         {
-          label: "Templates",
+          label: "Informes",
           icon: "pi pi-palette",
           items: [
             {
@@ -51,10 +61,19 @@ const MenuBarra = () => {
       ],
     },
     {
-      label: "Contacto",
+      label: "Acerca de",
       icon: "pi pi-envelope",
+      command: () => {
+        navegar("/acercade");
+      },
     },
-    { label: "Salir", icon: "pi pi-sign-out" },
+    {
+      label: "Salir",
+      icon: "pi pi-sign-out",
+      command: () => {
+        navegar("/login");
+      },
+    },
   ];
 
   return (

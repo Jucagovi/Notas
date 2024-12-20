@@ -1,7 +1,7 @@
 import React from "react";
-import Cabecera from "../src/components/grid/Cabecera.jsx";
-import PiePagina from "../src/components/grid/PiePagina.jsx";
-import MenuBarra from "../src/components/menu/MenuBarra.jsx";
+import Cabecera from "../components/grid/Cabecera.jsx";
+import PiePagina from "../components/grid/PiePagina.jsx";
+import MenuBarra from "../components/menu/MenuBarra.jsx";
 
 const PrincipalLayout = ({ children }) => {
   return (
