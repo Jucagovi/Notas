@@ -9,7 +9,7 @@ import "primeflex/primeflex.css";
 // Necesario para los iconos.
 import "primeicons/primeicons.css";
 // Carga de estilo para los componentes.
-import "primereact/resources/themes/nano/theme.css";
+//import "primereact/resources/themes/nano/theme.css";
 
 // Temas a elegir para el proveedor PrimeReact
 

@@ -23,14 +23,14 @@ const MenuBarra = () => {
     },
     {
       label: "Informes",
-      icon: "pi pi-server",
+      icon: "pi pi-clipboard",
       command: () => {
         navegar("/informes");
       },
     },
     {
       label: "Herramientas",
-      icon: "pi pi-search",
+      icon: "pi pi-cog",
       items: [
         {
           label: "Ciclos",
@@ -38,11 +38,11 @@ const MenuBarra = () => {
         },
         {
           label: "Módulos",
-          icon: "pi pi-server",
+          icon: "pi pi-folder-open",
         },
         {
           label: "Prácticas",
-          icon: "pi pi-pencil",
+          icon: "pi pi-pen-to-square",
         },
         {
           label: "Informes",

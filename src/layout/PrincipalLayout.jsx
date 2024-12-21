@@ -6,22 +6,24 @@ import MenuBarra from "../components/menu/MenuBarra.jsx";
 const PrincipalLayout = ({ children }) => {
   return (
     <>
-      <div className='grid'>
-        <div className='col p-2'>
-          <Cabecera />
+      <div className='m-4'>
+        <div className='grid'>
+          <div className='col p-2'>
+            <Cabecera />
+          </div>
         </div>
-      </div>
-      <div className='grid'>
-        <div className='col p-2'>
-          <MenuBarra />
+        <div className='grid'>
+          <div className='col p-2'>
+            <MenuBarra />
+          </div>
         </div>
-      </div>
-      <div className='grid'>
-        <div className='col p-2'>{children}</div>
-      </div>
-      <div className='grid'>
-        <div className='col p-5'>
-          <PiePagina />
+        <div className='grid'>
+          <div className='col p-2'>{children}</div>
+        </div>
+        <div className='grid'>
+          <div className='col p-5'>
+            <PiePagina />
+          </div>
         </div>
       </div>
     </>
