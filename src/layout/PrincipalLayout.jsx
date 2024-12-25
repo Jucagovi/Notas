@@ -13,12 +13,12 @@ const PrincipalLayout = ({ children }) => {
           </div>
         </div>
         <div className='grid'>
-          <div className='col p-2'>
+          <div className='col p-1'>
             <MenuBarra />
           </div>
         </div>
         <div className='grid'>
-          <div className='col p-2'>{children}</div>
+          <div className='col p-1'>{children}</div>
         </div>
         <div className='grid'>
           <div className='col p-5'>

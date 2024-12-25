@@ -6,9 +6,9 @@ const ColumnaMenu = ({ elementosMenu, children }) => {
     <>
       <div className='grid'>
         <div className='col-2'>
-          <Menu model={elementosMenu} />
+          <Menu className='w-auto' model={elementosMenu} />
         </div>
-        <div className='col-10 border-round border-solid surface-border border-1  border-round-lg'>
+        <div className='col border-round border-solid surface-border border-1 border-round-lg p-2 m-2'>
           {children}
         </div>
       </div>

@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useNavigate } from "react-router";
-
+import { Button } from "primereact/button";
 import { Menubar } from "primereact/menubar";
+import { Image } from "primereact/image";
+import logo from "../../assets/logo.png";
+import { contextoSesion } from "../../contexts/ProveedorSesion.jsx";
 
 const MenuBarra = () => {
   const navegar = useNavigate();
-
+  const { sesionIniciada, cerrarSesion } = useContext(contextoSesion);
   const items = [
     {
       label: "Inicio",
@@ -35,14 +38,23 @@ const MenuBarra = () => {
         {
           label: "Ciclos",
           icon: "pi pi-bolt",
+          command: () => {
+            navegar("/herramientasciclos");
+          },
         },
         {
           label: "Módulos",
           icon: "pi pi-folder-open",
+          command: () => {
+            navegar("/herramientasmodulos");
+          },
         },
         {
           label: "Prácticas",
           icon: "pi pi-pen-to-square",
+          command: () => {
+            navegar("/herramientaspracticas");
+          },
         },
         {
           label: "Informes",
@@ -67,19 +79,53 @@ const MenuBarra = () => {
         navegar("/acercade");
       },
     },
+  ];
+
+  const itemsSinSesion = [
     {
-      label: "Salir",
-      icon: "pi pi-sign-out",
+      label: "Inicio",
+      icon: "pi pi-home",
       command: () => {
-        navegar("/login");
+        navegar("/");
       },
     },
   ];
 
+  const inicio = <Image src={logo} alt='Logotipo' width='50' />;
+  const fin = (
+    <div className='flex align-items-center gap-2'>
+      {sesionIniciada ? (
+        <Button
+          icon='pi pi-sign-out'
+          raised
+          severity='secondary'
+          label='Salir'
+          onClick={() => {
+            cerrarSesion();
+          }}
+        />
+      ) : (
+        <Button
+          icon='pi pi-sign-in'
+          raised
+          severity='secondary'
+          label='Iniciar sesión'
+          onClick={() => {
+            navegar("/login");
+          }}
+        />
+      )}
+    </div>
+  );
+
   return (
     <>
       <h1>
-        <Menubar model={items} />
+        <Menubar
+          model={sesionIniciada ? items : itemsSinSesion}
+          start={inicio}
+          end={fin}
+        />
       </h1>
     </>
   );

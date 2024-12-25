@@ -1,18 +1,17 @@
-import { useState } from "react";
-import { Calendar } from "primereact/calendar";
+import { useContext } from "react";
+import { contextoSesion } from "../contexts/ProveedorSesion.jsx";
 import ColumnaSimple from "../layout/ColumnaSimple";
 
 const Inicio = () => {
-  const [date, setDate] = useState(null);
+  const { sesionIniciada } = useContext(contextoSesion);
   return (
     <>
       <ColumnaSimple>
-        <Calendar
-          value={date}
-          onChange={(e) => setDate(e.value)}
-          inline
-          showWeek
-        />
+        {sesionIniciada ? (
+          <h2>Bienvenido/a.</h2>
+        ) : (
+          <h2>Aún no ha iniciado sesión.</h2>
+        )}
       </ColumnaSimple>
     </>
   );

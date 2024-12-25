@@ -1,7 +1,9 @@
 import React from "react";
 import { Routes, Route } from "react-router";
 import Inicio from "../pages/Inicio.jsx";
-import Herramientas from "../pages/Herramientas.jsx";
+import HerramientasCiclos from "../pages/HerramientasCiclos.jsx";
+import HerramientasModulos from "../pages/HerramientasModulos.jsx";
+import HerramientasPracticas from "../pages/HerramientasPracticas.jsx";
 import AcercaDe from "../pages/AcercaDe.jsx";
 import Informes from "../pages/Informes.jsx";
 import Login from "../pages/Login.jsx";
@@ -13,7 +15,12 @@ const Rutas = () => {
     <>
       <Routes>
         <Route index element={<Inicio />} />
-        <Route path='/herramientas' element={<Herramientas />} />
+        <Route path='/herramientasciclos' element={<HerramientasCiclos />} />
+        <Route path='/herramientasmodulos' element={<HerramientasModulos />} />
+        <Route
+          path='/herramientaspracticas'
+          element={<HerramientasPracticas />}
+        />
         <Route path='/acercade' element={<AcercaDe />} />
         <Route path='/informes' element={<Informes />} />
         <Route path='/login' element={<Login />} />
