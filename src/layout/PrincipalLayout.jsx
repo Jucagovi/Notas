@@ -2,14 +2,16 @@ import React, { useContext } from "react";
 import Cabecera from "../components/grid/Cabecera.jsx";
 import PiePagina from "../components/grid/PiePagina.jsx";
 import MenuBarra from "../components/menu/MenuBarra.jsx";
-import { contextoSesion } from "../contexts/ProveedorSesion.jsx";
+import { ConfirmDialog } from "primereact/confirmdialog";
+import { contextoTostadas } from "../contexts/ProveedorTostadas.jsx";
 import { Toast } from "primereact/toast";
 
 const PrincipalLayout = ({ children }) => {
-  const { toast } = useContext(contextoSesion);
+  const { tostada } = useContext(contextoTostadas);
   return (
     <>
-      <Toast ref={toast} />
+      <Toast ref={tostada} position='bottom-right' />
+      <ConfirmDialog />
       <div className='m-4'>
         <div className='grid'>
           <div className='col p-2'>

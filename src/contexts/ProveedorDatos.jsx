@@ -35,6 +35,20 @@ const ProveedorDatos = ({ children }) => {
     }
   };
 
+  const borrarDato = async (tabla, identificador, dato) => {
+    setError(errorInicial);
+    try {
+      const { data, error } = await supabase
+        .from(tabla)
+        .delete()
+        .eq(identificador, dato[identificador]);
+
+      if (error) throw error;
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
   const lanzarError = (error) => {
     setError(error);
   };
@@ -42,6 +56,7 @@ const ProveedorDatos = ({ children }) => {
   const datosAProveer = {
     obtenerTodos,
     actualizarDato,
+    borrarDato,
     error,
     lanzarError,
   };

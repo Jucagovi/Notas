@@ -1,20 +1,10 @@
-import React, { useState, useEffect, createContext, useRef } from "react";
+import React, { useState, useEffect, createContext } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../config/config_supabase.js";
 
 const contextoSesion = createContext();
 
 const ProveedorSesion = ({ children }) => {
-  /***************************************************************
-   * TOAST
-   * En principio lo coloco en este contexto ya que afecta a toda
-   * la aplicación.
-   * Plantear si es buena idea crear un contexto para los toast.
-   *    RESPUESTA -> es buena idea. Implementar.
-   * */
-
-  const toast = useRef(null);
-
   // Objeto para el formulario de creación de usuario.
   const datosSesionInicial = {
     email: "",
@@ -190,7 +180,6 @@ const ProveedorSesion = ({ children }) => {
     cerrarSesion,
     actualizarDato,
     datosSesion,
-    toast,
   };
 
   return (
