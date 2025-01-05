@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useContext } from "react";
 import Cabecera from "../components/grid/Cabecera.jsx";
 import PiePagina from "../components/grid/PiePagina.jsx";
 import MenuBarra from "../components/menu/MenuBarra.jsx";
+import { contextoSesion } from "../contexts/ProveedorSesion.jsx";
+import { Toast } from "primereact/toast";
 
 const PrincipalLayout = ({ children }) => {
+  const { toast } = useContext(contextoSesion);
   return (
     <>
+      <Toast ref={toast} />
       <div className='m-4'>
         <div className='grid'>
           <div className='col p-2'>

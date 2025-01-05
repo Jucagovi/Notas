@@ -1,9 +1,8 @@
 import React, { useState, useRef } from "react";
 import ColumnaSimple from "../layout/ColumnaSimple";
 import supabase from "../config/config_supabase.js";
-import { Button } from "primereact/button";
 import ValorEstado from "../components/complementos/ValorEstado.jsx";
-
+import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Toast } from "primereact/toast";
