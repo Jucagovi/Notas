@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import ColumnaSimple from "../layout/ColumnaSimple";
 import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
@@ -8,28 +8,17 @@ import { confirmDialog } from "primereact/confirmdialog";
 import { contextoDatos } from "../contexts/ProveedorDatos.jsx";
 import { contextoTostadas } from "../contexts/ProveedorTostadas.jsx";
 import "./HerramientasModulos.css";
-import ValorEstado from "../components/complementos/ValorEstado";
+import { FloatLabel } from "primereact/floatlabel";
 
 const HerramientasModulos = () => {
-  const { obtenerTodos, actualizarDato, error, lanzarError, borrarDato } =
+  const { obtenerTodos, actualizarDato, error, borrarDato } =
     useContext(contextoDatos);
 
-  const { tostada, mostrarTostadaError, mostrarTostadaExito } =
+  const { mostrarTostadaError, mostrarTostadaExito } =
     useContext(contextoTostadas);
 
-  const moduloInicial = {
-    id_modulo: "",
-    nombre: "",
-    siglas: "",
-    descripcion: "",
-    id_ciclo: "",
-  };
+  /** Funciones para la gestión de la BBDD. */
   const [modulos, setModulos] = useState([]);
-  const [modulo, setModulo] = useState(moduloInicial);
-
-  /********************************************************
-   * Funciones para el tratamiento de la BBDD
-   */
 
   const actualizarModulo = async (e) => {
     let { newData, index } = e;
@@ -59,7 +48,6 @@ const HerramientasModulos = () => {
           return modulo;
         }
       });
-      // Se actualiza el estado.
       setModulos(_modulos);
       mostrarTostadaExito({
         resumen: "Datos eliminados.",
@@ -86,9 +74,8 @@ const HerramientasModulos = () => {
     });
   };
 
-  /********************************************
-   * Funciones para el DataTable
-   */
+  /** Funciones para el DataTable. */
+
   const editarModulo = (e) => {
     actualizarModulo(e);
   };
@@ -108,8 +95,6 @@ const HerramientasModulos = () => {
       <Button
         icon='pi pi-trash'
         severity='danger'
-        //rounded
-        //outlined
         text
         onClick={(e) => {
           confirmarBorrado(options.rowData);
@@ -137,7 +122,6 @@ const HerramientasModulos = () => {
     obtenerTodos("Modulos", setModulos);
   }, []);
 
-  //herramientasmodulos_contenedor
   return (
     <ColumnaSimple>
       <div className=''>
@@ -160,45 +144,64 @@ const HerramientasModulos = () => {
             header='Nombre'
             sortable
             editor={(options) => editorTexto(options)}
-            //style={{ width: "20%" }}
           ></Column>
           <Column
             field='siglas'
             header='Siglas'
-            //body={statusBodyTemplate}
             editor={(options) => editorTexto(options)}
-            //style={{ width: "20%" }}
           ></Column>
           <Column
             field='descripcion'
             header='Descripción'
-            //body={priceBodyTemplate}
             editor={(options) => editorTexto(options)}
-            //style={{ width: "20%" }}
           ></Column>
           <Column
             field='id_ciclo'
             header='Ciclo'
             sortable
-            //body={priceBodyTemplate}
             editor={(options) => editorTexto(options)}
-            //style={{ width: "20%" }}
             bodyStyle={{ textAlign: "center" }}
           ></Column>
+          <Column rowEditor={true} bodyStyle={{ textAlign: "center" }}></Column>
           <Column
-            rowEditor={true} // Revisar funcionamiento de esto.
-            //headerStyle={{ width: "10%", minWidth: "8rem" }}
-            bodyStyle={{ textAlign: "center" }}
-          ></Column>
-          <Column
-            //field='id_modulo'
             bodyStyle={{ textAlign: "center" }}
             editor={(options) => {
               return editorBorrar(options);
             }}
           ></Column>
         </DataTable>
-        <ColumnaSimple estilo=''>Columna 2</ColumnaSimple>
+        <ColumnaSimple estilo=''>
+          <div className='card gap-3'>
+            <h2>Formulario inserción de módulos.</h2>
+            <div className='p-inputgroup flex-1'>
+              <span className='p-inputgroup-addon'>
+                <i className='pi pi-user'></i>
+              </span>
+              <FloatLabel>
+                <InputText id='nombreModulo' className='p-inputtext-sm' />
+                <label htmlFor='nombreModulo'>Nombre del módulo</label>
+              </FloatLabel>
+            </div>
+            <div className='p-inputgroup flex-1'>
+              <span className='p-inputgroup-addon'>
+                <i className='pi pi-user'></i>
+              </span>
+              <InputText placeholder='Siglas del módulo' />
+            </div>
+            <div className='p-inputgroup flex-1'>
+              <span className='p-inputgroup-addon'>
+                <i className='pi pi-user'></i>
+              </span>
+              <InputText placeholder='Descripción del módulo' />
+            </div>
+            <div className='p-inputgroup flex-1'>
+              <span className='p-inputgroup-addon'>
+                <i className='pi pi-user'></i>
+              </span>
+              <InputText placeholder='Ciclo donde se imparte el módulo' />
+            </div>
+          </div>
+        </ColumnaSimple>
       </div>
     </ColumnaSimple>
   );
