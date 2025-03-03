@@ -186,19 +186,38 @@ const HerramientasModulos = () => {
               <span className='p-inputgroup-addon'>
                 <i className='pi pi-user'></i>
               </span>
-              <InputText placeholder='Siglas del módulo' />
+              <FloatLabel>
+                <InputText id='siglasModulo' placeholder='Siglas del módulo' />
+                <label htmlFor='siglasModulo'>Siglas del módulo</label>
+              </FloatLabel>
             </div>
             <div className='p-inputgroup flex-1'>
               <span className='p-inputgroup-addon'>
                 <i className='pi pi-user'></i>
               </span>
-              <InputText placeholder='Descripción del módulo' />
+              <FloatLabel>
+                <InputText
+                  id='descripcionModulo'
+                  placeholder='Descripción del módulo'
+                />
+                <label htmlFor='descripcionModulo'>
+                  Descripción del módulo
+                </label>
+              </FloatLabel>
             </div>
             <div className='p-inputgroup flex-1'>
               <span className='p-inputgroup-addon'>
                 <i className='pi pi-user'></i>
               </span>
-              <InputText placeholder='Ciclo donde se imparte el módulo' />
+              <FloatLabel>
+                <InputText
+                  id='cicloModulo'
+                  placeholder='Ciclo donde se imparte el módulo'
+                />
+                <label htmlFor='cicloModulo'>
+                  Ciclo donde se imparte el módulo
+                </label>
+              </FloatLabel>
             </div>
           </div>
         </ColumnaSimple>
