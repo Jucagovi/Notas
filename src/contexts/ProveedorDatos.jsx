@@ -5,10 +5,17 @@ const contextoDatos = createContext();
 
 const ProveedorDatos = ({ children }) => {
   /******************************************
+   * Valores de inicialización
+   * */
+
+  const moduloInicial = {};
+
+  /******************************************
    * Estados generales
    * */
   const errorInicial = "";
   const [error, setError] = useState(errorInicial);
+  const [modulo, setModulo] = useState(moduloInicial);
 
   /******************************************
    * Funciones generales
@@ -53,12 +60,15 @@ const ProveedorDatos = ({ children }) => {
     setError(error);
   };
 
+  const actualizarFormulario = () => {};
+
   const datosAProveer = {
     obtenerTodos,
     actualizarDato,
     borrarDato,
     error,
     lanzarError,
+    modulo,
   };
 
   return (

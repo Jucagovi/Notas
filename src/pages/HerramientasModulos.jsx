@@ -9,13 +9,17 @@ import { contextoDatos } from "../contexts/ProveedorDatos.jsx";
 import { contextoTostadas } from "../contexts/ProveedorTostadas.jsx";
 import "./HerramientasModulos.css";
 import { FloatLabel } from "primereact/floatlabel";
+import useEstilos from "../hooks/useEstilos.js";
 
 const HerramientasModulos = () => {
+  // Cambiar esto por hooks personalizados como el de estilo.
   const { obtenerTodos, actualizarDato, error, borrarDato } =
     useContext(contextoDatos);
 
   const { mostrarTostadaError, mostrarTostadaExito } =
     useContext(contextoTostadas);
+
+  const { iconos } = useEstilos();
 
   /** Funciones para la gestión de la BBDD. */
   const [modulos, setModulos] = useState([]);
@@ -173,51 +177,56 @@ const HerramientasModulos = () => {
         <ColumnaSimple estilo=''>
           <div className='card gap-3'>
             <h2>Formulario inserción de módulos.</h2>
-            <div className='p-inputgroup flex-1'>
+            <div className='p-inputgroup flex-1 herramientasModulos_input'>
               <span className='p-inputgroup-addon'>
-                <i className='pi pi-user'></i>
+                <i className={iconos.modulo}></i>
               </span>
               <FloatLabel>
                 <InputText id='nombreModulo' className='p-inputtext-sm' />
                 <label htmlFor='nombreModulo'>Nombre del módulo</label>
               </FloatLabel>
             </div>
-            <div className='p-inputgroup flex-1'>
+            <div className='p-inputgroup flex-1 herramientasModulos_input'>
               <span className='p-inputgroup-addon'>
-                <i className='pi pi-user'></i>
+                <i className={iconos.siglas}></i>
               </span>
               <FloatLabel>
-                <InputText id='siglasModulo' placeholder='Siglas del módulo' />
+                <InputText
+                  id='siglasModulo' /* placeholder='Siglas del módulo' */
+                />
                 <label htmlFor='siglasModulo'>Siglas del módulo</label>
               </FloatLabel>
             </div>
-            <div className='p-inputgroup flex-1'>
+            <div className='p-inputgroup flex-1 herramientasModulos_input'>
               <span className='p-inputgroup-addon'>
-                <i className='pi pi-user'></i>
+                <i className={iconos.descripcion}></i>
               </span>
               <FloatLabel>
                 <InputText
                   id='descripcionModulo'
-                  placeholder='Descripción del módulo'
+                  /* placeholder='Descripción del módulo' */
                 />
                 <label htmlFor='descripcionModulo'>
                   Descripción del módulo
                 </label>
               </FloatLabel>
             </div>
-            <div className='p-inputgroup flex-1'>
+            <div className='p-inputgroup flex-1 herramientasModulos_input'>
               <span className='p-inputgroup-addon'>
-                <i className='pi pi-user'></i>
+                <i className={iconos.ciclo}></i>
               </span>
               <FloatLabel>
                 <InputText
                   id='cicloModulo'
-                  placeholder='Ciclo donde se imparte el módulo'
+                  /* placeholder='Ciclo donde se imparte el módulo' */
                 />
                 <label htmlFor='cicloModulo'>
                   Ciclo donde se imparte el módulo
                 </label>
               </FloatLabel>
+            </div>
+            <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
+              <Button label='Crear módulo' icon={iconos.aceptar} />
             </div>
           </div>
         </ColumnaSimple>

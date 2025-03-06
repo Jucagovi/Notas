@@ -1,3 +1,7 @@
-.herramientasmodulos_contenedor {
+.herramientasModulos_contenedor {
     display: flex;
+}
+
+.herramientasModulos_input{
+    padding: 15px;
 }
