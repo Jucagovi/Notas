@@ -1,36 +1,43 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useEffect } from "react";
 import ColumnaSimple from "../layout/ColumnaSimple";
 import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { confirmDialog } from "primereact/confirmdialog";
-import { contextoDatos } from "../contexts/ProveedorDatos.jsx";
-import { contextoTostadas } from "../contexts/ProveedorTostadas.jsx";
 import "./HerramientasModulos.css";
-import { FloatLabel } from "primereact/floatlabel";
+import useDatos from "../hooks/useDatos.js";
+import useTostadas from "../hooks/useTostadas.js";
 import useEstilos from "../hooks/useEstilos.js";
+import useModales from "../hooks/useModales.js";
+import { Dialog } from "primereact/dialog";
+import FormCrearModulos from "../components/formularios/FormCrearModulos.jsx";
 
 const HerramientasModulos = () => {
-  // Cambiar esto por hooks personalizados como el de estilo.
-  const { obtenerTodos, actualizarDato, error, borrarDato } =
-    useContext(contextoDatos);
-
-  const { mostrarTostadaError, mostrarTostadaExito } =
-    useContext(contextoTostadas);
-
+  // Información necesaria para la gestión de los datos.
+  const {
+    obtenerTodos,
+    actualizarDato,
+    error,
+    borrarDato,
+    crearDato,
+    modulo,
+    modulos,
+    cambiarModulos,
+  } = useDatos();
+  const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
   const { iconos } = useEstilos();
+  const { visible, alternarModal } = useModales();
 
   /** Funciones para la gestión de la BBDD. */
-  const [modulos, setModulos] = useState([]);
-
-  const actualizarModulo = async (e) => {
-    let { newData, index } = e;
+  /** Estas funciones son diseñadas para este componente utilizando, internamente, las genéricas del contexto. */
+  const actualizarModulo = async (evento) => {
+    let { newData, index } = evento;
     await actualizarDato("Modulos", "id_modulo", newData);
     if (!error) {
       let _modulos = [...modulos];
       _modulos[index] = newData;
-      setModulos(_modulos);
+      cambiarModulos(_modulos);
       mostrarTostadaExito({
         resumen: "Datos actualizados.",
         detalle: `El módulo ${newData.nombre} se ha actualizado.`,
@@ -52,7 +59,7 @@ const HerramientasModulos = () => {
           return modulo;
         }
       });
-      setModulos(_modulos);
+      cambiarModulos(_modulos);
       mostrarTostadaExito({
         resumen: "Datos eliminados.",
         detalle: `El módulo ${datos.nombre} se ha eliminado.`,
@@ -78,8 +85,30 @@ const HerramientasModulos = () => {
     });
   };
 
-  /** Funciones para el DataTable. */
+  const crearModulo = async () => {
+    await crearDato("Modulos", modulo);
+    if (!error) {
+      /** Se vuelve a traer los datos desde el servidor ya que al crearlos
+       * no se genera un id_modulo (se crea en la BBDD) y si se añade al estado
+       * lo hace sin el identificador. Al borrar o actualizar sin recargar la
+       * página se produce un error. Si se vuelven a traer los daros tras la
+       * inserción la información es completa.
+       */
+      obtenerTodos("Modulos", cambiarModulos);
+      mostrarTostadaExito({
+        resumen: "Datos insertados.",
+        detalle: `El módulo ${modulo.nombre} se ha insertado correctamente.`,
+      });
+    } else {
+      mostrarTostadaError({
+        resumen: "Se ha producido un error en la inserción.",
+        detalle: `El módulo ${modulo.nombre} no se ha insertado.`,
+      });
+    }
+    alternarModal();
+  };
 
+  /** Funciones para el DataTable. */
   const editarModulo = (e) => {
     actualizarModulo(e);
   };
@@ -123,12 +152,20 @@ const HerramientasModulos = () => {
  */
 
   useEffect(() => {
-    obtenerTodos("Modulos", setModulos);
+    obtenerTodos("Modulos", cambiarModulos);
   }, []);
 
   return (
     <ColumnaSimple>
       <div className=''>
+        <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
+          <p>Error en todo momento -- "{error}".</p>
+          <Button
+            label='Añadir módulo'
+            icon={iconos.mas}
+            onClick={() => alternarModal()}
+          />
+        </div>
         <DataTable
           value={modulos}
           showGridlines
@@ -174,62 +211,18 @@ const HerramientasModulos = () => {
             }}
           ></Column>
         </DataTable>
-        <ColumnaSimple estilo=''>
-          <div className='card gap-3'>
-            <h2>Formulario inserción de módulos.</h2>
-            <div className='p-inputgroup flex-1 herramientasModulos_input'>
-              <span className='p-inputgroup-addon'>
-                <i className={iconos.modulo}></i>
-              </span>
-              <FloatLabel>
-                <InputText id='nombreModulo' className='p-inputtext-sm' />
-                <label htmlFor='nombreModulo'>Nombre del módulo</label>
-              </FloatLabel>
-            </div>
-            <div className='p-inputgroup flex-1 herramientasModulos_input'>
-              <span className='p-inputgroup-addon'>
-                <i className={iconos.siglas}></i>
-              </span>
-              <FloatLabel>
-                <InputText
-                  id='siglasModulo' /* placeholder='Siglas del módulo' */
-                />
-                <label htmlFor='siglasModulo'>Siglas del módulo</label>
-              </FloatLabel>
-            </div>
-            <div className='p-inputgroup flex-1 herramientasModulos_input'>
-              <span className='p-inputgroup-addon'>
-                <i className={iconos.descripcion}></i>
-              </span>
-              <FloatLabel>
-                <InputText
-                  id='descripcionModulo'
-                  /* placeholder='Descripción del módulo' */
-                />
-                <label htmlFor='descripcionModulo'>
-                  Descripción del módulo
-                </label>
-              </FloatLabel>
-            </div>
-            <div className='p-inputgroup flex-1 herramientasModulos_input'>
-              <span className='p-inputgroup-addon'>
-                <i className={iconos.ciclo}></i>
-              </span>
-              <FloatLabel>
-                <InputText
-                  id='cicloModulo'
-                  /* placeholder='Ciclo donde se imparte el módulo' */
-                />
-                <label htmlFor='cicloModulo'>
-                  Ciclo donde se imparte el módulo
-                </label>
-              </FloatLabel>
-            </div>
-            <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
-              <Button label='Crear módulo' icon={iconos.aceptar} />
-            </div>
-          </div>
-        </ColumnaSimple>
+
+        {/*  Formulario para un componente nuevo. */}
+        <Dialog
+          header='Formulario inserción de módulos'
+          visible={visible}
+          style={{ width: "50vw" }}
+          onHide={() => {
+            alternarModal();
+          }}
+        >
+          <FormCrearModulos funcion={crearModulo} />
+        </Dialog>
       </div>
     </ColumnaSimple>
   );

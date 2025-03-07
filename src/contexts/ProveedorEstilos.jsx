@@ -22,6 +22,8 @@ const ProveedorEstilos = ({ children }) => {
     aceptar: "pi pi-check",
     cancelar: "pi pi-times",
     buscar: "pi pi-search",
+    mas: "pi pi-plus-circle",
+    menos: "pi pi-minus-circle",
   };
 
   const datosAproveer = { iconos };
