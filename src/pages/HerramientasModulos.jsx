@@ -4,6 +4,7 @@ import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
 import { confirmDialog } from "primereact/confirmdialog";
 import "./HerramientasModulos.css";
 import useDatos from "../hooks/useDatos.js";
@@ -12,6 +13,7 @@ import useEstilos from "../hooks/useEstilos.js";
 import useModales from "../hooks/useModales.js";
 import { Dialog } from "primereact/dialog";
 import FormCrearModulos from "../components/formularios/FormCrearModulos.jsx";
+import ValorEstado from "../components/complementos/ValorEstado.jsx";
 
 const HerramientasModulos = () => {
   // Información necesaria para la gestión de los datos.
@@ -24,6 +26,7 @@ const HerramientasModulos = () => {
     modulo,
     modulos,
     cambiarModulos,
+    ciclos,
   } = useDatos();
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
   const { iconos } = useEstilos();
@@ -93,6 +96,7 @@ const HerramientasModulos = () => {
        * lo hace sin el identificador. Al borrar o actualizar sin recargar la
        * página se produce un error. Si se vuelven a traer los daros tras la
        * inserción la información es completa.
+       * PROPONER -> Cambiar el id de la BBDD por UUID y generarlo en local al insertar.
        */
       obtenerTodos("Modulos", cambiarModulos);
       mostrarTostadaExito({
@@ -109,6 +113,8 @@ const HerramientasModulos = () => {
   };
 
   /** Funciones para el DataTable. */
+
+  //** Función principal que se ejecuta al pulsar botón check. */
   const editarModulo = (e) => {
     actualizarModulo(e);
   };
@@ -136,6 +142,47 @@ const HerramientasModulos = () => {
     );
   };
 
+  const editorCiclos = (options) => {
+    return (
+      <Dropdown
+        // Valor de select que tiene inicialmente (al ser dibujado por el componente).
+        value={options.value.id_ciclo}
+        // Objeto de valores a mostrar en el select.
+        options={ciclos}
+        // Clave a mostrar de ese objeto.
+        optionLabel='siglas'
+        // Valor del select que devuelve a los datos del DataTable.
+        onChange={(e) => {
+          options.editorCallback(e.value.id_ciclo);
+        }}
+        placeholder='Ciclo'
+      />
+    );
+  };
+
+  const mostrarSiglasCiclos = (options) => {
+    const ciclo = ciclos.filter((c) => c.id_ciclo === options.id_ciclo);
+    return ciclo[0].siglas;
+  };
+
+  /**************************************************
+   * Funcionamiento básico del DataTable
+   *
+   * Cada uno posee un array de objetos con los datos de cada columna.
+   * Para ello se crea un evento especial con un nuevo valor: newData (e.NewData).
+   * Cada columna genera un objeto para ese array general.
+   * En cada columna se debe saber:
+   *  - field   ->  datos que se van a añadir al objeto de columna,
+   *  - headr   ->  información de la cabecera de la columna,
+   *  - body    ->  contenido de la celda en modo "listado" (si no especifica se pondrá el field)
+   *                puede ser el resulatdo de una función que devuelva cualquier componente
+   *                por ejemplo para mostrar un valor diferente al field (ver desplegable Ciclos),
+   *  - editor  ->  contenido de la celda en modo edición que también puede ser una función
+   *                estas funciones reciben un objeto con los valores de toda la fila (options)
+   *                options posee el método editorCallback() que cambia el valor de field.
+   *
+   * */
+
   /***
  * Colocar en cada DataTable la opción de exportar el listado a un CSV, PDF o EXCEL
  * 
@@ -159,7 +206,7 @@ const HerramientasModulos = () => {
     <ColumnaSimple>
       <div className=''>
         <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
-          <p>Error en todo momento -- "{error}".</p>
+          <p>ERROR -- {error}. </p>
           <Button
             label='Añadir módulo'
             icon={iconos.mas}
@@ -200,7 +247,8 @@ const HerramientasModulos = () => {
             field='id_ciclo'
             header='Ciclo'
             sortable
-            editor={(options) => editorTexto(options)}
+            editor={(options) => editorCiclos(options)}
+            body={(options) => mostrarSiglasCiclos(options)}
             bodyStyle={{ textAlign: "center" }}
           ></Column>
           <Column rowEditor={true} bodyStyle={{ textAlign: "center" }}></Column>
@@ -211,6 +259,10 @@ const HerramientasModulos = () => {
             }}
           ></Column>
         </DataTable>
+
+        <div>
+          <ValorEstado mostrar={ciclos} titulo='Ciclos' />
+        </div>
 
         {/*  Formulario para un componente nuevo. */}
         <Dialog

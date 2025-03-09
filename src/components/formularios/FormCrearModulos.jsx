@@ -1,13 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import { FloatLabel } from "primereact/floatlabel";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
+import { Dropdown } from "primereact/dropdown";
 import useEstilos from "../../hooks/useEstilos.js";
 import useDatos from "../../hooks/useDatos.js";
 
 const FormCrearModulos = ({ funcion }) => {
   const { iconos } = useEstilos();
-  const { modulo, cambiarModulo, actualizarFormulario, crearDato } = useDatos();
+  const { modulo, cambiarModulo, actualizarFormulario, ciclos } = useDatos();
+
+  //  REVISAR !!!!!!!!!!!!!!!!!!!!!!!!!
+  //  El DropDown no muestra el valor seleccionado.
+  const [siglasCiclo, setSiglasCiclo] = useState("");
+
+  const mostrarSiglasCiclos = (evento) => {
+    const ciclo = ciclos.filter((c) => c.id_ciclo === evento.target.value);
+    setSiglasCiclo(ciclo[0].siglas);
+  };
 
   return (
     <div className='card gap-3'>
@@ -65,14 +75,20 @@ const FormCrearModulos = ({ funcion }) => {
           <i className={iconos.ciclo}></i>
         </span>
         <FloatLabel>
-          <InputText
+          <Dropdown
             id='cicloModulo'
             name='id_ciclo'
-            value={modulo.id_ciclo}
+            value={siglasCiclo}
+            options={ciclos}
+            optionLabel='siglas'
             onChange={(evento) => {
+              // Cambio de value para evitar guardar el objeto entero
+              // y no tener que modificar la función actualizarFormulario.
+              evento.target.value = evento.target.value.id_ciclo;
               actualizarFormulario(evento, modulo, cambiarModulo);
+              mostrarSiglasCiclos(evento);
             }}
-            // Crear un componente Dropdown (ver Informes.jsx).
+            placeholder={siglasCiclo}
           />
           <label htmlFor='cicloModulo'>Ciclo donde se imparte el módulo</label>
         </FloatLabel>

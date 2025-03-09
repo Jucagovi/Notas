@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import supabase from "../config/config_supabase.js";
 
 const contextoDatos = createContext();
@@ -15,13 +15,15 @@ const ProveedorDatos = ({ children }) => {
     id_ciclo: "",
   };
 
+  const errorInicial = "";
+
   /*******************************************************************
    * Estados generales
    * */
-  const errorInicial = "";
   const [error, setError] = useState(errorInicial);
   const [modulo, setModulo] = useState(moduloInicial);
   const [modulos, setModulos] = useState([]);
+  const [ciclos, setCiclos] = useState([]);
 
   /*******************************************************************
    * Setters para exportar.
@@ -38,10 +40,16 @@ const ProveedorDatos = ({ children }) => {
     setModulos(dato);
   };
 
+  const cambiarCiclos = (dato) => {
+    setCiclos(dato);
+  };
+
   /*******************************************************************
    * Funciones generales
    * */
 
+  // Obtiene datos de la tabla y utiliza el setter para actualizar el estado.
+  // Todo en la misma fucnión asíncrona para evitar funciones repetitivas.
   const obtenerTodos = async (tabla, setter) => {
     setError(errorInicial);
     let { data, error } = await supabase.from(tabla).select("*");
@@ -51,7 +59,6 @@ const ProveedorDatos = ({ children }) => {
   const actualizarDato = async (tabla, identificador, dato) => {
     // Se intentan actualizar los datos.
     setError(errorInicial);
-    console.log(dato);
     try {
       const { data, error } = await supabase
         .from(tabla)
@@ -113,7 +120,14 @@ const ProveedorDatos = ({ children }) => {
     cambiarModulo,
     modulos,
     cambiarModulos,
+    ciclos,
+    cambiarCiclos,
   };
+
+  // Se obtienen los datos al cargar el contexto REVISAR.
+  useEffect(() => {
+    obtenerTodos("Ciclos", cambiarCiclos);
+  }, []);
 
   return (
     <contextoDatos.Provider value={datosAProveer}>
