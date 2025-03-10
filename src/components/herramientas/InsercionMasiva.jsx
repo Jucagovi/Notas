@@ -6,17 +6,15 @@ import ValorEstado from "../complementos/ValorEstado.jsx";
 const InsercionMasiva = () => {
   const valorInicial = "";
   const [valor, setValor] = useState(valorInicial);
-  const [claves, setClaves] = useState([]);
   const [ciclos, setCiclos] = useState({});
 
-  const transformarDatos = (tabla) => {
+  const transformarDatosFormatoEspecifico = () => {
     const lineas = valor.split("\n");
-
     const separadas = lineas.map((linea) => {
       return linea.split(";");
     });
-
-    const feo = separadas.map((valor) => {
+    //Se crea un obejto con una estructura determinada usando los valores de la primera ocurrencia (cabeceras).
+    const objetoJSON = separadas.map((valor) => {
       const objeto_temporal = {
         [separadas[0][0]]: valor[0],
         [separadas[0][1]]: valor[1],
@@ -24,27 +22,29 @@ const InsercionMasiva = () => {
       };
       return objeto_temporal;
     });
-    // Se incluye el slice para eliminar el primer elemento del array
-    // que incluye las cabeceras.
-    setCiclos(feo.slice(1));
+    // El slice quita el primer objeto que son las cabeceras.
+    setCiclos(objetoJSON.slice(1));
   };
 
-  const transformarDatos2 = (tabla) => {
+  const transformarDatos = () => {
+    // Se divide le texto en líneas (dividir por el caráter \n).
     const lineas = valor.split("\n");
-    //console.log(lineas);
+    // Cada una se separa por el caracter ; y se meten en un array bidimensional.
     const separadas = lineas.map((linea) => {
       return linea.split(";");
     });
-    setClaves(separadas);
-
-    const feo = separadas.map((valor, indice) => {
-      const objeto = separadas[0].map((val, subindice) => {
-        console.log(`${val}: ${valor[indice][subindice]}`);
+    // Por cada ocurrencia del primer array se crea un objeto y se ponen sus claves y sus valores.
+    const objetoJSON = separadas.map((valor) => {
+      let objeto = {};
+      separadas[0].map((val, subindice) => {
+        objeto = { ...objeto, [val]: valor[subindice] };
       });
       return objeto;
     });
-    console.log(feo);
+    // El slice quita el primer objeto que son las cabeceras.
+    return objetoJSON.slice(1);
   };
+
   return (
     <>
       <InputTextarea
@@ -59,10 +59,9 @@ const InsercionMasiva = () => {
         id='ciclos'
         label='Insertar ciclos'
         onClick={(evento) => {
-          transformarDatos2(evento.target);
+          setCiclos(transformarDatos(evento.target));
         }}
       ></Button>
-      <ValorEstado titulo='Claves' mostrar={claves} />
       <ValorEstado titulo='Ciclos' mostrar={ciclos} />
     </>
   );
