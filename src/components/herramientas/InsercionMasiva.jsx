@@ -2,11 +2,16 @@ import React, { useState } from "react";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Button } from "primereact/button";
 import ValorEstado from "../complementos/ValorEstado.jsx";
+import useDatos from "../../hooks/useDatos.js";
+import useTostadas from "../../hooks/useTostadas.js";
 
 const InsercionMasiva = () => {
   const valorInicial = "";
   const [valor, setValor] = useState(valorInicial);
   const [ciclos, setCiclos] = useState({});
+
+  const { insertarDato, errorGeneral } = useDatos();
+  const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
 
   const transformarDatosFormatoEspecifico = () => {
     const lineas = valor.split("\n");
@@ -45,6 +50,21 @@ const InsercionMasiva = () => {
     return objetoJSON.slice(1);
   };
 
+  const insertarDatos = async () => {
+    await insertarDato("Ciclos", ciclos);
+    if (!errorGeneral) {
+      mostrarTostadaExito({
+        resumen: "Datos insertados.",
+        detalle: `Los datos se han insertado correctamente (${ciclos.length} inserciones).`,
+      });
+    } else {
+      mostrarTostadaError({
+        resumen: "Se ha producido un error en la inserción.",
+        detalle: `Los datos no se han insertado.`,
+      });
+    }
+  };
+
   return (
     <>
       <InputTextarea
@@ -57,12 +77,19 @@ const InsercionMasiva = () => {
       />
       <Button
         id='ciclos'
-        label='Insertar ciclos'
+        label='Formatear ciclos'
         onClick={(evento) => {
           setCiclos(transformarDatos(evento.target));
         }}
       ></Button>
       <ValorEstado titulo='Ciclos' mostrar={ciclos} />
+      <Button
+        id='ciclos'
+        label='Insertar ciclos'
+        onClick={(evento) => {
+          insertarDatos();
+        }}
+      ></Button>
     </>
   );
 };

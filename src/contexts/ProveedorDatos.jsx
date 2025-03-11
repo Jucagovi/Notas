@@ -20,7 +20,7 @@ const ProveedorDatos = ({ children }) => {
   /*******************************************************************
    * Estados generales
    * */
-  const [error, setError] = useState(errorInicial);
+  const [errorGeneral, setErrorGeneral] = useState(errorInicial);
   const [modulo, setModulo] = useState(moduloInicial);
   const [modulos, setModulos] = useState([]);
   const [ciclos, setCiclos] = useState([]);
@@ -28,8 +28,8 @@ const ProveedorDatos = ({ children }) => {
   /*******************************************************************
    * Setters para exportar.
    */
-  const cambiarError = (error) => {
-    setError(error);
+  const cambiarErrorGeneral = (errorGeneral) => {
+    setErrorGeneral(errorGeneral);
   };
 
   const cambiarModulo = (dato) => {
@@ -49,51 +49,36 @@ const ProveedorDatos = ({ children }) => {
    * */
 
   // Obtiene datos de la tabla y utiliza el setter para actualizar el estado.
-  // Todo en la misma fucnión asíncrona para evitar funciones repetitivas.
+  // Todo en la misma función asíncrona para evitar repeticiones.
   const obtenerTodos = async (tabla, setter) => {
-    setError(errorInicial);
-    let { data, error } = await supabase.from(tabla).select("*");
-    error ? setError(error.message) : setter(data);
+    setErrorGeneral(errorInicial);
+    const { data, error } = await supabase.from(tabla).select("*");
+    error ? setErrorGeneral(error.message) : setter(data);
   };
 
   const actualizarDato = async (tabla, identificador, dato) => {
-    // Se intentan actualizar los datos.
-    setError(errorInicial);
-    try {
-      const { data, error } = await supabase
-        .from(tabla)
-        .update(dato)
-        .eq(identificador, dato[identificador]);
-
-      if (error) throw error;
-    } catch (error) {
-      setError(error.message);
-    }
+    setErrorGeneral(errorInicial);
+    const { data, error } = await supabase
+      .from(tabla)
+      .update(dato)
+      .eq(identificador, dato[identificador]);
+    if (error) setErrorGeneral(error.message);
   };
 
   const borrarDato = async (tabla, identificador, dato) => {
-    setError(errorInicial);
-    try {
-      const { data, error } = await supabase
-        .from(tabla)
-        .delete()
-        .eq(identificador, dato[identificador]);
-
-      if (error) throw error;
-    } catch (error) {
-      setError(error.message);
-    }
+    setErrorGeneral(errorInicial);
+    const { data, error } = await supabase
+      .from(tabla)
+      .delete()
+      .eq(identificador, dato[identificador]);
+    if (error) setErrorGeneral(error.message);
   };
 
   // Hay que hacer una función para comprobar los datos del formulario (estado).
-  const crearDato = async (tabla, dato) => {
-    setError(errorInicial);
-    try {
-      const { data, error } = await supabase.from(tabla).insert(dato);
-      if (error) throw error;
-    } catch (error) {
-      setError(error.message);
-    }
+  const insertarDato = async (tabla, dato) => {
+    setErrorGeneral(errorInicial);
+    const { data, error } = await supabase.from(tabla).insert(dato);
+    if (error) setErrorGeneral(error.message);
   };
 
   /*******************************************************************
@@ -113,9 +98,9 @@ const ProveedorDatos = ({ children }) => {
     obtenerTodos,
     actualizarDato,
     borrarDato,
-    crearDato,
-    error,
-    cambiarError,
+    insertarDato,
+    errorGeneral,
+    cambiarErrorGeneral,
     modulo,
     cambiarModulo,
     modulos,

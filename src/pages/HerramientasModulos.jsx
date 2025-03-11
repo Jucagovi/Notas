@@ -20,9 +20,9 @@ const HerramientasModulos = () => {
   const {
     obtenerTodos,
     actualizarDato,
-    error,
+    errorGeneral,
     borrarDato,
-    crearDato,
+    insertarDato,
     modulo,
     modulos,
     cambiarModulos,
@@ -37,7 +37,7 @@ const HerramientasModulos = () => {
   const actualizarModulo = async (evento) => {
     let { newData, index } = evento;
     await actualizarDato("Modulos", "id_modulo", newData);
-    if (!error) {
+    if (!errorGeneral) {
       let _modulos = [...modulos];
       _modulos[index] = newData;
       cambiarModulos(_modulos);
@@ -56,7 +56,7 @@ const HerramientasModulos = () => {
   const borrarModulo = async (datos) => {
     await borrarDato("Modulos", "id_modulo", datos);
 
-    if (!error) {
+    if (!errorGeneral) {
       const _modulos = modulos.filter((modulo) => {
         if (modulo.id_modulo !== datos["id_modulo"]) {
           return modulo;
@@ -89,8 +89,8 @@ const HerramientasModulos = () => {
   };
 
   const crearModulo = async () => {
-    await crearDato("Modulos", modulo);
-    if (!error) {
+    await insertarDato("Modulos", modulo);
+    if (!errorGeneral) {
       /** Se vuelve a traer los datos desde el servidor ya que al crearlos
        * no se genera un id_modulo (se crea en la BBDD) y si se añade al estado
        * lo hace sin el identificador. Al borrar o actualizar sin recargar la
@@ -162,6 +162,7 @@ const HerramientasModulos = () => {
 
   const mostrarSiglasCiclos = (options) => {
     const ciclo = ciclos.filter((c) => c.id_ciclo === options.id_ciclo);
+    console.log(ciclo);
     return ciclo[0].siglas;
   };
 
@@ -206,7 +207,7 @@ const HerramientasModulos = () => {
     <ColumnaSimple>
       <div className=''>
         <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
-          <p>ERROR -- {error}. </p>
+          <p>ERROR -- {errorGeneral}. </p>
           <Button
             label='Añadir módulo'
             icon={iconos.mas}
@@ -239,17 +240,17 @@ const HerramientasModulos = () => {
             editor={(options) => editorTexto(options)}
           ></Column>
           <Column
-            field='descripcion'
-            header='Descripción'
-            editor={(options) => editorTexto(options)}
-          ></Column>
-          <Column
             field='id_ciclo'
             header='Ciclo'
             sortable
             editor={(options) => editorCiclos(options)}
             body={(options) => mostrarSiglasCiclos(options)}
             bodyStyle={{ textAlign: "center" }}
+          ></Column>
+          <Column
+            field='descripcion'
+            header='Descripción'
+            editor={(options) => editorTexto(options)}
           ></Column>
           <Column rowEditor={true} bodyStyle={{ textAlign: "center" }}></Column>
           <Column
