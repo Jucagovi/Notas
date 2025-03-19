@@ -5,6 +5,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
+import { InputTextarea } from "primereact/inputtextarea";
 import { confirmDialog } from "primereact/confirmdialog";
 import "./HerramientasModulos.css";
 import useDatos from "../hooks/useDatos.js";
@@ -129,6 +130,17 @@ const HerramientasModulos = () => {
     );
   };
 
+  const editorTextoArea = (options) => {
+    return (
+      <InputTextarea
+        value={options.value}
+        onChange={(e) => options.editorCallback(e.target.value)}
+        rows={3}
+        cols={60}
+      />
+    );
+  };
+
   const editorBorrar = (options) => {
     return (
       <Button
@@ -162,8 +174,15 @@ const HerramientasModulos = () => {
 
   const mostrarSiglasCiclos = (options) => {
     const ciclo = ciclos.filter((c) => c.id_ciclo === options.id_ciclo);
-    console.log(ciclo);
     return ciclo[0].siglas;
+  };
+
+  const acortarTexto = (texto, longitud = 0) => {
+    const long = longitud === 0 ? texto.length : longitud;
+    console.log(texto.substring(0, long));
+    console.log(longitud);
+    console.log(texto.length);
+    return texto.substring(0, long);
   };
 
   /**************************************************
@@ -206,13 +225,13 @@ const HerramientasModulos = () => {
   return (
     <ColumnaSimple>
       <div className=''>
-        <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
-          <p>ERROR -- {errorGeneral}. </p>
+        <div className='p-inputgroup flex-1 herramientasModulos_input'>
           <Button
             label='Añadir módulo'
             icon={iconos.mas}
             onClick={() => alternarModal()}
           />
+          <p>ERROR -- {errorGeneral}. </p>
         </div>
         <DataTable
           value={modulos}
@@ -223,11 +242,19 @@ const HerramientasModulos = () => {
           removableSort
           editMode='row'
           dataKey='id_modulo'
+          columnResizeMode='fit'
           onRowEditComplete={(e) => {
             editarModulo(e);
           }}
           tableStyle={{ minWidth: "50rem" }}
         >
+          <Column rowEditor={true} bodyStyle={{ textAlign: "center" }}></Column>
+          <Column
+            bodyStyle={{ textAlign: "center" }}
+            editor={(options) => {
+              return editorBorrar(options);
+            }}
+          ></Column>
           <Column
             field='nombre'
             header='Nombre'
@@ -250,14 +277,7 @@ const HerramientasModulos = () => {
           <Column
             field='descripcion'
             header='Descripción'
-            editor={(options) => editorTexto(options)}
-          ></Column>
-          <Column rowEditor={true} bodyStyle={{ textAlign: "center" }}></Column>
-          <Column
-            bodyStyle={{ textAlign: "center" }}
-            editor={(options) => {
-              return editorBorrar(options);
-            }}
+            editor={(options) => editorTextoArea(options)}
           ></Column>
         </DataTable>
 
