@@ -1,19 +1,20 @@
 import React from "react";
-
+import useEstilos from "../../hooks/useEstilos";
 import { Menu } from "primereact/menu";
 
 const MenuPrincial = () => {
+  const { iconos } = useEstilos();
   const items = [
     {
       label: "Documents",
       items: [
         {
           label: "New",
-          icon: "pi pi-plus",
+          icon: iconos.mas,
         },
         {
           label: "Search",
-          icon: "pi pi-search",
+          icon: iconos.buscar,
         },
       ],
     },
@@ -22,11 +23,11 @@ const MenuPrincial = () => {
       items: [
         {
           label: "Settings",
-          icon: "pi pi-cog",
+          icon: iconos.herramiemta,
         },
         {
           label: "Logout",
-          icon: "pi pi-sign-out",
+          icon: iconos.salir,
         },
       ],
     },

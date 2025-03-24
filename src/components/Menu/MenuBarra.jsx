@@ -5,68 +5,70 @@ import { Menubar } from "primereact/menubar";
 import { Image } from "primereact/image";
 import logo from "../../assets/logo.png";
 import { contextoSesion } from "../../contexts/ProveedorSesion.jsx";
+import useEstilos from "../../hooks/useEstilos.js";
 
 const MenuBarra = () => {
   const navegar = useNavigate();
   const { sesionIniciada, cerrarSesion } = useContext(contextoSesion);
+  const { iconos } = useEstilos();
   const items = [
     {
       label: "Inicio",
-      icon: "pi pi-home",
+      icon: iconos.inicio,
       command: () => {
         navegar("/");
       },
     },
     {
       label: "Notas",
-      icon: "pi pi-server",
+      icon: iconos.nota,
       command: () => {
         navegar("/notas");
       },
     },
     {
       label: "Informes",
-      icon: "pi pi-clipboard",
+      icon: iconos.informe,
       command: () => {
         navegar("/informes");
       },
     },
     {
       label: "Herramientas",
-      icon: "pi pi-cog",
+      icon: iconos.herramienta,
       items: [
         {
           label: "Ciclos",
-          icon: "pi pi-bolt",
+          icon: iconos.ciclo,
           command: () => {
             navegar("/herramientasciclos");
           },
         },
         {
           label: "Módulos",
-          icon: "pi pi-folder-open",
+          icon: iconos.modulo,
           command: () => {
             navegar("/herramientasmodulos");
           },
         },
         {
           label: "Prácticas",
-          icon: "pi pi-pen-to-square",
+          icon: iconos.practica,
           command: () => {
             navegar("/herramientaspracticas");
           },
         },
         {
           label: "Informes",
-          icon: "pi pi-palette",
+          icon: iconos.informe,
           items: [
             {
               label: "Apollo",
-              icon: "pi pi-palette",
+              icon: iconos.informe,
             },
             {
               label: "Ultima",
-              icon: "pi pi-palette",
+              icon: iconos.informe,
             },
           ],
         },
@@ -74,7 +76,7 @@ const MenuBarra = () => {
     },
     {
       label: "Acerca de",
-      icon: "pi pi-envelope",
+      icon: iconos.sobre,
       command: () => {
         navegar("/acercade");
       },
@@ -84,7 +86,7 @@ const MenuBarra = () => {
   const itemsSinSesion = [
     {
       label: "Inicio",
-      icon: "pi pi-home",
+      icon: iconos.inicio,
       command: () => {
         navegar("/");
       },
@@ -96,7 +98,7 @@ const MenuBarra = () => {
     <div className='flex align-items-center gap-2'>
       {sesionIniciada ? (
         <Button
-          icon='pi pi-sign-out'
+          icon={iconos.salir}
           raised
           severity='secondary'
           label='Salir'
@@ -106,7 +108,7 @@ const MenuBarra = () => {
         />
       ) : (
         <Button
-          icon='pi pi-sign-in'
+          icon={iconos.entrar}
           raised
           severity='secondary'
           label='Iniciar sesión'

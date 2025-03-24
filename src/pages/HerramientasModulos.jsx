@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import ColumnaSimple from "../layout/ColumnaSimple";
 import { Button } from "primereact/button";
 import { DataTable } from "primereact/datatable";
@@ -17,6 +17,12 @@ import FormCrearModulos from "../components/formularios/FormCrearModulos.jsx";
 import ValorEstado from "../components/complementos/ValorEstado.jsx";
 
 const HerramientasModulos = () => {
+  /**
+   * Referencia que apunta al DataTable para la creación del CSV.
+   */
+
+  const dataTableRef = useRef(null);
+
   // Información necesaria para la gestión de los datos.
   const {
     obtenerTodos,
@@ -115,10 +121,16 @@ const HerramientasModulos = () => {
 
   /** Funciones para el DataTable. */
 
-  //** Función principal que se ejecuta al pulsar botón check. */
+  /***********************************************************
+   *  Función principal que se ejecuta al pulsar botón check.
+   * */
   const editarModulo = (e) => {
     actualizarModulo(e);
   };
+
+  /***********************************************************
+   *  Funciones para los modos edición del DataTable.
+   * */
 
   const editorTexto = (options) => {
     return (
@@ -172,9 +184,25 @@ const HerramientasModulos = () => {
     );
   };
 
+  /**
+   * Funciones para los body de las columnas del DataTable.
+   * */
+
   const mostrarSiglasCiclos = (options) => {
     const ciclo = ciclos.filter((c) => c.id_ciclo === options.id_ciclo);
     return ciclo[0].siglas;
+  };
+
+  const mostrarDescripcion = (valor) => {
+    return (
+      <InputTextarea
+        value={valor}
+        readOnly
+        cols={60}
+        autoResize
+        className='border-none outline-none select-none appearance-none surface-0'
+      />
+    );
   };
 
   const acortarTexto = (texto, longitud = 0) => {
@@ -183,6 +211,15 @@ const HerramientasModulos = () => {
     console.log(longitud);
     console.log(texto.length);
     return texto.substring(0, long);
+  };
+
+  /******************************************************
+   * Funciones para la exportación de ficheros.
+   *
+   */
+
+  const exportarCSV = (selectionOnly) => {
+    dataTableRef.current.exportCSV({ selectionOnly });
   };
 
   /**************************************************
@@ -203,38 +240,35 @@ const HerramientasModulos = () => {
    *
    * */
 
-  /***
- * Colocar en cada DataTable la opción de exportar el listado a un CSV, PDF o EXCEL
- * 
- * const header = (
-        <div className="flex align-items-center justify-content-end gap-2">
-            <Button type="button" icon="pi pi-file" rounded onClick={() => exportCSV(false)} data-pr-tooltip="CSV" />
-            <Button type="button" icon="pi pi-file-excel" severity="success" rounded onClick={exportExcel} data-pr-tooltip="XLS" />
-            <Button type="button" icon="pi pi-file-pdf" severity="warning" rounded onClick={exportPdf} data-pr-tooltip="PDF" />
-        </div>
-    );
-
-    https://primereact.org/datatable/#edit
- * 
- */
-
   useEffect(() => {
     obtenerTodos("Modulos", cambiarModulos);
   }, []);
 
   return (
     <ColumnaSimple>
+      <h2>
+        <i className={iconos.modulo} style={{ fontSize: "1.7rem" }}></i>{" "}
+        Mantenimiento de módulos
+      </h2>
       <div className=''>
         <div className='p-inputgroup flex-1 herramientasModulos_input'>
+          <Button
+            type='button'
+            icon={iconos.archivo}
+            onClick={() => {
+              exportarCSV(false);
+            }}
+            data-pr-tooltip='Exportar a CSV'
+          />
           <Button
             label='Añadir módulo'
             icon={iconos.mas}
             onClick={() => alternarModal()}
           />
-          <p>ERROR -- {errorGeneral}. </p>
         </div>
         <DataTable
           value={modulos}
+          ref={dataTableRef}
           showGridlines
           size='small'
           loading={false}
@@ -246,7 +280,7 @@ const HerramientasModulos = () => {
           onRowEditComplete={(e) => {
             editarModulo(e);
           }}
-          tableStyle={{ minWidth: "50rem" }}
+          tableStyle={{ maxWidth: "60rem" }}
         >
           <Column rowEditor={true} bodyStyle={{ textAlign: "center" }}></Column>
           <Column
@@ -277,13 +311,12 @@ const HerramientasModulos = () => {
           <Column
             field='descripcion'
             header='Descripción'
+            body={(options) => {
+              return mostrarDescripcion(options.descripcion);
+            }}
             editor={(options) => editorTextoArea(options)}
           ></Column>
         </DataTable>
-
-        <div>
-          <ValorEstado mostrar={ciclos} titulo='Ciclos' />
-        </div>
 
         {/*  Formulario para un componente nuevo. */}
         <Dialog
