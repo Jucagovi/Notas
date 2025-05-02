@@ -14,7 +14,6 @@ import useEstilos from "../hooks/useEstilos.js";
 import useModales from "../hooks/useModales.js";
 import { Dialog } from "primereact/dialog";
 import FormCrearModulos from "../components/formularios/FormCrearModulos.jsx";
-import ValorEstado from "../components/complementos/ValorEstado.jsx";
 
 const HerramientasModulos = () => {
   /**
@@ -36,7 +35,7 @@ const HerramientasModulos = () => {
     ciclos,
   } = useDatos();
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
-  const { iconos } = useEstilos();
+  const { iconos, exportarCSV } = useEstilos();
   const { visible, alternarModal } = useModales();
 
   /** Funciones para la gestión de la BBDD. */
@@ -205,22 +204,10 @@ const HerramientasModulos = () => {
     );
   };
 
-  const acortarTexto = (texto, longitud = 0) => {
-    const long = longitud === 0 ? texto.length : longitud;
-    console.log(texto.substring(0, long));
-    console.log(longitud);
-    console.log(texto.length);
-    return texto.substring(0, long);
-  };
-
   /******************************************************
    * Funciones para la exportación de ficheros.
    *
    */
-
-  const exportarCSV = (selectionOnly) => {
-    dataTableRef.current.exportCSV({ selectionOnly });
-  };
 
   /**************************************************
    * Funcionamiento básico del DataTable
@@ -256,9 +243,11 @@ const HerramientasModulos = () => {
             type='button'
             icon={iconos.archivo}
             onClick={() => {
-              exportarCSV(false);
+              exportarCSV(dataTableRef, false);
             }}
-            data-pr-tooltip='Exportar a CSV'
+            tooltip='Exportar a CSV'
+            tooltipOptions={{ position: "top" }}
+            raised
           />
           <Button
             label='Añadir módulo'

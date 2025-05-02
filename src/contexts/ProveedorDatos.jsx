@@ -15,6 +15,21 @@ const ProveedorDatos = ({ children }) => {
     id_ciclo: "",
   };
 
+  const cicloInicial = {
+    nombre: "",
+    siglas: "",
+    descripcion: "",
+  };
+
+  const practicaInicial = {
+    nombre: "",
+    numero: "",
+    enunciado: "",
+    descripcion: "",
+    unidad: "",
+    id_tipopractica: "",
+  };
+
   const errorInicial = "";
 
   /*******************************************************************
@@ -23,7 +38,11 @@ const ProveedorDatos = ({ children }) => {
   const [errorGeneral, setErrorGeneral] = useState(errorInicial);
   const [modulo, setModulo] = useState(moduloInicial);
   const [modulos, setModulos] = useState([]);
+  const [ciclo, setCiclo] = useState(cicloInicial);
   const [ciclos, setCiclos] = useState([]);
+  const [practica, setPractica] = useState(practicaInicial);
+  const [practicas, setPracticas] = useState([]);
+  const [tipoPracticas, setTipoPracticas] = useState([]);
 
   /*******************************************************************
    * Setters para exportar.
@@ -40,8 +59,24 @@ const ProveedorDatos = ({ children }) => {
     setModulos(dato);
   };
 
+  const cambiarCiclo = (dato) => {
+    setCiclo(dato);
+  };
+
   const cambiarCiclos = (dato) => {
     setCiclos(dato);
+  };
+
+  const cambiarPractica = (dato) => {
+    setPractica(dato);
+  };
+
+  const cambiarPracticas = (dato) => {
+    setPracticas(dato);
+  };
+
+  const cambiarTipoPracticas = (dato) => {
+    setTipoPracticas(dato);
   };
 
   /*******************************************************************
@@ -62,6 +97,8 @@ const ProveedorDatos = ({ children }) => {
       .from(tabla)
       .update(dato)
       .eq(identificador, dato[identificador]);
+    console.log(error);
+    console.log(data);
     if (error) setErrorGeneral(error.message);
   };
 
@@ -105,13 +142,24 @@ const ProveedorDatos = ({ children }) => {
     cambiarModulo,
     modulos,
     cambiarModulos,
+    ciclo,
+    cambiarCiclo,
     ciclos,
     cambiarCiclos,
+    practica,
+    cambiarPractica,
+    practicas,
+    cambiarPracticas,
+    tipoPracticas,
+    cambiarTipoPracticas,
   };
 
   // Se obtienen los datos al cargar el contexto REVISAR.
   useEffect(() => {
+    // Necesario para las herramientas de Módulo.
     obtenerTodos("Ciclos", cambiarCiclos);
+    // Necesraio para las herramientas de Prácticas.
+    obtenerTodos("TipoPracticas", cambiarTipoPracticas);
   }, []);
 
   return (

@@ -26,9 +26,28 @@ const ProveedorEstilos = ({ children }) => {
     menos: "pi pi-minus-circle",
     archivo: "pi pi-file",
     informe: "pi pi-clipboard",
+    texto: "pi pi-align-justify",
   };
 
-  const datosAproveer = { iconos };
+  const acortarTexto = (texto, longitud = 0) => {
+    const long = longitud === 0 ? texto.length : longitud;
+    console.log(texto.substring(0, long));
+    console.log(longitud);
+    console.log(texto.length);
+    return texto.substring(0, long);
+  };
+
+  /******************************************************
+   * Funciones para la exportación de ficheros.
+   *
+   */
+
+  const exportarCSV = (referencia, selectionOnly) => {
+    //dataTableRef.current.exportCSV({ selectionOnly });
+    referencia.current.exportCSV({ selectionOnly });
+  };
+
+  const datosAproveer = { iconos, acortarTexto, exportarCSV };
 
   return (
     <contextoEstilos.Provider value={datosAproveer}>
