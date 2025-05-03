@@ -30,6 +30,14 @@ const ProveedorDatos = ({ children }) => {
     id_tipopractica: "",
   };
 
+  const discenteInicial = {
+    nombre: "",
+    apellidos: "",
+    correo: "",
+    fecha_nac: "",
+    localidad: "",
+  };
+
   const errorInicial = "";
 
   /*******************************************************************
@@ -43,6 +51,8 @@ const ProveedorDatos = ({ children }) => {
   const [practica, setPractica] = useState(practicaInicial);
   const [practicas, setPracticas] = useState([]);
   const [tipoPracticas, setTipoPracticas] = useState([]);
+  const [discente, setDiscente] = useState(discenteInicial);
+  const [discentes, setDiscentes] = useState([]);
 
   /*******************************************************************
    * Setters para exportar.
@@ -77,6 +87,14 @@ const ProveedorDatos = ({ children }) => {
 
   const cambiarTipoPracticas = (dato) => {
     setTipoPracticas(dato);
+  };
+
+  const cambiarDiscente = (dato) => {
+    setDiscente(dato);
+  };
+
+  const cambiarDiscentes = (dato) => {
+    setDiscentes(dato);
   };
 
   /*******************************************************************
@@ -152,14 +170,21 @@ const ProveedorDatos = ({ children }) => {
     cambiarPracticas,
     tipoPracticas,
     cambiarTipoPracticas,
+    discente,
+    cambiarDiscente,
+    discentes,
+    cambiarDiscentes,
   };
 
-  // Se obtienen los datos al cargar el contexto REVISAR.
+  /**
+   * Se obtienen los datos al cargar el contexto.
+   * De esta forma se evita cargar los datos en cada carga del componente.
+   * */
   useEffect(() => {
-    // Necesario para las herramientas de Módulo.
     obtenerTodos("Ciclos", cambiarCiclos);
-    // Necesraio para las herramientas de Prácticas.
     obtenerTodos("TipoPracticas", cambiarTipoPracticas);
+    obtenerTodos("Discentes", cambiarDiscentes);
+    obtenerTodos("Modulos", cambiarModulos);
   }, []);
 
   return (

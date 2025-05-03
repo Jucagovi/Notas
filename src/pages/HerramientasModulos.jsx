@@ -217,7 +217,7 @@ const HerramientasModulos = () => {
    * Cada columna genera un objeto para ese array general.
    * En cada columna se debe saber:
    *  - field   ->  datos que se van a añadir al objeto de columna,
-   *  - headr   ->  información de la cabecera de la columna,
+   *  - head    ->  información de la cabecera de la columna,
    *  - body    ->  contenido de la celda en modo "listado" (si no especifica se pondrá el field)
    *                puede ser el resulatdo de una función que devuelva cualquier componente
    *                por ejemplo para mostrar un valor diferente al field (ver desplegable Ciclos),
@@ -226,10 +226,6 @@ const HerramientasModulos = () => {
    *                options posee el método editorCallback() que cambia el valor de field.
    *
    * */
-
-  useEffect(() => {
-    obtenerTodos("Modulos", cambiarModulos);
-  }, []);
 
   return (
     <ColumnaSimple>

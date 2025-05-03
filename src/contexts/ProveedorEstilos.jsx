@@ -37,6 +37,14 @@ const ProveedorEstilos = ({ children }) => {
     return texto.substring(0, long);
   };
 
+  const calcularEdad = (fechaNacimiento) => {
+    const date = new Date(fechaNacimiento);
+    const yearOfBirth = date.getFullYear();
+    const currentYear = new Date().getFullYear();
+    const age = currentYear - yearOfBirth;
+    return age;
+  };
+
   /******************************************************
    * Funciones para la exportación de ficheros.
    *
@@ -47,7 +55,7 @@ const ProveedorEstilos = ({ children }) => {
     referencia.current.exportCSV({ selectionOnly });
   };
 
-  const datosAproveer = { iconos, acortarTexto, exportarCSV };
+  const datosAproveer = { iconos, acortarTexto, exportarCSV, calcularEdad };
 
   return (
     <contextoEstilos.Provider value={datosAproveer}>

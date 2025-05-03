@@ -11,12 +11,27 @@ const MenuBarra = () => {
   const navegar = useNavigate();
   const { sesionIniciada, cerrarSesion } = useContext(contextoSesion);
   const { iconos } = useEstilos();
+  // Listado de entradas en el menú/submenú con la sesión iniciada.
   const items = [
     {
       label: "Inicio",
       icon: iconos.inicio,
       command: () => {
         navegar("/");
+      },
+    },
+    {
+      label: "Discentes",
+      icon: iconos.usuario,
+      command: () => {
+        navegar("/gestiondiscentes");
+      },
+    },
+    {
+      label: "Prácticas",
+      icon: iconos.practica,
+      command: () => {
+        navegar("/gestionpracticas");
       },
     },
     {

@@ -247,7 +247,7 @@ const HerramientasCiclos = () => {
             resizableColumns
             removableSort
             editMode='row'
-            dataKey='id_modulo'
+            dataKey='id_ciclo'
             columnResizeMode='fit'
             onRowEditComplete={(e) => {
               editarCiclo(e);

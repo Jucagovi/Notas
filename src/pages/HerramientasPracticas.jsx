@@ -278,7 +278,7 @@ const HerramientasPracticas = () => {
           resizableColumns
           removableSort
           editMode='row'
-          dataKey='id_modulo'
+          dataKey='id_practica'
           columnResizeMode='fit'
           onRowEditComplete={(e) => {
             editarPractica(e);
