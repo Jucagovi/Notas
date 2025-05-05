@@ -1,0 +1,19 @@
+create view public.listado_evaluaciones with (security_invoker = on) as
+ SELECT evalua.id_discente,
+    evalua.peso,
+    evalua.nota,
+    e.nombre AS nombre_evaluacion,
+    e.fecha_ini,
+    e.fecha_fin,
+    d.nombre AS nombre_discente,
+    d.apellidos,
+    p.numero,
+    p.nombre AS nombre_practica
+   FROM evaluan evalua,
+    "Evaluaciones" e,
+    "Discentes" d,
+    "Practicas" p
+  WHERE evalua.id_evaluacion = e.id_evaluacion AND evalua.id_discente = d.id_discente AND evalua.id_practica = p.id_practica;
+
+  
+

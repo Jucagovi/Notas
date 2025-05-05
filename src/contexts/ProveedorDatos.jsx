@@ -38,10 +38,18 @@ const ProveedorDatos = ({ children }) => {
     localidad: "",
   };
 
+  const evaluanInicial = {
+    id_evaluacion: "",
+    id_discente: "",
+    id_practica: "",
+    peso: "",
+    nota: "",
+  };
+
   const errorInicial = "";
 
   /*******************************************************************
-   * Estados generales
+   * Estados para tablas generales.
    * */
   const [errorGeneral, setErrorGeneral] = useState(errorInicial);
   const [modulo, setModulo] = useState(moduloInicial);
@@ -53,6 +61,11 @@ const ProveedorDatos = ({ children }) => {
   const [tipoPracticas, setTipoPracticas] = useState([]);
   const [discente, setDiscente] = useState(discenteInicial);
   const [discentes, setDiscentes] = useState([]);
+  const [evaluan, setEvaluan] = useState(evaluanInicial);
+
+  /*******************************************************************
+   * Estados para las consultas específicas.
+   */
 
   /*******************************************************************
    * Setters para exportar.
@@ -97,6 +110,10 @@ const ProveedorDatos = ({ children }) => {
     setDiscentes(dato);
   };
 
+  const cambiarEvaluan = (dato) => {
+    setEvaluan(dato);
+  };
+
   /*******************************************************************
    * Funciones generales
    * */
@@ -106,6 +123,25 @@ const ProveedorDatos = ({ children }) => {
   const obtenerTodos = async (tabla, setter) => {
     setErrorGeneral(errorInicial);
     const { data, error } = await supabase.from(tabla).select("*");
+    error ? setErrorGeneral(error.message) : setter(data);
+  };
+
+  /***
+   * Para parametrizar esta función un poro más, filtro es un objeto:
+   * {
+   *    columna: "nombre de la columna",
+   *    valor: "valor de la columna"
+   * }
+   * La consulta siempre de hará con un .eq en Supabase.
+   * */
+
+  const obtenerConsulta = async (tabla, setter, filtro) => {
+    setErrorGeneral(errorInicial);
+    setter(""); // Evitar actualizar datos entre cargas (efecto visual). Se slocionará cuando se haga el hook para datos con estado Loading...
+    const { data, error } = await supabase
+      .from(tabla)
+      .select("*")
+      .eq(filtro.columna, filtro.valor);
     error ? setErrorGeneral(error.message) : setter(data);
   };
 
@@ -151,6 +187,7 @@ const ProveedorDatos = ({ children }) => {
   const datosAProveer = {
     actualizarFormulario,
     obtenerTodos,
+    obtenerConsulta,
     actualizarDato,
     borrarDato,
     insertarDato,
@@ -174,6 +211,8 @@ const ProveedorDatos = ({ children }) => {
     cambiarDiscente,
     discentes,
     cambiarDiscentes,
+    evaluan,
+    cambiarEvaluan,
   };
 
   /**
