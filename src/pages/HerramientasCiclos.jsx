@@ -27,11 +27,9 @@ const HerramientasCiclos = () => {
     obtenerTodos,
     actualizarDato,
     errorGeneral,
+    cargando,
     borrarDato,
     insertarDato,
-    modulo,
-    modulos,
-    cambiarModulos,
     ciclo,
     cambiarCiclo,
     ciclos,
@@ -243,7 +241,7 @@ const HerramientasCiclos = () => {
             ref={dataTableRef}
             showGridlines
             size='small'
-            loading={false}
+            loading={cargando}
             resizableColumns
             removableSort
             editMode='row'

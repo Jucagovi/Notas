@@ -45,6 +45,14 @@ const ProveedorEstilos = ({ children }) => {
     return age;
   };
 
+  const colorNota = (nota) => {
+    if (nota == null) return "white";
+    if (nota >= 90) return "green";
+    if (nota > 55) return "white";
+    if (nota < 45) return "red";
+    return "orange";
+  };
+
   /******************************************************
    * Funciones para la exportación de ficheros.
    *
@@ -55,7 +63,13 @@ const ProveedorEstilos = ({ children }) => {
     referencia.current.exportCSV({ selectionOnly });
   };
 
-  const datosAproveer = { iconos, acortarTexto, exportarCSV, calcularEdad };
+  const datosAproveer = {
+    iconos,
+    acortarTexto,
+    exportarCSV,
+    calcularEdad,
+    colorNota,
+  };
 
   return (
     <contextoEstilos.Provider value={datosAproveer}>

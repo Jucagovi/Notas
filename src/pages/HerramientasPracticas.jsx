@@ -27,6 +27,7 @@ const HerramientasPracticas = () => {
     obtenerTodos,
     actualizarDato,
     errorGeneral,
+    cargando,
     borrarDato,
     insertarDato,
     practica,
@@ -270,7 +271,7 @@ const HerramientasPracticas = () => {
           ref={dataTableRef}
           showGridlines
           size='small'
-          loading={false}
+          loading={cargando}
           resizableColumns
           removableSort
           editMode='row'

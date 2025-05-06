@@ -27,6 +27,7 @@ const HerramientasModulos = () => {
     obtenerTodos,
     actualizarDato,
     errorGeneral,
+    cargando,
     borrarDato,
     insertarDato,
     modulo,
@@ -256,7 +257,7 @@ const HerramientasModulos = () => {
           ref={dataTableRef}
           showGridlines
           size='small'
-          loading={false}
+          loading={cargando}
           resizableColumns
           removableSort
           editMode='row'

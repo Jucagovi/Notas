@@ -51,7 +51,6 @@ const ProveedorDatos = ({ children }) => {
   /*******************************************************************
    * Estados para tablas generales.
    * */
-  const [errorGeneral, setErrorGeneral] = useState(errorInicial);
   const [modulo, setModulo] = useState(moduloInicial);
   const [modulos, setModulos] = useState([]);
   const [ciclo, setCiclo] = useState(cicloInicial);
@@ -61,7 +60,15 @@ const ProveedorDatos = ({ children }) => {
   const [tipoPracticas, setTipoPracticas] = useState([]);
   const [discente, setDiscente] = useState(discenteInicial);
   const [discentes, setDiscentes] = useState([]);
+  const [evaluaciones, setEvaluaciones] = useState([]);
   const [evaluan, setEvaluan] = useState(evaluanInicial);
+
+  /*******************************************************************
+   * Estados para la comuninación con la API.
+   */
+
+  const [errorGeneral, setErrorGeneral] = useState(errorInicial);
+  const [cargando, setCargando] = useState(false);
 
   /*******************************************************************
    * Estados para las consultas específicas.
@@ -110,6 +117,10 @@ const ProveedorDatos = ({ children }) => {
     setDiscentes(dato);
   };
 
+  const cambiarEvaluaciones = (dato) => {
+    setEvaluaciones(dato);
+  };
+
   const cambiarEvaluan = (dato) => {
     setEvaluan(dato);
   };
@@ -122,7 +133,9 @@ const ProveedorDatos = ({ children }) => {
   // Todo en la misma función asíncrona para evitar repeticiones.
   const obtenerTodos = async (tabla, setter) => {
     setErrorGeneral(errorInicial);
+    setCargando(true);
     const { data, error } = await supabase.from(tabla).select("*");
+    setCargando(false);
     error ? setErrorGeneral(error.message) : setter(data);
   };
 
@@ -193,6 +206,8 @@ const ProveedorDatos = ({ children }) => {
     insertarDato,
     errorGeneral,
     cambiarErrorGeneral,
+    cargando,
+    setCargando,
     modulo,
     cambiarModulo,
     modulos,
@@ -211,6 +226,8 @@ const ProveedorDatos = ({ children }) => {
     cambiarDiscente,
     discentes,
     cambiarDiscentes,
+    evaluaciones,
+    cambiarEvaluaciones,
     evaluan,
     cambiarEvaluan,
   };
@@ -224,6 +241,7 @@ const ProveedorDatos = ({ children }) => {
     obtenerTodos("TipoPracticas", cambiarTipoPracticas);
     obtenerTodos("Discentes", cambiarDiscentes);
     obtenerTodos("Modulos", cambiarModulos);
+    obtenerTodos("Evaluaciones", cambiarEvaluaciones);
   }, []);
 
   return (
