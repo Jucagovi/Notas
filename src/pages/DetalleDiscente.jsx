@@ -37,10 +37,15 @@ const DetalleDiscente = () => {
   const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState(null);
   const [evaluanFiltrado, setEvaluanFiltrado] = useState([]);
 
-  useEffect(() => {
+  const cargaInicialDatos = async () => {
     const filtro = { columna: "id_discente", valor: id };
     // Es mejor crear una vista con las consultas multitabla en Supabase.
-    obtenerConsulta("listado_evaluaciones", cambiarEvaluan, filtro);
+    await obtenerConsulta("listado_evaluaciones", cambiarEvaluan, filtro);
+    setEvaluanFiltrado(evaluan);
+  };
+
+  useEffect(() => {
+    cargaInicialDatos();
   }, []);
 
   return (
@@ -54,28 +59,20 @@ const DetalleDiscente = () => {
           <Dropdown
             //Estado con el valor seleccionado.
             value={evaluacionSeleccionada}
-            onChange={(e) => {
-              setEvaluacionSeleccionada(e.value);
-              const _filtrados = evaluan.filter((eva) => {
-                if (eva.id_evaluacion === e.value.id_evaluacion) {
-                  return eva;
-                }
-              });
-              setEvaluanFiltrado(_filtrados);
-            }}
+            onChange={(e) => {}}
             // Array con las opciones disponibles.
             options={evaluaciones}
             // Clave del objeto que se mostrará en el desplegable.
             optionLabel='nombre'
-            placeholder='Elige una evaluación'
+            placeholder='Elige un curso'
             className=''
           ></Dropdown>
         </div>
         <div>
           {Array.isArray(evaluanFiltrado) && evaluanFiltrado.length ? (
-            <DetalleDiscenteTablaEvaluaciones datos={evaluanFiltrado} />
+            <DetalleDiscenteTablaEvaluaciones evaluaciones={evaluanFiltrado} />
           ) : (
-            "No se ha seleccionado una evaluación."
+            "No se han encontrado datos del discente."
           )}
         </div>
       </ColumnaSimple>
