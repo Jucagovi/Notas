@@ -46,6 +46,13 @@ const ProveedorDatos = ({ children }) => {
     nota: "",
   };
 
+  const cursoInicial = {
+    centro: "",
+    nombre: "",
+    descripcion: "",
+    anyo: "",
+  };
+
   const errorInicial = "";
 
   /*******************************************************************
@@ -62,6 +69,8 @@ const ProveedorDatos = ({ children }) => {
   const [discentes, setDiscentes] = useState([]);
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [evaluan, setEvaluan] = useState(evaluanInicial);
+  const [curso, setCurso] = useState(cursoInicial);
+  const [cursos, setCursos] = useState([]);
 
   /*******************************************************************
    * Estados para la comuninación con la API.
@@ -125,6 +134,14 @@ const ProveedorDatos = ({ children }) => {
     setEvaluan(dato);
   };
 
+  const cambiarCurso = (dato) => {
+    setCurso(dato);
+  };
+
+  const cambiarCursos = (dato) => {
+    setCursos(dato);
+  };
+
   /*******************************************************************
    * Funciones generales
    * */
@@ -150,7 +167,7 @@ const ProveedorDatos = ({ children }) => {
 
   const obtenerConsulta = async (tabla, setter, filtro) => {
     setErrorGeneral(errorInicial);
-    setter(""); // Evitar actualizar datos entre cargas (efecto visual). Se slocionará cuando se haga el hook para datos con estado Loading...
+    setter(""); // Evitar actualizar datos entre cargas (efecto visual). Se solcionará cuando se haga el hook para datos con estado Loading...
     const { data, error } = await supabase
       .from(tabla)
       .select("*")
@@ -230,6 +247,10 @@ const ProveedorDatos = ({ children }) => {
     cambiarEvaluaciones,
     evaluan,
     cambiarEvaluan,
+    curso,
+    cambiarCurso,
+    cursos,
+    cambiarCursos,
   };
 
   /**

@@ -133,11 +133,9 @@ const DetalleDiscenteTablaEvaluaciones = ({ evaluaciones }) => {
           body={(options) => {
             return mostrarNombreCompleto(options);
           }}
-          sortable
         ></Column>
-        <Column sortable field='unidad' header='Unidad de Trabajo'></Column>
+        <Column field='unidad' header='Unidad de Trabajo'></Column>
         <Column
-          sortable
           field='nota'
           header='Nota'
           //style={{ color: "red" }}
@@ -145,7 +143,7 @@ const DetalleDiscenteTablaEvaluaciones = ({ evaluaciones }) => {
             return mostrarNota(options);
           }}
         ></Column>
-        <Column sortable field='peso' header='Peso'></Column>
+        <Column field='peso' header='Peso'></Column>
       </DataTable>
     </>
   );

@@ -39,9 +39,12 @@ const DetalleDiscente = () => {
 
   const cargaInicialDatos = async () => {
     const filtro = { columna: "id_discente", valor: id };
-    // Es mejor crear una vista con las consultas multitabla en Supabase.
-    await obtenerConsulta("listado_evaluaciones", cambiarEvaluan, filtro);
-    setEvaluanFiltrado(evaluan);
+    /**
+     * Es mejor crear una vista con las consultas multitabla en Supabase.
+     * Se pasa el setter de evaluanFiltrado para actualizar la tabla de detalle directamente.
+     */
+
+    await obtenerConsulta("listado_evaluaciones", setEvaluanFiltrado, filtro);
   };
 
   useEffect(() => {
@@ -53,7 +56,6 @@ const DetalleDiscente = () => {
       <ColumnaSimple>
         <h2>Ficha de detalle discente con id = {id}</h2>
       </ColumnaSimple>
-
       <ColumnaSimple>
         <div className='text-right'>
           <Dropdown
