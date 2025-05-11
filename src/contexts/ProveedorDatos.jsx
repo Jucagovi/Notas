@@ -70,6 +70,7 @@ const ProveedorDatos = ({ children }) => {
   const [evaluaciones, setEvaluaciones] = useState([]);
   const [evaluan, setEvaluan] = useState(evaluanInicial);
   const [curso, setCurso] = useState(cursoInicial);
+  const [cursoActual, setCursoActual] = useState(cursoInicial);
   const [cursos, setCursos] = useState([]);
 
   /*******************************************************************
@@ -151,7 +152,10 @@ const ProveedorDatos = ({ children }) => {
   const obtenerTodos = async (tabla, setter) => {
     setErrorGeneral(errorInicial);
     setCargando(true);
-    const { data, error } = await supabase.from(tabla).select("*");
+    const { data, error } = await supabase
+      .from(tabla)
+      .select("*")
+      .order("created_at", { ascending: true });
     setCargando(false);
     error ? setErrorGeneral(error.message) : setter(data);
   };
@@ -254,6 +258,23 @@ const ProveedorDatos = ({ children }) => {
   };
 
   /**
+   * Funciones asíncornas para la carga de la aplicación.
+   */
+
+  const cargarCursos = async () => {
+    await obtenerTodos("Cursos", cambiarCursos);
+    console.log(cursos);
+    console.log(cursos.length);
+    setCurso(cursos[cursos.length - 1]);
+  };
+
+  const cargarDiscentes = async () => {
+    await obtenerTodos("Discentes", cambiarDiscentes);
+    console.log(discentes);
+    console.log(discentes.length);
+    setCurso(discentes[discentes.length - 1]);
+  };
+  /**
    * Se obtienen los datos al cargar el contexto.
    * De esta forma se evita cargar los datos en cada carga del componente.
    * */
@@ -263,7 +284,16 @@ const ProveedorDatos = ({ children }) => {
     obtenerTodos("Discentes", cambiarDiscentes);
     obtenerTodos("Modulos", cambiarModulos);
     obtenerTodos("Evaluaciones", cambiarEvaluaciones);
+    obtenerTodos("Cursos", cambiarCursos);
   }, []);
+
+  /**
+   * Dependencias para la carga de los estados individuales iniciales.
+   */
+
+  useEffect(() => {
+    setCurso(cursos[cursos.length - 1]);
+  }, [cursos]);
 
   return (
     <contextoDatos.Provider value={datosAProveer}>
