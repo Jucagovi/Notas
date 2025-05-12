@@ -53,6 +53,23 @@ const ProveedorEstilos = ({ children }) => {
     return "orange";
   };
 
+  /*******************************************************************
+   * Función para individualizar valores en evaluaciones.
+   * Crea un nuevo (new) conjunto de datos (Set) individualizando los
+   * valores (clave) del conjunto de datos (coleccion) pasados como
+   * parametros.
+   */
+
+  const extraerUnicos = (coleccion, clave) => {
+    return [
+      ...new Set(
+        coleccion.map((item) => {
+          return item[clave];
+        })
+      ),
+    ];
+  };
+
   /******************************************************
    * Funciones para la exportación de ficheros.
    *
@@ -69,6 +86,7 @@ const ProveedorEstilos = ({ children }) => {
     exportarCSV,
     calcularEdad,
     colorNota,
+    extraerUnicos,
   };
 
   return (

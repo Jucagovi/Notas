@@ -51,7 +51,7 @@ const DetalleDiscente = () => {
      */
 
     await obtenerConsulta(
-      "listado_evaluaciones_cursos",
+      "listado_evaluaciones_ciclos",
       setListadoEvaluacionesCursos,
       filtro
     );

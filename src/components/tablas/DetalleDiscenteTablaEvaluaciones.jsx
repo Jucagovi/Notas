@@ -4,14 +4,33 @@ import { Column } from "primereact/column";
 import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "primereact/row";
 import useEstilos from "../../hooks/useEstilos.js";
+import { Accordion, AccordionTab } from "primereact/accordion";
+import { Avatar } from "primereact/avatar";
+import { Badge } from "primereact/badge";
 import ValorEstado from "../complementos/ValorEstado.jsx";
 
 const DetalleDiscenteTablaEvaluaciones = ({ evaluaciones }) => {
+  const { iconos, extraerUnicos } = useEstilos();
+
   /**
-   *
+   * Estados
+   */
+  // Para el contenido de la expansión.
+  const [contenidoExpandible, setContenidoExpandible] = useState([]);
+  // Para el listado de módulos de el curso elegido (se obtienen valores únicos).
+  const [modulosUnicos, setModulosUnicos] = useState(
+    //extraerUnicos(evaluaciones, "nombre_modulo")
+    [
+      "Desarrollo Web en Entorno Cliente",
+      "Diseño 2D y 3D",
+      "Diseño, Gestión, Producción y Publicación",
+    ]
+  );
+  const iconoModulo = `mr-2 ${iconos.modulo}`;
+
+  /*******************************************************************
    * Contenido para la expansión.
    */
-  const [contenidoExpandible, setContenidoExpandible] = useState([]);
 
   const cabeceraTablaGrupo = (options) => {
     return (
@@ -102,9 +121,83 @@ const DetalleDiscenteTablaEvaluaciones = ({ evaluaciones }) => {
     </ColumnGroup>
   );
 
+  const mostrarCabecera = (valor) => {
+    return (
+      <span className='flex align-items-center gap-2 w-full'>
+        <Avatar image={iconos.modulo} shape='circle' />
+        <span className='font-bold white-space-nowrap'>{valor}</span>
+        <Badge value='2' className='ml-auto' />
+      </span>
+    );
+  };
+
   return (
     <>
-      <DataTable
+      <Accordion>
+        {modulosUnicos.length
+          ? modulosUnicos.map((moduloUnico) => {
+              const _filtrado = evaluaciones.filter((eva) => {
+                return eva.nombre_modulo === moduloUnico;
+              });
+              return (
+                <AccordionTab
+                  header={() => {
+                    return mostrarCabecera(moduloUnico);
+                  }}
+                  leftIcon={iconoModulo}
+                >
+                  <p className='m-0'>
+                    <DataTable
+                      value={_filtrado}
+                      dataKey={_filtrado.id_practica}
+                      //showGridlines
+                      stripedRows
+                      resizableColumns
+                      removableSort
+                      editMode='row'
+                      columnResizeMode='fit'
+                      //paginator
+                      //rows={10}
+                      footerColumnGroup={pieTabla}
+                      expandableRowGroups
+                      expandedRows={contenidoExpandible}
+                      rowGroupMode='subheader'
+                      groupRowsBy='nombre_evaluacion'
+                      onRowToggle={(e) => {
+                        setContenidoExpandible(e.data);
+                      }}
+                      rowGroupHeaderTemplate={cabeceraTablaGrupo}
+                      rowGroupFooterTemplate={pieTablaGrupo}
+                    >
+                      <Column></Column>
+                      <Column
+                        field='numero'
+                        header='Nombre de la práctica'
+                        body={(options) => {
+                          return mostrarNombreCompleto(options);
+                        }}
+                      ></Column>
+                      <Column
+                        field='unidad'
+                        header='Unidad de Trabajo'
+                      ></Column>
+                      <Column
+                        field='nota'
+                        header='Nota'
+                        //style={{ color: "red" }}
+                        body={(options) => {
+                          return mostrarNota(options);
+                        }}
+                      ></Column>
+                      <Column field='peso' header='Peso'></Column>
+                    </DataTable>
+                  </p>
+                </AccordionTab>
+              );
+            })
+          : "No se han encontrado módulos."}
+      </Accordion>
+      {/* <DataTable
         value={evaluaciones}
         dataKey={evaluaciones.id_practica}
         //showGridlines
@@ -144,7 +237,7 @@ const DetalleDiscenteTablaEvaluaciones = ({ evaluaciones }) => {
           }}
         ></Column>
         <Column field='peso' header='Peso'></Column>
-      </DataTable>
+      </DataTable> */}
     </>
   );
 };
