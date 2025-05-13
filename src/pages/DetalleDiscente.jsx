@@ -16,7 +16,7 @@ import useModales from "../hooks/useModales.js";
 import { Dialog } from "primereact/dialog";
 import FormCrearPractica from "../components/formularios/FormCrearPractica.jsx";
 import ValorEstado from "../components/complementos/ValorEstado.jsx";
-import DetalleDiscenteTablaEvaluaciones from "../components/tablas/DetalleDiscenteTablaEvaluaciones.jsx";
+import DetalleDiscenteEvaluaciones from "../components/DetalleDiscenteEvaluaciones.jsx";
 
 const DetalleDiscente = () => {
   const { id } = useParams();
@@ -100,11 +100,9 @@ const DetalleDiscente = () => {
         <ColumnaSimple>
           <div>
             {Array.isArray(listadoFiltrado) && listadoFiltrado.length ? (
-              <DetalleDiscenteTablaEvaluaciones
-                evaluaciones={listadoFiltrado}
-              />
+              <DetalleDiscenteEvaluaciones evaluaciones={listadoFiltrado} />
             ) : (
-              "No se han encontrado datos del discente."
+              "No se han encontrado datos del/la discente."
             )}
           </div>
         </ColumnaSimple>

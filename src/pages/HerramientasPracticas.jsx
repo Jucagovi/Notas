@@ -200,7 +200,8 @@ const HerramientasPracticas = () => {
     const tipo = tipoPracticas.filter(
       (c) => c.id_tipopractica === options.id_tipopractica
     );
-    return tipo[0].nombre;
+    //return tipo[0].nombre;
+    return "Ninguno";
   };
 
   const mostrarDescripcion = (valor) => {

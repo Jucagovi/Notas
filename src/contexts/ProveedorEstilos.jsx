@@ -27,6 +27,9 @@ const ProveedorEstilos = ({ children }) => {
     archivo: "pi pi-file",
     informe: "pi pi-clipboard",
     texto: "pi pi-align-justify",
+    editar: "pi pi-file-edit",
+    curso: "pi pi-book",
+    insercion: "pi pi-file-arrow-up",
   };
 
   const acortarTexto = (texto, longitud = 0) => {

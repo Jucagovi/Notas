@@ -53,24 +53,44 @@ const MenuBarra = () => {
       icon: iconos.herramienta,
       items: [
         {
-          label: "Ciclos",
-          icon: iconos.ciclo,
+          label: "Mantenimiento",
+          icon: iconos.editar,
+          items: [
+            {
+              label: "Ciclos",
+              icon: iconos.ciclo,
+              command: () => {
+                navegar("/herramientasciclos");
+              },
+            },
+            {
+              label: "Módulos",
+              icon: iconos.modulo,
+              command: () => {
+                navegar("/herramientasmodulos");
+              },
+            },
+            {
+              label: "Prácticas",
+              icon: iconos.practica,
+              command: () => {
+                navegar("/herramientaspracticas");
+              },
+            },
+          ],
+        },
+        {
+          label: "Crear curso",
+          icon: iconos.curso,
           command: () => {
-            navegar("/herramientasciclos");
+            navegar("/creacioncurso");
           },
         },
         {
-          label: "Módulos",
-          icon: iconos.modulo,
+          label: "Inserción datos",
+          icon: iconos.insercion,
           command: () => {
-            navegar("/herramientasmodulos");
-          },
-        },
-        {
-          label: "Prácticas",
-          icon: iconos.practica,
-          command: () => {
-            navegar("/herramientaspracticas");
+            navegar("/inserciondatos");
           },
         },
         {
