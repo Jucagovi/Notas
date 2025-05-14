@@ -30,6 +30,7 @@ const ProveedorEstilos = ({ children }) => {
     editar: "pi pi-file-edit",
     curso: "pi pi-book",
     insercion: "pi pi-file-arrow-up",
+    centro: "pi pi-building-columns",
   };
 
   const acortarTexto = (texto, longitud = 0) => {
