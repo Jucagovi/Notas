@@ -1,0 +1,35 @@
+nombre,apellidos,correo,fecha_nac,localidad,id_discente,imagen,created_at
+"Pablo ",Ruiz Muñoz,cfernandez@example.com,2001-12-10,Elda,03f98759-f7c1-43da-b061-58e2f7c12c1e,,2025-05-12 15:16:02.558789+00
+Nuria,Vera Díaz,jperez@example.com,2003-02-20,Aspe,05f24207-4bb9-4943-8a14-523139d26a11,,2025-05-12 15:16:02.558789+00
+"Miguel ",Hernández Monllor,mlopez@example.com,2002-06-15,Petrer,109837f4-f954-4e01-9b33-4016ee36aa6c,,2025-05-12 15:16:02.558789+00
+Ana,González Ruiz,agonzalez@example.com,2001-12-10,Novelda,187d730d-9fa3-40db-bdd0-e2bc5848effd,,2025-05-10 08:23:58.551275+00
+Francisco,Murillo Pérez,lramirez@example.com,2003-07-22,Petrer,1f3b1f48-aff7-4dfb-8b12-a4639bf3ddf1,,2025-05-12 15:16:02.558789+00
+Alexis,Maíquez Murcia,jperez@example.com,2003-02-20,Aspe,2203157e-0148-4ee9-8f87-f68cc81f1058,,2025-05-12 15:16:02.558789+00
+Juan,Pérez Martínez,jperez@example.com,2003-02-20,Petrer,2284f4c8-c81d-4e9a-adec-53a08cd5c307,,2025-05-10 08:23:58.551275+00
+Pedro,Martín Del Olmo Cuenca,lramirez@example.com,2003-02-20,Petrer,2b60b5e8-31c5-4395-a982-993e6b1a9329,,2025-05-12 15:16:02.558789+00
+Isaac Julián,Pavón Ruiz,agonzalez@example.com,2001-12-10,Petrer,30243064-9913-4722-8f8c-e1836e08819c,,2025-05-12 15:16:02.558789+00
+María José,Grau Vidal,cfernandez@example.com,2002-03-05,Aspe,352a5fd1-bac6-43eb-a8e7-53f24d9d04c2,,2025-05-12 15:16:02.558789+00
+"Iván ",Garrido Mora,jperez@example.com,2003-02-20,Aspe,433c9c9f-3db8-4314-8f99-c9e141233718,,2025-05-12 15:16:02.558789+00
+Kingsley Shyne,Mattis Sogorb,mlopez@example.com,2002-06-15,Novelda,4526735b-936a-4425-bbfc-f1c135467d7e,,2025-05-12 15:16:02.558789+00
+Feo,Muy Feo,jperez@example.com,2002-06-15,Aspe,46245dea-f574-4e85-b00b-51537eee5d5d,,2025-05-12 15:16:02.558789+00
+Juan Manuel,Blanco Araujo,lramirez@example.com,2003-07-22,Petrer,58879483-8572-4d66-a0e1-9c334d8e9b6e,,2025-05-12 15:16:02.558789+00
+Héctor,Valenzuela García,mlopez@example.com,2002-06-15,Novelda,5dd63601-d47d-4e53-8223-f2126876c8c0,,2025-05-12 15:16:02.558789+00
+Carlos,Fernández Soto,cfernandez@example.com,2002-03-05,Aspe,61459399-ff3e-4c65-ac3f-990a02378022,,2025-05-10 08:23:58.551275+00
+Aarón,Carpena Rodríguez,agonzalez@example.com,2001-12-10,Novelda,65b50401-bfdc-4b80-bf4c-f038817cb71a,,2025-05-12 15:16:02.558789+00
+Carlos,Villaescusa Martínez,jperez@example.com,2003-02-20,Petrer,65f6e800-af07-447a-a92a-27ea5f6ac33d,,2025-05-12 15:16:02.558789+00
+Tomás,Soler Linares,agonzalez@example.com,2003-07-22,Petrer,67791e51-bebc-4a96-ac91-c34d1ae49ae3,,2025-05-12 15:16:02.558789+00
+Ian,Miguel Soler,mlopez@example.com,2002-06-15,Petrer,771943e9-3614-47d3-bc1a-e6bdb675ddc8,,2025-05-12 15:16:02.558789+00
+Jessica Alexandra,López Franco,agonzalez@example.com,2001-12-10,Novelda,799756dc-bd28-4ad0-b9e5-604ca2c619c0,,2025-05-12 15:16:02.558789+00
+Nathália Cristina,Michalowski Rosa,lramirez@example.com,2003-07-22,Elda,7cf1cfca-7699-420a-baaf-8d952d4ee98c,,2025-05-12 15:16:02.558789+00
+Pol,Aran Serrano,mlopez@example.com,2002-03-05,Novelda,81138c09-2ce6-47ef-a950-ccb6bb9e9dfd,,2025-05-12 15:16:02.558789+00
+Miguel Ángel,Grimal López,lramirez@example.com,2003-07-22,Elda,865ad2cc-fb3c-47b1-8ff8-a02f3c449853,,2025-05-12 15:16:02.558789+00
+Manuel,Martínez Santos,cfernandez@example.com,2002-03-05,Aspe,9d3bc0b6-288b-4dd7-ae30-0f44875f647e,,2025-05-12 15:16:02.558789+00
+"Pablo ",Espinosa Mira,jperez@example.com,2003-02-20,Petrer,9fdc796f-d217-48fa-9e43-9dc87dac827d,,2025-05-12 15:16:02.558789+00
+Jose Luis,Morillo González,cfernandez@example.com,2002-03-05,Elda,b96059e0-3b46-4f2d-84e0-4564202400ff,,2025-05-12 15:16:02.558789+00
+"Luis ",Gutiérrez García,agonzalez@example.com,2001-12-10,Petrer,bc5552ac-9079-4760-88e8-ff48c6462401,,2025-05-12 15:16:02.558789+00
+Laura,Ramírez Torres,lramirez@example.com,2003-07-22,Elda,bed3e57a-9aff-4025-8177-aeb842762706,,2025-05-10 08:23:58.551275+00
+María,López García,mlopez@example.com,2002-06-15,Petrer,c168177d-04c3-4fcb-8d62-9239391e9933,,2025-05-10 08:23:58.551275+00
+Alberto,López Gil,jperez@example.com,2003-02-20,Petrer,c55fc30c-b6b4-43b1-87a7-ea6b77adc8b6,,2025-05-12 15:16:02.558789+00
+Eduardo,De La Cotera Martínez,cfernandez@example.com,2002-03-05,Elda,ccdb9b8e-c8b8-4ba2-b176-61405c2912c9,,2025-05-12 15:16:02.558789+00
+Adrián,Pareja Morote,agonzalez@example.com,2001-12-10,Novelda,e50e69df-421b-41a0-89d9-f3491ec99af8,,2025-05-12 15:16:02.558789+00
+Adrián,Iborra Poveda,agonzalez@example.com,2001-12-10,Petrer,f114a27d-5f48-456f-a915-32226f319a35,,2025-05-12 15:16:02.558789+00

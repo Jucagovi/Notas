@@ -57,6 +57,13 @@ const MenuBarra = () => {
           icon: iconos.editar,
           items: [
             {
+              label: "Cursos",
+              icon: iconos.curso,
+              command: () => {
+                navegar("/herramientascursos");
+              },
+            },
+            {
               label: "Ciclos",
               icon: iconos.ciclo,
               command: () => {
@@ -80,7 +87,7 @@ const MenuBarra = () => {
           ],
         },
         {
-          label: "Crear curso",
+          label: "Crear clase",
           icon: iconos.curso,
           command: () => {
             navegar("/creacioncurso");

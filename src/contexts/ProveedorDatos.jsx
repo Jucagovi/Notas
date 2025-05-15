@@ -185,8 +185,6 @@ const ProveedorDatos = ({ children }) => {
       .from(tabla)
       .update(dato)
       .eq(identificador, dato[identificador]);
-    console.log(error);
-    console.log(data);
     if (error) setErrorGeneral(error.message);
   };
 

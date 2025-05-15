@@ -5,6 +5,7 @@ import HerramientasCiclos from "../pages/HerramientasCiclos.jsx";
 import HerramientasModulos from "../pages/HerramientasModulos.jsx";
 import HerramientasPracticas from "../pages/HerramientasPracticas.jsx";
 import HerramientasDiscentes from "../pages/HerramientasDiscentes.jsx";
+import HerramientasCursos from "../pages/HerramientasCursos.jsx";
 import AcercaDe from "../pages/AcercaDe.jsx";
 import Informes from "../pages/Informes.jsx";
 import Login from "../pages/Login.jsx";
@@ -21,13 +22,14 @@ const Rutas = () => {
     <>
       <Routes>
         <Route index element={<Inicio />} />
+        <Route path='/herramientascursos' element={<HerramientasCursos />} />
         <Route path='/herramientasciclos' element={<HerramientasCiclos />} />
         <Route path='/herramientasmodulos' element={<HerramientasModulos />} />
-        <Route path='/gestiondiscentes' element={<GestionDiscentes />} />
         <Route
           path='/herramientaspracticas'
           element={<HerramientasPracticas />}
         />
+        <Route path='/gestiondiscentes' element={<GestionDiscentes />} />
         <Route path='/gestionpracticas' element={<GestionPracticas />} />
         <Route path='/detallediscente/:id' element={<DetalleDiscente />} />
         <Route path='/creacioncurso' element={<CreacionCurso />} />

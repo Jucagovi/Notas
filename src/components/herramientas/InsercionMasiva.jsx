@@ -1,14 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { InputTextarea } from "primereact/inputtextarea";
 import { Button } from "primereact/button";
 import ValorEstado from "../complementos/ValorEstado.jsx";
 import useDatos from "../../hooks/useDatos.js";
 import useTostadas from "../../hooks/useTostadas.js";
+import { Dropdown } from "primereact/dropdown";
+import ColumnaSimple from "../../layout/ColumnaSimple.jsx";
 
-const InsercionMasiva = () => {
+const InsercionMasiva = ({ insercion, tabla }) => {
   const valorInicial = "";
+  const tablasDesplegable = [
+    "Ciclos",
+    "Cursos",
+    "Discentes",
+    "Evaluaciones",
+    "Modulos",
+    "Practicas",
+    "evalua",
+    "imparte",
+    "disponen",
+  ];
   const [valor, setValor] = useState(valorInicial);
-  const [ciclos, setCiclos] = useState({});
+  const [filas, setFilas] = useState({});
+  const [tablaInsercion, setTablaInsercion] = useState(tabla);
+  const [tablaDesplegable, setTablaDesplegable] = useState(tablasDesplegable);
 
   const { insertarDato, errorGeneral } = useDatos();
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
@@ -28,7 +43,7 @@ const InsercionMasiva = () => {
       return objeto_temporal;
     });
     // El slice quita el primer objeto que son las cabeceras.
-    setCiclos(objetoJSON.slice(1));
+    setFilas(objetoJSON.slice(1));
   };
 
   const transformarDatos = () => {
@@ -51,11 +66,11 @@ const InsercionMasiva = () => {
   };
 
   const insertarDatos = async () => {
-    await insertarDato("Ciclos", ciclos);
+    await insertarDato(tablaInsercion, filas);
     if (!errorGeneral) {
       mostrarTostadaExito({
         resumen: "Datos insertados.",
-        detalle: `Los datos se han insertado correctamente (${ciclos.length} inserciones).`,
+        detalle: `Los datos se han insertado correctamente (${filas.length} inserciones).`,
       });
     } else {
       mostrarTostadaError({
@@ -65,31 +80,58 @@ const InsercionMasiva = () => {
     }
   };
 
+  /**
+   * Revisar diseño para no utilizar <br> <-- es muy cutre.
+   */
+
   return (
     <>
-      <InputTextarea
-        autoResize
-        placeholder='Introduce aquí el texto a formatear'
-        value={valor}
-        onChange={(e) => setValor(e.target.value)}
-        rows={10}
-        cols={60}
-      />
-      <Button
-        id='ciclos'
-        label='Formatear ciclos'
-        onClick={(evento) => {
-          setCiclos(transformarDatos(evento.target));
-        }}
-      ></Button>
-      <ValorEstado titulo='Ciclos' mostrar={ciclos} />
-      <Button
-        id='ciclos'
-        label='Insertar ciclos'
-        onClick={(evento) => {
-          insertarDatos();
-        }}
-      ></Button>
+      <div className=''>
+        <InputTextarea
+          className='m-2 flex-grow-0'
+          //autoResize
+          placeholder='Introduce aquí los datos a insertar en formato CSV.'
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+          rows={10}
+          cols={60}
+        />
+        {!tabla && (
+          <>
+            <br />
+            <Dropdown
+              value={tablaInsercion}
+              onChange={(e) => setTablaInsercion(e.value)}
+              options={tablaDesplegable}
+              //optionLabel='name'
+              placeholder='Elige una tabla donde realizar la inserción'
+              className='w-full md:w-30rem m-2'
+            />
+          </>
+        )}
+        {insercion && (
+          <>
+            <br />
+            <Button
+              id='formatoDatos'
+              className='m-2 md:w-20rem'
+              label='Formatear datos'
+              onClick={(evento) => {
+                setFilas(transformarDatos(evento.target));
+              }}
+            ></Button>
+            <br />
+            <Button
+              id='insercionDatos'
+              className='m-2 md:w-20rem'
+              label={`Insertar datos en ${tabla}`}
+              onClick={(evento) => {
+                insertarDatos();
+              }}
+            ></Button>
+          </>
+        )}
+      </div>
     </>
   );
 };

@@ -13,9 +13,9 @@ import useTostadas from "../hooks/useTostadas.js";
 import useEstilos from "../hooks/useEstilos.js";
 import useModales from "../hooks/useModales.js";
 import { Dialog } from "primereact/dialog";
-import FormCrearCiclo from "../components/formularios/FormCrearCiclo.jsx";
+import FormCrearCurso from "../components/formularios/FormCrearCurso.jsx";
 
-const HerramientasCiclos = () => {
+const HerramientasCursos = () => {
   /**
    * Referencia que apunta al DataTable para la creación del CSV.
    */
@@ -34,6 +34,10 @@ const HerramientasCiclos = () => {
     cambiarCiclo,
     ciclos,
     cambiarCiclos,
+    cursos,
+    cambiarCursos,
+    curso,
+    cambiarCurso,
   } = useDatos();
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
   const { iconos, exportarCSV } = useEstilos();
@@ -41,50 +45,50 @@ const HerramientasCiclos = () => {
 
   /** Funciones para la gestión de la BBDD. */
   /** Estas funciones son diseñadas para este componente utilizando, internamente, las genéricas del contexto. */
-  const actualizarCiclo = async (evento) => {
+  const actualizarCurso = async (evento) => {
     let { newData, index } = evento;
-    await actualizarDato("Ciclos", "id_ciclo", newData);
+    await actualizarDato("Cursos", "id_curso", newData);
     if (!errorGeneral) {
-      let _ciclos = [...ciclos];
-      _ciclos[index] = newData;
-      cambiarCiclos(_ciclos);
+      let _cursos = [...cursos];
+      _cursos[index] = newData;
+      cambiarCiclos(_cursos);
       mostrarTostadaExito({
         resumen: "Datos actualizados.",
-        detalle: `El ciclo ${newData.nombre} se ha actualizado.`,
+        detalle: `El curso ${newData.nombre} se ha actualizado.`,
       });
     } else {
       mostrarTostadaError({
         resumen: "Hay un error en la actualización.",
-        detalle: `El ciclo ${newData.nombre} no se ha actualizado.`,
+        detalle: `El curso ${newData.nombre} no se ha actualizado.`,
       });
     }
   };
 
-  const borrarCiclo = async (datos) => {
-    await borrarDato("Ciclos", "id_ciclo", datos);
+  const borrarCurso = async (datos) => {
+    await borrarDato("Cursos", "id_curso", datos);
 
     if (!errorGeneral) {
-      const _ciclos = ciclos.filter((ciclo) => {
+      const _cursos = cursos.filter((ciclo) => {
         if (ciclo.id_ciclo !== datos["id_ciclo"]) {
           return ciclo;
         }
       });
-      cambiarCiclos(_ciclos);
+      cambiarCiclos(_cursos);
       mostrarTostadaExito({
         resumen: "Datos eliminados.",
-        detalle: `El ciclo ${datos.nombre} se ha eliminado.`,
+        detalle: `El curso ${datos.nombre} se ha eliminado.`,
       });
     } else {
       mostrarTostadaError({
         resumen: "Hay un error en el borrado.",
-        detalle: `El ciclo ${datos.nombre} no se ha eliminado.`,
+        detalle: `El curso ${datos.nombre} no se ha eliminado.`,
       });
     }
   };
 
   const confirmarBorrado = (datos) => {
     confirmDialog({
-      message: `¿Quieres borrar el ciclo ${datos.nombre}?`,
+      message: `¿Quieres borrar el curso ${datos.nombre}?`,
       header: "Confirmación de borrado",
       icon: "pi pi-info-circle",
       defaultFocus: "reject",
@@ -95,8 +99,8 @@ const HerramientasCiclos = () => {
     });
   };
 
-  const crearCiclo = async () => {
-    await insertarDato("Ciclos", ciclo);
+  const crearCurso = async () => {
+    await insertarDato("Cursos", curso);
     if (!errorGeneral) {
       /** Se vuelve a traer los datos desde el servidor ya que al crearlos
        * no se genera un id_modulo (se crea en la BBDD) y si se añade al estado
@@ -105,17 +109,17 @@ const HerramientasCiclos = () => {
        * inserción la información es completa.
        * PROPONER -> Cambiar el id de la BBDD por UUID y generarlo en local al insertar.
        */
-      obtenerTodos("Ciclos", cambiarCiclos);
+      obtenerTodos("Cursos", cambiarCursos);
       mostrarTostadaExito({
         resumen: "Datos insertados.",
-        detalle: `El ciclo ${modulo.nombre} se ha insertado correctamente.`,
+        detalle: `El curso ${modulo.nombre} se ha insertado correctamente.`,
       });
       // Se limpia el estado y, con él, el formulario.
-      cambiarCiclo({});
+      cambiarCurso({});
     } else {
       mostrarTostadaError({
         resumen: "Se ha producido un error en la inserción.",
-        detalle: `El ciclo ${modulo.nombre} no se ha insertado.`,
+        detalle: `El curso ${modulo.nombre} no se ha insertado.`,
       });
     }
     alternarModal();
@@ -126,8 +130,8 @@ const HerramientasCiclos = () => {
   /***********************************************************
    *  Función principal que se ejecuta al pulsar botón check.
    * */
-  const editarCiclo = (e) => {
-    actualizarCiclo(e);
+  const editarCurso = (e) => {
+    actualizarCurso(e);
   };
 
   /***********************************************************
@@ -207,162 +211,96 @@ const HerramientasCiclos = () => {
    *
    * */
 
-  useEffect(() => {
-    // No es necesario cargar los ciclos al inicio de este componente ya que se carga al inicio del contexto (necesario para módulos).
-    //obtenerTodos("Ciclos", cambiarCiclos);
-  }, []);
-
   return (
-    <>
-      <ColumnaSimple>
-        <h2>
-          <i className={iconos.ciclo} style={{ fontSize: "1.7rem" }}></i>{" "}
-          Mantenimiento de ciclos formativos
-        </h2>
-        <div>
-          <div className='p-inputgroup flex-1 herramientasModulos_input'>
-            <Button
-              type='button'
-              icon={iconos.archivo}
-              onClick={() => {
-                exportarCSV(dataTableRef, false);
-              }}
-              tooltip='Exportar a CSV'
-              tooltipOptions={{ position: "top" }}
-              raised
-            />
-            <Button
-              label='Añadir ciclo formativo'
-              icon={iconos.mas}
-              onClick={() => {
-                alternarModal();
-              }}
-            />
-          </div>
-          <DataTable
-            value={ciclos}
-            ref={dataTableRef}
-            showGridlines
-            size='small'
-            loading={cargando}
-            resizableColumns
-            removableSort
-            editMode='row'
-            dataKey='id_ciclo'
-            columnResizeMode='fit'
-            onRowEditComplete={(e) => {
-              editarCiclo(e);
+    <ColumnaSimple>
+      <h2>
+        <i className={iconos.curso} style={{ fontSize: "1.5rem" }}></i>{" "}
+        Mantenimiento de cursos
+      </h2>
+      <div>
+        <div className='p-inputgroup flex-1 herramientasModulos_input'>
+          <Button
+            type='button'
+            icon={iconos.archivo}
+            onClick={() => {
+              exportarCSV(dataTableRef, false);
             }}
-            tableStyle={{ maxWidth: "60rem" }}
-          >
-            <Column
-              rowEditor={true}
-              bodyStyle={{ textAlign: "center" }}
-            ></Column>
-            <Column
-              bodyStyle={{ textAlign: "center" }}
-              editor={(options) => {
-                return editorBorrar(options);
-              }}
-            ></Column>
-            <Column
-              field='nombre'
-              header='Nombre'
-              sortable
-              editor={(options) => editorTexto(options, true)}
-            ></Column>
-            <Column
-              field='siglas'
-              header='Siglas'
-              editor={(options) => editorTexto(options, false)}
-            ></Column>
-            <Column
-              field='descripcion'
-              header='Descripción'
-              body={(options) => {
-                return mostrarDescripcion(options.descripcion);
-              }}
-              editor={(options) => editorTextoArea(options)}
-            ></Column>
-          </DataTable>
-
-          {/*  Formulario para un componente nuevo. */}
-          <Dialog
-            header='Formulario inserción de módulos'
-            visible={visible}
-            style={{ width: "50vw" }}
-            onHide={() => {
+            tooltip='Exportar a CSV'
+            tooltipOptions={{ position: "top" }}
+            raised
+          />
+          <Button
+            label='Añadir curso'
+            icon={iconos.mas}
+            onClick={() => {
               alternarModal();
             }}
-          >
-            <FormCrearCiclo funcion={crearCiclo} />
-          </Dialog>
+          />
         </div>
-      </ColumnaSimple>
-    </>
+        <DataTable
+          value={cursos}
+          ref={dataTableRef}
+          showGridlines
+          size='small'
+          loading={cargando}
+          resizableColumns
+          removableSort
+          editMode='row'
+          dataKey='id_curso'
+          columnResizeMode='fit'
+          onRowEditComplete={(e) => {
+            editarCurso(e);
+          }}
+          tableStyle={{ maxWidth: "60rem" }}
+        >
+          <Column rowEditor={true} bodyStyle={{ textAlign: "center" }}></Column>
+          <Column
+            bodyStyle={{ textAlign: "center" }}
+            editor={(options) => {
+              return editorBorrar(options);
+            }}
+          ></Column>
+          <Column
+            field='nombre'
+            header='Nombre'
+            sortable
+            editor={(options) => editorTexto(options, true)}
+          ></Column>
+          <Column
+            field='centro'
+            header='Centro formativo'
+            editor={(options) => editorTexto(options, true)}
+          ></Column>
+          <Column
+            sortable
+            field='anyo'
+            header='Año de inicio'
+            editor={(options) => editorTexto(options, false)}
+          ></Column>
+          <Column
+            field='descripcion'
+            header='Descripción'
+            body={(options) => {
+              return mostrarDescripcion(options.descripcion);
+            }}
+            editor={(options) => editorTextoArea(options)}
+          ></Column>
+        </DataTable>
+
+        {/*  Formulario para un componente nuevo. */}
+        <Dialog
+          header='Formulario inserción de módulos'
+          visible={visible}
+          style={{ width: "50vw" }}
+          onHide={() => {
+            alternarModal();
+          }}
+        >
+          <FormCrearCurso funcion={crearCurso} />
+        </Dialog>
+      </div>
+    </ColumnaSimple>
   );
 };
 
-export default HerramientasCiclos;
-
-{
-  /*
-  
-   const obtenerDiscentes = async () => {
-    let { data, error } = await supabase.from("Discentes").select("*");
-
-    error ? console.log(error) : setDiscentes(data);
-  };
-
-  const seleccionFila = (evento) => {
-    toast.current.show({
-      severity: "info",
-      summary: "Discente seleccionado",
-      detail: `${evento?.data.nombre} ${evento?.data.apellidos}`,
-      life: 3000,
-    });
-  };
-
-  const deseleccionFila = (evento) => {
-    toast.current.show({
-      severity: "warn",
-      summary: "Discente deseleccionado",
-      detail: `${evento.data.nombre} ${evento.data.apellidos}`,
-      life: 3000,
-    });
-  };
-  
-  <Button
-          onClick={() => {
-            obtenerDiscentes();
-          }}
-        >
-          Obtener discentes
-        </Button>
-        <ValorEstado estadoaMostrar={discenteSeleccionado} />
-        <DataTable
-          value={discentes}
-          showGridlines
-          removableSort
-          tableStyle={{ minWidth: "50rem" }}
-          selectionMode='single'
-          selection={discenteSeleccionado}
-          onRowSelect={(e) => {
-            seleccionFila(e);
-          }}
-          onRowUnselect={(e) => {
-            deseleccionFila(e);
-          }}
-          onSelectionChange={(e) => {
-            setDiscenteSeleccionsado(e.value);
-            //console.log(e);
-          }}
-        >
-          <Column field='id_discente' sortable header='Código'></Column>
-          <Column field='nombre' sortable header='Nombre'></Column>
-          <Column field='apellidos' sortable header='Apellidos'></Column>
-          <Column field='correo' header='Correo electrónico'></Column>
-          <Column field='fecha_nac' header='Nacimiento'></Column>
-        </DataTable>
-        <ValorEstado estadoaMostrar={discentes} /> */
-}
+export default HerramientasCursos;

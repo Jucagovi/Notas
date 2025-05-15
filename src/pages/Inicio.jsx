@@ -13,7 +13,6 @@ const Inicio = () => {
         ) : (
           <h2>Aún no ha iniciado sesión.</h2>
         )}
-        <InsercionMasiva />
       </ColumnaSimple>
     </>
   );

@@ -1,0 +1,23 @@
+created_at,nombre,numero,enunciado,descripcion,id_tipopractica,unidad,id_practica,id_modulo
+2025-05-12 15:31:06.171574+00,Práctica 1,1.02,HTML 5.0 rápido,Práctica introductoria,1,Unidad 1,0560b5ff-0990-46c9-8da3-721853080531,2122f6ea-9294-4e24-87cd-b2e8dbc14e1a
+2025-05-12 15:31:06.171574+00,Práctica 2,3.03,Composición con Blender,Práctica intermedia,2,Unidad 2,255af85a-79b3-4895-a3f2-666c634e6a6d,a453dc0e-5a1f-4a88-b6dd-7a0f666ab763
+2025-05-12 15:31:06.171574+00,Práctica 3,2.02,Texturas con Blender,Práctica avanzada,3,Unidad 3,2a88b755-5eac-4091-b1ea-ac98086c40cb,a453dc0e-5a1f-4a88-b6dd-7a0f666ab763
+2024-12-23 16:55:03.734992+00,Práctica 2,2.02,Diseño de una base de datos,Práctica intermedia,2,Unidad 2,34aa470d-9603-4c20-9630-18552f737374,0cacc34d-36b1-435b-b51d-318d9c55d21c
+2025-05-12 15:31:06.171574+00,Práctica 2,2.04,Media Quieries en CSS 3.0,Práctica intermedia,2,Unidad 2,36bc742f-7111-46e7-926f-650caac77f44,2122f6ea-9294-4e24-87cd-b2e8dbc14e1a
+2025-05-12 15:31:06.171574+00,Práctica 2,1.02,Primeros pasos con Blender,Práctica intermedia,2,Unidad 2,3e040224-2228-476b-ab74-1970f1613ce3,a453dc0e-5a1f-4a88-b6dd-7a0f666ab763
+2025-05-12 15:31:06.171574+00,Práctica 3,3.01,Grease Pencil con Blender,Práctica avanzada,3,Unidad 3,424de016-3e13-42dd-b6aa-3d5bca27aee4,a453dc0e-5a1f-4a88-b6dd-7a0f666ab763
+2025-05-12 15:31:06.171574+00,Práctica 2,1.01,Introducción al diseño 3D,Práctica intermedia,2,Unidad 2,46bbc8a7-08bf-47e7-874f-5d994c9c6cad,a453dc0e-5a1f-4a88-b6dd-7a0f666ab763
+2025-05-12 15:31:06.171574+00,Práctica 2,2.01,Introducción a CSS 3.0,Práctica intermedia,2,Unidad 2,4f0df88c-fa92-41fe-b8c6-5e96bda71579,2122f6ea-9294-4e24-87cd-b2e8dbc14e1a
+2024-12-23 16:55:52.895551+00,Práctica 2,2.01,Diseño de una base de datos,Práctica intermedia,2,Unidad 2,4f9fce57-1519-4a3b-a41b-9a8b03aaa350,0cacc34d-36b1-435b-b51d-318d9c55d21c
+2025-05-12 15:31:06.171574+00,Práctica 3,3.01,Introducción a la maquetación,Práctica avanzada,3,Unidad 3,6f58595c-b631-4f7e-8be1-86bd9c33a967,2122f6ea-9294-4e24-87cd-b2e8dbc14e1a
+2024-12-23 16:55:52.895551+00,Práctica 1,1.01,Resolver ejercicios básicos de programación,Práctica introductoria,1,Unidad 1,78cda6f1-29dd-439e-9581-6252226dd457,0cacc34d-36b1-435b-b51d-318d9c55d21c
+2025-05-12 15:31:06.171574+00,Práctica 2,3.02,Precedures con Blender,Práctica intermedia,2,Unidad 2,8436a151-ac7e-444a-8237-07e5ec5a10e2,a453dc0e-5a1f-4a88-b6dd-7a0f666ab763
+2025-05-12 15:31:06.171574+00,Práctica 1,1.01,Introducción al diseño de interfaces,Práctica introductoria,1,Unidad 1,85e9b6bc-f7f7-4f99-81d7-df7cb8b139f1,2122f6ea-9294-4e24-87cd-b2e8dbc14e1a
+2024-12-23 16:55:03.734992+00,Práctica 4.01,4.01,Desarrollar una página web interactiva chula,Práctica avanzada,3,Unidad 3,8c05faff-cff6-40ae-a6a9-d0f97fb3168b,0cacc34d-36b1-435b-b51d-318d9c55d21c
+2025-05-12 15:31:06.171574+00,Práctica 1,2.01,Modelado con Blender,Práctica introductoria,1,Unidad 1,8fa3542a-2225-4ba3-a5e3-1907a9553551,a453dc0e-5a1f-4a88-b6dd-7a0f666ab763
+2025-05-12 15:31:06.171574+00,Práctica 3,3.02,Maquetación avanzada,Práctica avanzada,3,Unidad 3,bc4d3f14-d969-485b-b665-374e780fc378,2122f6ea-9294-4e24-87cd-b2e8dbc14e1a
+2024-12-23 16:55:03.734992+00,Práctica 1,1.02,Resolver ejercicios básicos de programación,Práctica introductoria,1,Unidad 1,bef77cbb-4232-474b-8b8a-fa4b5ec980d1,0cacc34d-36b1-435b-b51d-318d9c55d21c
+2025-05-12 15:31:06.171574+00,Práctica 2,2.02,CSS 3.0 intermedio,Práctica intermedia,2,Unidad 2,c332d5ea-a589-480d-a839-315bd8a20522,2122f6ea-9294-4e24-87cd-b2e8dbc14e1a
+2025-05-12 15:31:06.171574+00,Práctica 2,2.03,Posicionamiento en CSS 3.0,Práctica intermedia,2,Unidad 2,c98776fe-e0fc-4292-9b33-e687a4cb5214,2122f6ea-9294-4e24-87cd-b2e8dbc14e1a
+2024-12-23 16:55:52.895551+00,Práctica 3,3.01,Desarrollar una página web interactiva,Práctica avanzada,3,Unidad 3,dab273c3-5f11-4df7-9098-5eec77503741,0cacc34d-36b1-435b-b51d-318d9c55d21c
+2025-05-12 15:31:06.171574+00,Práctica 1,2.03,Animaciones con Blender,Práctica introductoria,1,Unidad 1,f9a91ca9-f61b-47d9-95b5-4e0d4a6efc10,a453dc0e-5a1f-4a88-b6dd-7a0f666ab763

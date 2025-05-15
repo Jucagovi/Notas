@@ -6,6 +6,7 @@ import useEstilos from "../hooks/useEstilos.js";
 
 import { InputText } from "primereact/inputtext";
 import ValorEstado from "../components/complementos/ValorEstado.jsx";
+import InsercionMasiva from "../components/herramientas/InsercionMasiva.jsx";
 
 const CreacionCurso = () => {
   // Año actual para calcular los nombres del curso.
@@ -54,29 +55,29 @@ const CreacionCurso = () => {
     return [
       {
         nombre: `Primera evaluación ${anyoActual}`,
-        fecha_ini: `${anyo}-09-01`,
-        fecha_fin: `${anyo}-12-22`,
+        fecha_ini: `${anyoActual.substring(0, 4)}-09-01`,
+        fecha_fin: `${anyoActual.substring(0, 4)}-12-22`,
         descripcion: "",
         id_curso: "",
       },
       {
         nombre: `Segunda evaluación ${anyoActual}`,
-        fecha_ini: `${anyo + 1}-01-07`,
-        fecha_fin: `${anyo + 1}-03-15`,
+        fecha_ini: `${parseInt(anyoActual.substring(0, 4)) + 1}-01-07`,
+        fecha_fin: `${parseInt(anyoActual.substring(0, 4)) + 1}-03-15`,
         descripcion: "",
         id_curso: "",
       },
       {
         nombre: `Final ordinaria ${anyoActual}`,
-        fecha_ini: `${anyo + 1}-03-16`,
-        fecha_fin: `${anyo + 1}-05-30`,
+        fecha_ini: `${parseInt(anyoActual.substring(0, 4)) + 1}-03-16`,
+        fecha_fin: `${parseInt(anyoActual.substring(0, 4)) + 1}-05-30`,
         descripcion: "",
         id_curso: "",
       },
       {
         nombre: `Extraordinaria ${anyoActual}`,
-        fecha_ini: `${anyo + 1}-06-01`,
-        fecha_fin: `${anyo + 1}-06-30`,
+        fecha_ini: `${parseInt(anyoActual.substring(0, 4)) + 1}-06-01`,
+        fecha_fin: `${parseInt(anyoActual.substring(0, 4)) + 1}-06-30`,
         descripcion: "",
         id_curso: "",
       },
@@ -129,20 +130,7 @@ const CreacionCurso = () => {
                 }}
               />
             </div>
-            <div className='p-inputgroup flex-1 herramientasModulos_input'>
-              <span className='p-inputgroup-addon'>
-                <i className={iconos.curso}></i>
-              </span>
-              <InputText
-                id='nombre'
-                className='p-inputtext-sm'
-                name='nombre'
-                value={cursoTemporal.nombre || ""}
-                onChange={(evento) => {
-                  actualizarFormulario(evento, cursoTemporal, setCursoTemporal);
-                }}
-              />
-            </div>
+
             <div className='p-inputgroup flex-1 herramientasModulos_input'>
               <span className='p-inputgroup-addon'>
                 <i className={iconos.texto}></i>
@@ -159,15 +147,13 @@ const CreacionCurso = () => {
             </div>
           </ColumnaSimple>
           <ColumnaSimple>
-            <h3>Se crearán las siguientes Evaluaciones.</h3>
-          </ColumnaSimple>
-          <ColumnaSimple>
             <h3>Selecciona los módulos para este curso.</h3>
             <ColumnaSimple>
-              CheckBox con los módulos agrupados por cilos
+              DropBox agrupado con los módulos agrupados por ciclos
             </ColumnaSimple>
             <ColumnaSimple>
               <h3>Selecciona discentes para cada módulo.</h3>
+              <InsercionMasiva tabla={"Discentes"} insercion={false} />
               <ColumnaSimple>
                 NUEVOS -- Una pestaña por módulo con un textArea para colocar un
                 CSV con los discentes que serán creados.
