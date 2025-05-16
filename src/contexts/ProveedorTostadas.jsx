@@ -4,7 +4,7 @@ const contextoTostadas = createContext();
 
 const ProveedorTostadas = ({ children }) => {
   const tostada = useRef(null);
-  const duracionTostada = 3000;
+  const duracionTostada = 5000;
 
   const mostrarTostadaInfo = ({ resumen, detalle }) => {
     tostada.current.show({

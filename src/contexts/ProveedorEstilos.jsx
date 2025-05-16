@@ -32,6 +32,7 @@ const ProveedorEstilos = ({ children }) => {
     insercion: "pi pi-file-arrow-up",
     centro: "pi pi-building-columns",
     calendario: "pi pi-calendar-clock",
+    evaluacion: "pi pi-list-check",
   };
 
   const acortarTexto = (texto, longitud = 0) => {

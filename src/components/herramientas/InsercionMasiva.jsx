@@ -25,7 +25,7 @@ const InsercionMasiva = ({ insercion, tabla }) => {
   const [tablaInsercion, setTablaInsercion] = useState(tabla);
   const [tablaDesplegable, setTablaDesplegable] = useState(tablasDesplegable);
 
-  const { insertarDato, errorGeneral } = useDatos();
+  const { insertarDato, errorGeneral, cambiarErrorGeneral } = useDatos();
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
 
   const transformarDatosFormatoEspecifico = () => {
@@ -51,7 +51,7 @@ const InsercionMasiva = ({ insercion, tabla }) => {
     const lineas = valor.split("\n");
     // Cada una se separa por el caracter ; y se meten en un array bidimensional.
     const separadas = lineas.map((linea) => {
-      return linea.split(";");
+      return linea.split(",");
     });
     // Por cada ocurrencia del primer array se crea un objeto y se ponen sus claves y sus valores.
     const objetoJSON = separadas.map((valor) => {
