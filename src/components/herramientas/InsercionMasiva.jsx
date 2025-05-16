@@ -82,55 +82,62 @@ const InsercionMasiva = ({ insercion, tabla }) => {
 
   /**
    * Revisar diseño para no utilizar <br> <-- es muy cutre.
+   * Separarlo en dos columnas para mostrar el resultado del formateo del JSON.
+   * Si hay contenido en el JSON formateado, se muestra el botón Insertar,
+   * inicialmente sólo aparece el de Formatear datos.
    */
 
   return (
     <>
-      <div className=''>
-        <InputTextarea
-          className='m-2 flex-grow-0'
-          //autoResize
-          placeholder='Introduce aquí los datos a insertar en formato CSV.'
-          value={valor}
-          onChange={(e) => setValor(e.target.value)}
-          rows={10}
-          cols={60}
-        />
-        {!tabla && (
-          <>
-            <br />
+      <div className='flex '>
+        <ColumnaSimple estilo='flex-1 align-items-center justify-content-center font-bold m-1 border-round'>
+          <InputTextarea
+            className='m-1'
+            //autoResize
+            placeholder='Introduce aquí los datos a insertar en formato CSV.'
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            rows={10}
+            cols={60}
+          />
+          <Button
+            id='formatoDatos'
+            className='m-1 md:w-20rem'
+            label='Formatear datos'
+            onClick={(evento) => {
+              setFilas(transformarDatos(evento.target));
+            }}
+          ></Button>
+        </ColumnaSimple>
+        <ColumnaSimple estilo='flex-1 align-items-center justify-content-center font-bold m-1 border-round'>
+          <ColumnaSimple>
             <Dropdown
               value={tablaInsercion}
               onChange={(e) => setTablaInsercion(e.value)}
               options={tablaDesplegable}
               //optionLabel='name'
-              placeholder='Elige una tabla donde realizar la inserción'
-              className='w-full md:w-30rem m-2'
+              placeholder='Elige una tabla'
+              className='w-full md:w-20rem m-1'
             />
-          </>
-        )}
-        {insercion && (
-          <>
-            <br />
-            <Button
-              id='formatoDatos'
-              className='m-2 md:w-20rem'
-              label='Formatear datos'
-              onClick={(evento) => {
-                setFilas(transformarDatos(evento.target));
-              }}
-            ></Button>
-            <br />
-            <Button
-              id='insercionDatos'
-              className='m-2 md:w-20rem'
-              label={`Insertar datos en ${tabla}`}
-              onClick={(evento) => {
-                insertarDatos();
-              }}
-            ></Button>
-          </>
-        )}
+            {tablaInsercion && (
+              <Button
+                id='insercionDatos'
+                className='m-1 md:w-15rem'
+                label={`Insertar datos`}
+                onClick={(evento) => {
+                  insertarDatos();
+                }}
+              ></Button>
+            )}
+          </ColumnaSimple>
+          <ColumnaSimple>
+            {filas.length ? (
+              <ValorEstado mostrar={filas} titulo='Texto en formato JSON' />
+            ) : (
+              "No se ha formateado el texto todavía."
+            )}
+          </ColumnaSimple>
+        </ColumnaSimple>
       </div>
     </>
   );

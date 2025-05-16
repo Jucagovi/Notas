@@ -20,7 +20,7 @@ const FormCrearModulos = ({ funcion }) => {
   };
 
   return (
-    <div className='card gap-3'>
+    <div className='card gap-3 m-1'>
       <div className='p-inputgroup flex-1 herramientasModulos_input'>
         <span className='p-inputgroup-addon'>
           <i className={iconos.modulo}></i>

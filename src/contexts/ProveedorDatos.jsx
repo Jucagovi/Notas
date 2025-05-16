@@ -149,13 +149,14 @@ const ProveedorDatos = ({ children }) => {
 
   // Obtiene datos de la tabla y utiliza el setter para actualizar el estado.
   // Todo en la misma función asíncrona para evitar repeticiones.
-  const obtenerTodos = async (tabla, setter) => {
+  const obtenerTodos = async (tabla, setter, orden) => {
     setErrorGeneral(errorInicial);
     setCargando(true);
+    const ordenarPor = orden ? orden : "created_at";
     const { data, error } = await supabase
       .from(tabla)
       .select("*")
-      .order("created_at", { ascending: true });
+      .order(ordenarPor, { ascending: true });
     setCargando(false);
     error ? setErrorGeneral(error.message) : setter(data);
   };
@@ -223,6 +224,8 @@ const ProveedorDatos = ({ children }) => {
     actualizarDato,
     borrarDato,
     insertarDato,
+    cursoInicial,
+    moduloInicial,
     errorGeneral,
     cambiarErrorGeneral,
     cargando,
@@ -253,6 +256,7 @@ const ProveedorDatos = ({ children }) => {
     cambiarCurso,
     cursos,
     cambiarCursos,
+    cursoActual,
   };
 
   /**
@@ -287,10 +291,12 @@ const ProveedorDatos = ({ children }) => {
 
   /**
    * Dependencias para la carga de los estados individuales iniciales.
+   * Revisar si es necesario cargar el curso actual ya que el asistente
+   * de creación de curso ya no es completo.
    */
 
   useEffect(() => {
-    setCurso(cursos[cursos.length - 1]);
+    setCursoActual(cursos[cursos.length - 1]);
   }, [cursos]);
 
   return (

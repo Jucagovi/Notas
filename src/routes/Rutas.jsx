@@ -14,7 +14,7 @@ import Error from "../pages/Error.jsx";
 import GestionDiscentes from "../pages/GestionDiscentes.jsx";
 import GestionPracticas from "../pages/GestionPracticas.jsx";
 import DetalleDiscente from "../pages/DetalleDiscente.jsx";
-import CreacionCurso from "../pages/CreacionCurso.jsx";
+import CreacionClase from "../pages/CreacionClase.jsx";
 import InsercionDatosMasivos from "../pages/InsercionDatosMasivos.jsx";
 
 const Rutas = () => {
@@ -32,7 +32,7 @@ const Rutas = () => {
         <Route path='/gestiondiscentes' element={<GestionDiscentes />} />
         <Route path='/gestionpracticas' element={<GestionPracticas />} />
         <Route path='/detallediscente/:id' element={<DetalleDiscente />} />
-        <Route path='/creacioncurso' element={<CreacionCurso />} />
+        <Route path='/creacionclase' element={<CreacionClase />} />
         <Route path='/inserciondatos' element={<InsercionDatosMasivos />} />
         <Route path='/acercade' element={<AcercaDe />} />
         <Route path='/informes' element={<Informes />} />

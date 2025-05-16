@@ -288,7 +288,7 @@ const HerramientasCiclos = () => {
 
           {/*  Formulario para un componente nuevo. */}
           <Dialog
-            header='Formulario inserción de módulos'
+            header='Formulario inserción de ciclos'
             visible={visible}
             style={{ width: "50vw" }}
             onHide={() => {

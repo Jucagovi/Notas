@@ -51,7 +51,7 @@ const HerramientasCursos = () => {
     if (!errorGeneral) {
       let _cursos = [...cursos];
       _cursos[index] = newData;
-      cambiarCiclos(_cursos);
+      cambiarCursos(_cursos);
       mostrarTostadaExito({
         resumen: "Datos actualizados.",
         detalle: `El curso ${newData.nombre} se ha actualizado.`,
@@ -68,12 +68,12 @@ const HerramientasCursos = () => {
     await borrarDato("Cursos", "id_curso", datos);
 
     if (!errorGeneral) {
-      const _cursos = cursos.filter((ciclo) => {
-        if (ciclo.id_ciclo !== datos["id_ciclo"]) {
-          return ciclo;
+      const _cursos = cursos.filter((curso) => {
+        if (curso.id_curso !== datos["id_curso"]) {
+          return curso;
         }
       });
-      cambiarCiclos(_cursos);
+      cambiarCursos(_cursos);
       mostrarTostadaExito({
         resumen: "Datos eliminados.",
         detalle: `El curso ${datos.nombre} se ha eliminado.`,
@@ -94,7 +94,7 @@ const HerramientasCursos = () => {
       defaultFocus: "reject",
       acceptClassName: "p-button-danger",
       accept: () => {
-        borrarCiclo(datos);
+        borrarCurso(datos);
       },
     });
   };
@@ -112,14 +112,14 @@ const HerramientasCursos = () => {
       obtenerTodos("Cursos", cambiarCursos);
       mostrarTostadaExito({
         resumen: "Datos insertados.",
-        detalle: `El curso ${modulo.nombre} se ha insertado correctamente.`,
+        detalle: `El curso ${curso.nombre} se ha insertado correctamente.`,
       });
       // Se limpia el estado y, con él, el formulario.
       cambiarCurso({});
     } else {
       mostrarTostadaError({
         resumen: "Se ha producido un error en la inserción.",
-        detalle: `El curso ${modulo.nombre} no se ha insertado.`,
+        detalle: `El curso ${curso.nombre} no se ha insertado.`,
       });
     }
     alternarModal();
@@ -289,7 +289,7 @@ const HerramientasCursos = () => {
 
         {/*  Formulario para un componente nuevo. */}
         <Dialog
-          header='Formulario inserción de módulos'
+          header='Formulario inserción de cursos'
           visible={visible}
           style={{ width: "50vw" }}
           onHide={() => {

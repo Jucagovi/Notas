@@ -90,7 +90,7 @@ const MenuBarra = () => {
           label: "Crear clase",
           icon: iconos.curso,
           command: () => {
-            navegar("/creacioncurso");
+            navegar("/creacionclase");
           },
         },
         {
