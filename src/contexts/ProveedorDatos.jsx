@@ -172,12 +172,31 @@ const ProveedorDatos = ({ children }) => {
 
   const obtenerConsulta = async (tabla, setter, filtro) => {
     setErrorGeneral(errorInicial);
+    setCargando(true);
     setter(""); // Evitar actualizar datos entre cargas (efecto visual). Se solcionará cuando se haga el hook para datos con estado Loading...
     const { data, error } = await supabase
       .from(tabla)
       .select("*")
       .eq(filtro.columna, filtro.valor);
+    setCargando(false);
     error ? setErrorGeneral(error.message) : setter(data);
+  };
+  /**
+   * Consulta parametrizada sin utilizar setter (devuelve el resultado de la consulta).
+   */
+  const obtenerConsultaReturn = async (tabla, filtro) => {
+    setErrorGeneral(errorInicial);
+    setCargando(true);
+    const { data, error } = await supabase
+      .from(tabla)
+      .select("*")
+      .eq(filtro.columna, filtro.valor);
+    setCargando(false);
+    if (error) {
+      setErrorGeneral(error.message);
+    } else {
+      return data;
+    }
   };
 
   const actualizarDato = async (tabla, identificador, dato) => {
@@ -221,6 +240,7 @@ const ProveedorDatos = ({ children }) => {
     actualizarFormulario,
     obtenerTodos,
     obtenerConsulta,
+    obtenerConsultaReturn,
     actualizarDato,
     borrarDato,
     insertarDato,
@@ -287,6 +307,7 @@ const ProveedorDatos = ({ children }) => {
     obtenerTodos("Modulos", cambiarModulos);
     obtenerTodos("Evaluaciones", cambiarEvaluaciones);
     obtenerTodos("Cursos", cambiarCursos);
+    obtenerTodos("Practicas", cambiarPracticas);
   }, []);
 
   /**

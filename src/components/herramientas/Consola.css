@@ -1,0 +1,17 @@
+.consola-principal {
+    font-family: 'Courier New', Courier, monospace;
+    height: min-content;
+    width: 99%;
+    max-width: 1300px;
+    min-height: 700px;
+    max-height: 700px;
+};
+
+.p-terminal-input{
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.consola-principal {
+
+    font-family: 'Courier New', Courier, monospace !important;
+}

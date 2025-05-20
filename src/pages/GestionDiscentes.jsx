@@ -133,7 +133,8 @@ const GestionDiscentes = () => {
           //size='small'
           loading={false}
           paginator
-          rows={10}
+          paginatorPosition='top'
+          rows={15}
           //resizableColumns
           removableSort
           dataKey='id_discente'

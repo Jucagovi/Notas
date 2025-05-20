@@ -16,6 +16,7 @@ import GestionPracticas from "../pages/GestionPracticas.jsx";
 import DetalleDiscente from "../pages/DetalleDiscente.jsx";
 import CreacionClase from "../pages/CreacionClase.jsx";
 import InsercionDatosMasivos from "../pages/InsercionDatosMasivos.jsx";
+import Consola from "../components/herramientas/Consola.jsx";
 
 const Rutas = () => {
   return (
@@ -25,6 +26,7 @@ const Rutas = () => {
         <Route path='/herramientascursos' element={<HerramientasCursos />} />
         <Route path='/herramientasciclos' element={<HerramientasCiclos />} />
         <Route path='/herramientasmodulos' element={<HerramientasModulos />} />
+        <Route path='/consola' element={<Consola />} />
         <Route
           path='/herramientaspracticas'
           element={<HerramientasPracticas />}

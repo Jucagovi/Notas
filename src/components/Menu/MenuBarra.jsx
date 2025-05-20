@@ -101,6 +101,13 @@ const MenuBarra = () => {
           },
         },
         {
+          label: "Consola",
+          icon: iconos.consola,
+          command: () => {
+            navegar("/consola");
+          },
+        },
+        {
           label: "Informes",
           icon: iconos.informe,
           items: [

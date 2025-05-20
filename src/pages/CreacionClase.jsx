@@ -415,7 +415,6 @@ const CreacionClase = () => {
           {claseNueva.discentes && (
             <CreacionClaseDiscentes datos={claseNueva.discentes} />
           )}
-          <ValorEstado mostrar={claseNueva.imparte} />
         </ColumnaSimple>
       </div>
     </>
