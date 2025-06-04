@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import supabase from "../config/config_supabase.js";
 import ColumnaSimple from "../layout/ColumnaSimple.jsx";
 import { FloatLabel } from "primereact/floatlabel";
 import { Dropdown } from "primereact/dropdown";
@@ -20,6 +21,7 @@ import CreacionClaseCurso from "../components/creacionClase/CreacionClaseCurso.j
 import CreacionClaseModulo from "../components/creacionClase/CreacionClaseModulo.jsx";
 import CreacionClaseEvaluaciones from "../components/creacionClase/CreacionClaseEvaluaciones.jsx";
 import CreacionClaseDiscentes from "../components/creacionClase/CreacionClaseDiscentes.jsx";
+import MostrarPracticas from "../components/MostrarPracticas.jsx";
 
 const GestionPracticas = () => {
   const {
@@ -35,16 +37,14 @@ const GestionPracticas = () => {
     errorGeneral,
   } = useDatos();
   const { iconos } = useEstilos();
+
+  const practicasInicial = [];
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
 
-  const [listadoPracticasPorEvaluacion, setListadoPracticasPorEvaluacion] =
-    useState([]);
   const [practicasSeleccionadas, setPracticasSeleccionadas] = useState([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState({});
   const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState({});
   const [evaluacionesFiltradas, setEvaluacionesFiltradas] = useState([]);
-  // Estado para guardar los datos en la tabla "disponen".
-  const [disponen, setDisponen] = useState([]);
 
   const [filtros, setFiltros] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -66,16 +66,49 @@ const GestionPracticas = () => {
     });
   };
 
+  /**
+   * Acción que se realiza al pulsar el botón que se ha sustituido por
+   * el evento onRowSelect del DataTable. Si se selecciona se inserta en la tabla,
+   * si se deselecciona se borra de la tabla.
+   */
   const crearDisponen = async (datos) => {
-    // Se crean los valores de "dispone".
+    // Se comprueba si datos tiene valores.
     if (datos.length) {
-      const _nuevos = datos.map((practica) => {
-        return {
-          id_practica: practica.id_practica,
-          id_evaluacion: evaluacionSeleccionada.id_evaluacion,
-        };
-      });
-      /*  await insertarDato("disponen", _nuevos);
+      /**
+       * NOTA IMPORTANTE
+       * Si en un map se coloca una función asíncrona, invariablemente se devolverá
+       * una promesa, por lo que hay que poner ese map dentro de un Promise.allSettled
+       * para que devuelva las promesas consumidas.
+       */
+      const _nuevos = await Promise.allSettled(
+        datos.map(async (dato) => {
+          // Se comprueba si existe en la BBDD.
+          const { data, error } = await supabase
+            .from("disponen")
+            .select("*")
+            .eq("id_practica", dato.id_practica)
+            .eq("id_evaluacion", evaluacionSeleccionada.id_evaluacion);
+          // Si la respuesta contiene algo es que existe el registro y no se inserta.
+          if (!data || data.length === 0) {
+            return {
+              id_practica: dato.id_practica,
+              id_evaluacion: evaluacionSeleccionada.id_evaluacion,
+            };
+          }
+        })
+      );
+      // Se crea el array de objetos a insertar.
+      const insertar = _nuevos
+        // Se filtran los objetos que tengan value (que son los que hay que insertar).
+        .filter((_nuevo) => {
+          if (_nuevo.value) return _nuevo.value;
+        })
+        // De los objetos filtardos sólo interesa el objeto value.
+        .map((unico) => {
+          return unico.value;
+        });
+      // Se insertan los datos.
+      await insertarDato("disponen", insertar);
       if (!errorGeneral) {
         mostrarTostadaExito({
           resumen: "Datos insertados.",
@@ -86,47 +119,46 @@ const GestionPracticas = () => {
           resumen: "Se ha producido un error en la inserción.",
           detalle: `Los datos de dispone no se ha insertado.`,
         });
-      } */
+      }
     }
-    // ...se insertan los imparte.
   };
 
-  // Modificar crearDisponen para hacer esto añadiendo la comprobación.
-
-  /* const verificarYInsertar = async (email, otrosDatos) => {
-    // 1. Conéctate a Supabase (ya hecho)
-
-    // 2. Realiza una consulta select()
+  const eliminarDisponen = async (options) => {
+    // Es necesario comprobar dos id. Se hace a mano.
     const { data, error } = await supabase
-      .from("users") // Reemplaza 'users' con el nombre de tu tabla
-      .select("id") // Select el ID o cualquier columna que identifique el registro
-      .eq("email", email); // Reemplaza 'email' con el nombre de tu columna de correo electrónico y 'email' con el valor del correo electrónico
-
-    // 3. Evalúa los resultados
-    if (error) {
-      console.error("Error al buscar el registro:", error);
-      return;
-    }
-
-    // 4. Insertar el registro (si no existe)
-    if (!data || data.length === 0) {
-      const { data: insertData, error: insertError } = await supabase
-        .from("users") // Reemplaza 'users' con el nombre de tu tabla
-        .insert([{ email: email, ...otrosDatos }]); // Reemplaza 'email' con el nombre de tu columna de correo electrónico y 'email' con el valor del correo electrónico. 'otrosDatos' son los demás campos que quieres insertar.
-      if (insertError) {
-        console.error("Error al insertar el registro:", insertError);
-      } else {
-        console.log("Registro insertado correctamente:", insertData);
-      }
+      .from("disponen")
+      .delete()
+      .eq("id_practica", options.data.id_practica)
+      .eq("id_evaluacion", evaluacionSeleccionada.id_evaluacion);
+    if (!error) {
+      mostrarTostadaExito({
+        resumen: "Datos eliminados.",
+        detalle: `Los datos de dispone se han eliminado correctamente.`,
+      });
     } else {
-      console.log("El registro ya existe:", data);
+      mostrarTostadaError({
+        resumen: "Se ha producido un error con el borrado.",
+        detalle: `Los datos de dispone no se ha eliminado.`,
+      });
     }
-  }; */
+  };
 
-  const eliminarDisponen = (options) => {
-    console.log(options.data);
-    // Eliminar el registro de la BBDD al desmarcar un registro del DataTable.
-    // Si falla, volverlo a poner en el estado practicasSeleccionadas.
+  const insertarDisponen = async (options) => {
+    await insertarDato("disponen", {
+      id_practica: options.data.id_practica,
+      id_evaluacion: evaluacionSeleccionada.id_evaluacion,
+    });
+    if (!errorGeneral) {
+      mostrarTostadaExito({
+        resumen: "Datos insertados.",
+        detalle: `Los datos de dispone se ha insertado correctamente.`,
+      });
+    } else {
+      mostrarTostadaError({
+        resumen: "Se ha producido un error en la inserción.",
+        detalle: `Los datos de dispone no se ha insertado.`,
+      });
+    }
   };
 
   /**
@@ -199,17 +231,6 @@ const GestionPracticas = () => {
     );
   };
 
-  const traerPracticas = async () => {
-    await obtenerConsulta(
-      "listado_practicas_disponen",
-      setListadoPracticasPorEvaluacion,
-      {
-        columna: "id_evaluacion",
-        valor: evaluacionSeleccionada.id_evaluacion,
-      }
-    );
-  };
-
   const buscarPracticas = async () => {
     // Se obtienen las prácticas de esa evaluación de la tabla "disponen".
     const datosDisponen = await obtenerConsultaReturn("disponen", {
@@ -237,8 +258,6 @@ const GestionPracticas = () => {
     setEvaluacionesFiltradas(_filtrado);
     // Se elimina la evaluación seleccionada para evita problemas.
     setEvaluacionSeleccionada({});
-    // Se eliminan los valores de "disponen" filtrados.
-    setListadoPracticasPorEvaluacion([]);
     // Se deseleccionan las prácticas seleccionadas (DataTable).
     setPracticasSeleccionadas([]);
   }, [cursoSeleccionado]);
@@ -301,7 +320,11 @@ const GestionPracticas = () => {
                 paginator
                 paginatorPosition='top'
                 rows={15}
-                value={practicas}
+                value={
+                  evaluacionSeleccionada.id_evaluacion
+                    ? practicas
+                    : practicasInicial
+                }
                 selectionMode={null}
                 selection={practicasSeleccionadas}
                 removableSort
@@ -312,7 +335,8 @@ const GestionPracticas = () => {
                 tableStyle={{ minWidth: "50rem" }}
                 header={dibujarCabeceraBusqueda}
                 onRowUnselect={eliminarDisponen}
-                emptyMessage='No hay resultados'
+                onRowSelect={insertarDisponen}
+                emptyMessage='Selecciona una evaluación para comenzar.'
               >
                 <Column
                   selectionMode='multiple'
@@ -323,36 +347,18 @@ const GestionPracticas = () => {
                 <Column field='enunciado' header='Enunciado' sortable></Column>
               </DataTable>
             </ColumnaSimple>
-            <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
+            {/* <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
               <Button
-                label='Insertar prácticas en la evaluación'
+                label='Guardar prácticas en la evaluación'
                 icon={iconos.aceptar}
                 onClick={(evento) => {
                   confirmarInsercion(practicasSeleccionadas);
                 }}
               />
-            </div>
+            </div> */}
           </ColumnaSimple>
           <ColumnaSimple estilo='flex-1 align-items-center justify-content-center m-1 px-4 py-2 border-round'>
-            <h3>Vista previa.</h3>
-            {practicasSeleccionadas.length
-              ? practicasSeleccionadas.map((seleccion) => {
-                  return `<p>${seleccion.numero} ${seleccion.nombre} ${seleccion.enunciado}</p>`;
-                })
-              : "La evaluación no contiene prácticas todavía."}
-            <ValorEstado
-              mostrar={evaluacionSeleccionada}
-              titulo='evaluacionSeleccionada'
-            />
-            <ValorEstado mostrar={disponen} titulo='disponen' />
-            <ValorEstado
-              mostrar={practicasSeleccionadas}
-              titulo='practicasSeleccionadas'
-            />
-            <ValorEstado
-              mostrar={listadoPracticasPorEvaluacion}
-              titulo='listadoPracticasPorEvaluacion'
-            />
+            <MostrarPracticas practicas={practicasSeleccionadas} />
           </ColumnaSimple>
         </div>
       </>
