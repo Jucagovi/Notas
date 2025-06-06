@@ -13,6 +13,7 @@ import Notas from "../pages/Notas.jsx";
 import Error from "../pages/Error.jsx";
 import GestionDiscentes from "../pages/GestionDiscentes.jsx";
 import GestionPracticas from "../pages/GestionPracticas.jsx";
+import GestionNotas from "../pages/GestionNotas.jsx";
 import DetalleDiscente from "../pages/DetalleDiscente.jsx";
 import CreacionClase from "../pages/CreacionClase.jsx";
 import InsercionDatosMasivos from "../pages/InsercionDatosMasivos.jsx";
@@ -33,13 +34,14 @@ const Rutas = () => {
         />
         <Route path='/gestiondiscentes' element={<GestionDiscentes />} />
         <Route path='/gestionpracticas' element={<GestionPracticas />} />
+        <Route path='/gestionnotas' element={<GestionNotas />} />
         <Route path='/detallediscente/:id' element={<DetalleDiscente />} />
         <Route path='/creacionclase' element={<CreacionClase />} />
         <Route path='/inserciondatos' element={<InsercionDatosMasivos />} />
         <Route path='/acercade' element={<AcercaDe />} />
         <Route path='/informes' element={<Informes />} />
         <Route path='/login' element={<Login />} />
-        <Route path='/notas' element={<Notas />} />
+        {/* <Route path='/notas' element={<Notas />} /> */}
         <Route path='*' element={<Error />} />
       </Routes>
     </>

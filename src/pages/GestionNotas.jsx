@@ -23,7 +23,31 @@ import CreacionClaseEvaluaciones from "../components/creacionClase/CreacionClase
 import CreacionClaseDiscentes from "../components/creacionClase/CreacionClaseDiscentes.jsx";
 import MostrarPracticas from "../components/MostrarPracticas.jsx";
 
-const GestionPracticas = () => {
+const GestionNotas = () => {
+  /**
+   * ¡¡¡REVISAR PROCEDIMIENTO DE GestionPracticas!!!
+   *
+   * Posivilidad de dividrlo en tres procesos*:
+   *  -> asignar prácticas a evaluación,
+   *  -> dotar de peso a las prácticas para esa evaluación y
+   *  -> poner notas de las prácticas a cada discente.
+   *
+   *  * se separa la asignación de prácticas a la evaluación del peso de la práctica
+   *    ya que inicialmente no sé los pesos asignados a cada práctica.
+   *    (al calcular la media en los informes de notas, si no se ha especificado peso
+   *    en todas las prácticas, será calculada como media aritmética y no ponderada).
+   *
+   * En lugar de meter los datos en "disponen" hacerlo en "evaluan".
+   * Cuando se introduzca una práctica en "disponen" se crea una entrada en "evaluan"
+   * por cada discente que pertenezca a esa evaluación (peso y nota vacíos).
+   *
+   * Después se articula una nueva zona (Notas) para introducir las notas de las prácticas.
+   * Otra nueva (Evaluación) para introducir los pesos de las prácticas.
+   * Además de la ya existente (Prácticas) para asignar prácticas a evaluaciones.
+   *
+   *
+   */
+
   const {
     actualizarFormulario,
     insertarDato,
@@ -276,7 +300,7 @@ const GestionPracticas = () => {
 
   return (
     <ColumnaSimple>
-      <h2>Gestión de las prácticas.</h2>
+      <h2>Gestión de notas.</h2>
       <>
         <div className='flex'>
           <ColumnaSimple estilo='flex-1 align-items-center justify-content-center font-bold m-1 px-4 py-2 border-round'>
@@ -363,4 +387,4 @@ const GestionPracticas = () => {
   );
 };
 
-export default GestionPracticas;
+export default GestionNotas;

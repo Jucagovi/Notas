@@ -38,7 +38,7 @@ const MenuBarra = () => {
       label: "Notas",
       icon: iconos.nota,
       command: () => {
-        navegar("/notas");
+        navegar("/gestionnotas");
       },
     },
     {

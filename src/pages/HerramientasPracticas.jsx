@@ -239,9 +239,7 @@ const HerramientasPracticas = () => {
    *
    * */
 
-  useEffect(() => {
-    obtenerTodos("Practicas", cambiarPracticas);
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <ColumnaSimple>
