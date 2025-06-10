@@ -35,6 +35,7 @@ const GestionPracticas = () => {
     cursos,
     cursoActual,
     errorGeneral,
+    cambiarErrorGeneral,
   } = useDatos();
   const { iconos } = useEstilos();
 
@@ -108,7 +109,7 @@ const GestionPracticas = () => {
           return unico.value;
         });
       // Se insertan los datos.
-      await insertarDato("disponen", insertar);
+      /* await insertarDato("disponen", insertar);
       if (!errorGeneral) {
         mostrarTostadaExito({
           resumen: "Datos insertados.",
@@ -119,14 +120,14 @@ const GestionPracticas = () => {
           resumen: "Se ha producido un error en la inserción.",
           detalle: `Los datos de dispone no se ha insertado.`,
         });
-      }
+      } */
     }
   };
 
   const eliminarDisponen = async (options) => {
     // Es necesario comprobar dos id. Se hace a mano.
     const { data, error } = await supabase
-      .from("disponen")
+      .from("evaluan")
       .delete()
       .eq("id_practica", options.data.id_practica)
       .eq("id_evaluacion", evaluacionSeleccionada.id_evaluacion);
@@ -144,19 +145,44 @@ const GestionPracticas = () => {
   };
 
   const insertarDisponen = async (options) => {
-    await insertarDato("disponen", {
-      id_practica: options.data.id_practica,
-      id_evaluacion: evaluacionSeleccionada.id_evaluacion,
-    });
-    if (!errorGeneral) {
+    // Se obtiene el listado de los discentes de la evaluación a través de una vista.
+    const discentesEvaluacion = await obtenerConsultaReturn(
+      "listado_discentes_curso",
+      {
+        columna: "id_evaluacion",
+        valor: evaluacionSeleccionada.id_evaluacion,
+      }
+    );
+    const discentes =
+      Array.isArray(discentesEvaluacion) && discentesEvaluacion.length
+        ? discentesEvaluacion.map((discente) => {
+            return {
+              id_evaluacion: evaluacionSeleccionada.id_evaluacion,
+              id_discente: discente.id_discente,
+              id_practica: options.data.id_practica,
+            };
+          })
+        : cambiarErrorGeneral(
+            "No se han encontrado discentes para esa evaluación."
+          );
+    /**
+     * Una vez construido el listado de todos los discentes de la evaluación
+     * se introducen en la tabla "evaluan" junto con la evaluación y la práctica.
+     * Eso sí, tras comprobar si se han encontrado discentes para esa evaluación.
+     */
+
+    // Shortcircuit operator -> si todo va bien (todo es true) hago la sentencia del final.
+    !errorGeneral && (await insertarDato("evaluan", discentes));
+
+    if (errorGeneral) {
+      mostrarTostadaError({
+        resumen: "Se ha producido un error en la inserción.",
+        detalle: `Los datos de dispone no se ha insertado: ${errorGeneral}.`,
+      });
+    } else {
       mostrarTostadaExito({
         resumen: "Datos insertados.",
         detalle: `Los datos de dispone se ha insertado correctamente.`,
-      });
-    } else {
-      mostrarTostadaError({
-        resumen: "Se ha producido un error en la inserción.",
-        detalle: `Los datos de dispone no se ha insertado.`,
       });
     }
   };
@@ -232,11 +258,14 @@ const GestionPracticas = () => {
   };
 
   const buscarPracticas = async () => {
-    // Se obtienen las prácticas de esa evaluación de la tabla "disponen".
-    const datosDisponen = await obtenerConsultaReturn("disponen", {
-      columna: "id_evaluacion",
-      valor: evaluacionSeleccionada.id_evaluacion,
-    });
+    // Se obtienen las prácticas de esa evaluación de la vista "listado_practicas_evaluaciones".
+    const datosDisponen = await obtenerConsultaReturn(
+      "listado_practicas_evaluacion",
+      {
+        columna: "id_evaluacion",
+        valor: evaluacionSeleccionada.id_evaluacion,
+      }
+    );
     // Si existen, se crea un array con los identificadores de las prácticas.
     if (datosDisponen.length) {
       const identificadores = datosDisponen.map((dato) => {
@@ -280,7 +309,7 @@ const GestionPracticas = () => {
       <>
         <div className='flex'>
           <ColumnaSimple estilo='flex-1 align-items-center justify-content-center font-bold m-1 px-4 py-2 border-round'>
-            <h2>Asistente para crear una clase.</h2>
+            <h2>Asigna prácticas a una evaluación.</h2>
 
             <h4>Selecciona un curso.</h4>
             <div className='card flex justify-content-center'>

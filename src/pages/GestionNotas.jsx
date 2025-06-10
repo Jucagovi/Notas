@@ -42,8 +42,12 @@ const GestionNotas = () => {
    * por cada discente que pertenezca a esa evaluación (peso y nota vacíos).
    *
    * Después se articula una nueva zona (Notas) para introducir las notas de las prácticas.
+   *
    * Otra nueva (Evaluación) para introducir los pesos de las prácticas.
    * Además de la ya existente (Prácticas) para asignar prácticas a evaluaciones.
+   *
+   * CAMBIO DE IDEA -> Añadir un input con el peso para incluir esta tarea (la inserción de pesos)
+   *    en el área de Prácticas (al mostrar el listado de prácticas).
    *
    *
    */
@@ -65,30 +69,12 @@ const GestionNotas = () => {
   const practicasInicial = [];
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
 
-  const [practicasSeleccionadas, setPracticasSeleccionadas] = useState([]);
-  const [cursoSeleccionado, setCursoSeleccionado] = useState({});
+  const [practicasFiltradas, setPracticasFiltradas] = useState([]);
+  const [practicaSeleccionada, setPracticaSeleccionada] = useState({});
+  const [evaluacionesActuales, setEvaluacionesActuales] = useState([]);
   const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState({});
-  const [evaluacionesFiltradas, setEvaluacionesFiltradas] = useState([]);
-
-  const [filtros, setFiltros] = useState({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    nombre: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    apellidos: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  });
-  const [valoresFiltro, setValoresFiltro] = useState(""); // Para el formulario controlado de la búsqueda.
-
-  const confirmarInsercion = (datos) => {
-    confirmDialog({
-      message: `¿Quieres insertar las prácticas en la evaluación ${evaluacionSeleccionada.nombre}?`,
-      header: "Confirmación de asignación prácticas",
-      icon: "pi pi-info-circle",
-      defaultFocus: "reject",
-      acceptClassName: "p-button-danger",
-      accept: () => {
-        crearDisponen(datos);
-      },
-    });
-  };
+  const [discentesFiltrados, setDiscentesFiltrados] = useState([]);
+  const [discenteSeleccionado, setDiscenteSeleccionado] = useState({});
 
   /**
    * Acción que se realiza al pulsar el botón que se ha sustituido por
@@ -147,156 +133,47 @@ const GestionNotas = () => {
     }
   };
 
-  const eliminarDisponen = async (options) => {
-    // Es necesario comprobar dos id. Se hace a mano.
-    const { data, error } = await supabase
-      .from("disponen")
-      .delete()
-      .eq("id_practica", options.data.id_practica)
-      .eq("id_evaluacion", evaluacionSeleccionada.id_evaluacion);
-    if (!error) {
-      mostrarTostadaExito({
-        resumen: "Datos eliminados.",
-        detalle: `Los datos de dispone se han eliminado correctamente.`,
-      });
-    } else {
-      mostrarTostadaError({
-        resumen: "Se ha producido un error con el borrado.",
-        detalle: `Los datos de dispone no se ha eliminado.`,
-      });
-    }
-  };
-
-  const insertarDisponen = async (options) => {
-    await insertarDato("disponen", {
-      id_practica: options.data.id_practica,
-      id_evaluacion: evaluacionSeleccionada.id_evaluacion,
-    });
-    if (!errorGeneral) {
-      mostrarTostadaExito({
-        resumen: "Datos insertados.",
-        detalle: `Los datos de dispone se ha insertado correctamente.`,
-      });
-    } else {
-      mostrarTostadaError({
-        resumen: "Se ha producido un error en la inserción.",
-        detalle: `Los datos de dispone no se ha insertado.`,
-      });
-    }
-  };
-
-  /**
-   * Plantillas para los DropDown.
-   */
-  const plantillaCursoDropDown = (option) => {
-    return (
-      <div className='flex align-items-center'>
-        <div>
-          {option.nombre} en {option.centro}
-        </div>
-      </div>
-    );
-  };
-
-  const plantillaModuloDropDown = (option) => {
-    return (
-      <div className='flex align-items-center'>
-        <div>
-          ({option.siglas_ciclo}) {option.siglas_modulo} {option.nombre_modulo}
-        </div>
-      </div>
-    );
-  };
-
-  /**
-   * Funciones para el formulario de búsqueda en el DataTable de discentes.
-   */
-  const filtrarDatos = (e) => {
-    const value = e.target.value;
-    let _filtros = { ...filtros };
-    _filtros["global"].value = value;
-    setFiltros(_filtros);
-    setValoresFiltro(value);
-  };
-
-  const limpiarFiltro = () => {
-    setFiltros({
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      nombre: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-      apellidos: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    });
-    setValoresFiltro("");
-  };
-
-  const dibujarCabeceraBusqueda = () => {
-    //className='flex justify-content-between'
-    return (
-      <div className='flex justify-content-end'>
-        <IconField iconPosition='left'>
-          <InputIcon className='pi pi-search' />
-          <InputText
-            value={valoresFiltro}
-            onChange={(e) => {
-              filtrarDatos(e);
-            }}
-            placeholder='Buscar...'
-          />
-        </IconField>
-        <Button
-          type='button'
-          icon='pi pi-filter-slash'
-          label=''
-          text
-          onClick={() => {
-            limpiarFiltro();
-          }}
-        />
-      </div>
-    );
-  };
-
-  const buscarPracticas = async () => {
+  const buscarPracticas = async (evaluacion) => {
     // Se obtienen las prácticas de esa evaluación de la tabla "disponen".
-    const datosDisponen = await obtenerConsultaReturn("disponen", {
-      columna: "id_evaluacion",
-      valor: evaluacionSeleccionada.id_evaluacion,
-    });
-    // Si existen, se crea un array con los identificadores de las prácticas.
-    if (datosDisponen.length) {
-      const identificadores = datosDisponen.map((dato) => {
-        return dato.id_practica;
-      });
-      //Se filtran las prácticas (del estado Practicas) y se añaden al estado que controla el DataTable.
-      const _filtrado = practicas.filter((practica) => {
-        //Lo evuelve si el id_está en algunos de los valores que salen de dispone.
-        return identificadores.includes(practica.id_practica);
-      });
-      setPracticasSeleccionadas(_filtrado);
-    }
+    const practicas = await obtenerConsultaReturn(
+      "listado_practicas_evaluacion",
+      {
+        columna: "id_evaluacion",
+        valor: evaluacion.id_evaluacion,
+      }
+    );
+    setPracticasFiltradas(practicas);
+  };
+
+  const buscarDiscentes = async (practica, evaluacion) => {
+    const { data, error } = await supabase
+      .from("listado_discentes_evaluacion")
+      .select("*")
+      .eq("id_practica", practica.id_practica)
+      .eq("id_evaluacion", evaluacion.id_evaluacion);
+
+    setDiscentesFiltrados(data);
   };
 
   useEffect(() => {
+    // Se filtran las evaluaciones por cursoActual.
     const _filtrado = evaluaciones.filter((evaluacion) => {
-      return cursoSeleccionado.id_curso === evaluacion.id_curso;
+      return cursoActual.id_curso === evaluacion.id_curso;
     });
-    setEvaluacionesFiltradas(_filtrado);
-    // Se elimina la evaluación seleccionada para evita problemas.
-    setEvaluacionSeleccionada({});
-    // Se deseleccionan las prácticas seleccionadas (DataTable).
-    setPracticasSeleccionadas([]);
-  }, [cursoSeleccionado]);
+    setEvaluacionesActuales(_filtrado);
+  }, []);
 
   useEffect(() => {
-    // Si el objeto no esta vacío...
-    Object.keys(evaluacionSeleccionada).length && buscarPracticas();
-    // Se deseleccionan las prácticas seleccionadas (DataTable).
-    setPracticasSeleccionadas([]);
+    Object.keys(evaluacionSeleccionada).length &&
+      buscarPracticas(evaluacionSeleccionada);
+    setDiscentesFiltrados([]);
+    setPracticaSeleccionada({});
   }, [evaluacionSeleccionada]);
 
   useEffect(() => {
-    // Se signa aquí para que se actualice el DropDown de evaluación.
-    setCursoSeleccionado(cursoActual);
-  }, []);
+    Object.keys(practicaSeleccionada).length &&
+      buscarDiscentes(practicaSeleccionada, evaluacionSeleccionada);
+  }, [practicaSeleccionada]);
 
   return (
     <ColumnaSimple>
@@ -304,23 +181,7 @@ const GestionNotas = () => {
       <>
         <div className='flex'>
           <ColumnaSimple estilo='flex-1 align-items-center justify-content-center font-bold m-1 px-4 py-2 border-round'>
-            <h2>Asistente para crear una clase.</h2>
-
-            <h4>Selecciona un curso.</h4>
-            <div className='card flex justify-content-center'>
-              <Dropdown
-                id='cursoSeleccionado'
-                name='cursoSeleccionado'
-                value={cursoSeleccionado}
-                onChange={(evento) => {
-                  setCursoSeleccionado(evento.value);
-                }}
-                options={cursos}
-                optionLabel='nombre'
-                placeholder='Elige un curso...'
-                className='w-full '
-              />
-            </div>
+            <h2>Asigna notas a las prácticas.</h2>
 
             <h4>Elige la evaluación.</h4>
             <div className='card flex justify-content-center'>
@@ -331,55 +192,72 @@ const GestionNotas = () => {
                 onChange={(evento) => {
                   setEvaluacionSeleccionada(evento.value);
                 }}
-                options={evaluacionesFiltradas}
+                options={evaluacionesActuales}
                 optionLabel='nombre'
                 placeholder='Elige una evaluación...'
                 className='w-full '
               />
             </div>
-            <MostrarPracticas practicas={practicasSeleccionadas} />
 
-            {/* <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
-              <Button
-                label='Guardar prácticas en la evaluación'
-                icon={iconos.aceptar}
-                onClick={(evento) => {
-                  confirmarInsercion(practicasSeleccionadas);
+            <h4>Elige la práctica.</h4>
+            <div className='card flex justify-content-center'>
+              <DataTable
+                removableSort
+                value={practicasFiltradas}
+                stripedRows
+                selectionMode='single'
+                onSelectionChange={(e) => {
+                  //buscarDiscentes(e.value, evaluacionSeleccionada);
+                  setPracticaSeleccionada(e.value);
                 }}
-              />
-            </div> */}
+                tableStyle={{ minWidth: "50rem" }}
+                emptyMessage='Selecciona una evaluación para comenzar.'
+              >
+                <Column sortable field='numero' header='Número'></Column>
+                <Column sortable field='nombre' header='Nombre'></Column>
+                <Column field='enunciado' header='Enunciado'></Column>
+                <Column sortable field='id_tipopractica' header='Tipo'></Column>
+              </DataTable>
+            </div>
           </ColumnaSimple>
+
           <ColumnaSimple estilo='flex-1 align-items-center justify-content-center m-1 px-2 py-2 border-round'>
-            <DataTable
-              paginator
-              paginatorPosition='top'
-              rows={15}
-              value={
-                evaluacionSeleccionada.id_evaluacion
-                  ? practicas
-                  : practicasInicial
-              }
-              selectionMode={null}
-              selection={practicasSeleccionadas}
-              removableSort
-              filters={filtros}
-              globalFilterFields={["nombre", "unidad", "enunciado", "numero"]}
-              onSelectionChange={(e) => setPracticasSeleccionadas(e.value)}
-              dataKey='id_practica'
-              tableStyle={{ minWidth: "50rem" }}
-              header={dibujarCabeceraBusqueda}
-              onRowUnselect={eliminarDisponen}
-              onRowSelect={insertarDisponen}
-              emptyMessage='Selecciona una evaluación para comenzar.'
-            >
-              <Column
-                selectionMode='multiple'
-                headerStyle={{ width: "3rem" }}
-              ></Column>
-              <Column field='numero' header='Número' sortable></Column>
-              <Column field='nombre' header='Nombre' sortable></Column>
-              <Column field='enunciado' header='Enunciado' sortable></Column>
-            </DataTable>
+            {Object.keys(practicaSeleccionada).length ? (
+              <>
+                <div className=' font-bold'>
+                  <i
+                    className={`${iconos.practica} m-2 fadeinleft animation-duration-1000`}
+                    style={{ fontSize: "1.3rem" }}
+                  ></i>
+                  {practicaSeleccionada.nombre}:{" "}
+                  {practicaSeleccionada.enunciado}
+                </div>
+                <DataTable
+                  removableSort
+                  //onSelectionChange={(e) => setPracticasSeleccionadas(e.value)}
+                  dataKey='id_evaluan'
+                  //tableStyle={{ minWidth: "50rem" }}
+                  value={discentesFiltrados}
+                  emptyMessage='Selecciona una práctica para comenzar.'
+                >
+                  <Column
+                    field='apellidos'
+                    header='Apellidos'
+                    sortable
+                  ></Column>
+                  <Column
+                    field='nombre_discente'
+                    header='Nombre'
+                    sortable
+                  ></Column>
+                  <Column field='nota' header='Nota' sortable></Column>
+                </DataTable>
+              </>
+            ) : (
+              <div className='flex align-items-center justify-content-center vertical-align-middle m-1 px-2 py-2 h-full'>
+                Selecciona una práctica para comenzar.
+              </div>
+            )}
           </ColumnaSimple>
         </div>
       </>
