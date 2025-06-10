@@ -54,6 +54,7 @@ const GestionNotas = () => {
 
   const {
     actualizarFormulario,
+    actualizarDato,
     insertarDato,
     obtenerTodos,
     obtenerConsulta,
@@ -130,6 +131,46 @@ const GestionNotas = () => {
           detalle: `Los datos de dispone no se ha insertado.`,
         });
       }
+    }
+  };
+
+  /***********************************************************
+   *  Funciones para los modos edición del DataTable.
+   * */
+
+  const editorTexto = (options) => {
+    return (
+      <InputText
+        type='number'
+        value={options.value || ""}
+        onChange={(e) => {
+          options.editorCallback(e.target.value);
+        }}
+        onKeyDown={(e) => e.stopPropagation()}
+      />
+    );
+  };
+
+  const editarEvaluacion = (e) => {
+    let { rowData, newValue, field, originalEvent: event } = e;
+    if (newValue.trim().length > 0) rowData[field] = newValue;
+    else event.preventDefault();
+    actualizarNota(rowData.id_evaluan, rowData.nota);
+  };
+
+  const actualizarNota = async (id_evaluan, nota) => {
+    const datos = { id_evaluan: id_evaluan, nota: nota };
+    await actualizarDato("evaluan", "id_evaluan", datos);
+    if (!errorGeneral) {
+      mostrarTostadaExito({
+        resumen: "Nota actualizada.",
+        detalle: `La nota se ha actualizado.`,
+      });
+    } else {
+      mostrarTostadaError({
+        resumen: "Hay un error en la actualización.",
+        detalle: `La nota no se ha actualizado.`,
+      });
     }
   };
 
@@ -232,8 +273,10 @@ const GestionNotas = () => {
                   {practicaSeleccionada.nombre}:{" "}
                   {practicaSeleccionada.enunciado}
                 </div>
+
                 <DataTable
                   removableSort
+                  editMode='cell'
                   //onSelectionChange={(e) => setPracticasSeleccionadas(e.value)}
                   dataKey='id_evaluan'
                   //tableStyle={{ minWidth: "50rem" }}
@@ -250,7 +293,17 @@ const GestionNotas = () => {
                     header='Nombre'
                     sortable
                   ></Column>
-                  <Column field='nota' header='Nota' sortable></Column>
+                  <Column
+                    field='nota'
+                    header='Nota'
+                    sortable
+                    editor={(options) => {
+                      return editorTexto(options);
+                    }}
+                    onCellEditComplete={(options) => {
+                      editarEvaluacion(options);
+                    }}
+                  ></Column>
                 </DataTable>
               </>
             ) : (
