@@ -42,6 +42,13 @@ const MenuBarra = () => {
       },
     },
     {
+      label: "Evaluaciones",
+      icon: iconos.evaluacion,
+      command: () => {
+        navegar("/gestionevaluaciones");
+      },
+    },
+    {
       label: "Informes",
       icon: iconos.informe,
       command: () => {
@@ -121,14 +128,14 @@ const MenuBarra = () => {
             },
           ],
         },
+        {
+          label: "Acerca de",
+          icon: iconos.sobre,
+          command: () => {
+            navegar("/acercade");
+          },
+        },
       ],
-    },
-    {
-      label: "Acerca de",
-      icon: iconos.sobre,
-      command: () => {
-        navegar("/acercade");
-      },
     },
   ];
 

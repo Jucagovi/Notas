@@ -5,8 +5,8 @@ import InsercionMasiva from "../components/herramientas/InsercionMasiva.jsx";
 import ValorEstado from "../components/complementos/ValorEstado.jsx";
 import useDatos from "../hooks/useDatos.js";
 import Consola from "../components/herramientas/Consola.jsx";
-import Cargando from "../components/Cargando.jsx";
 import { Button } from "primereact/button";
+import Cargando from "../components/Cargando.jsx";
 
 const Inicio = () => {
   const { curso } = useDatos();
@@ -16,7 +16,9 @@ const Inicio = () => {
     <>
       <ColumnaSimple>
         {sesionIniciada ? (
-          <h2>Bienvenido/a.</h2>
+          <>
+            <h2>Bienvenido/a.</h2>
+          </>
         ) : (
           <h2>Aún no ha iniciado sesión.</h2>
         )}

@@ -18,6 +18,7 @@ import DetalleDiscente from "../pages/DetalleDiscente.jsx";
 import CreacionClase from "../pages/CreacionClase.jsx";
 import InsercionDatosMasivos from "../pages/InsercionDatosMasivos.jsx";
 import Consola from "../components/herramientas/Consola.jsx";
+import GestionEvaluaciones from "../pages/GestionEvaluaciones.jsx";
 
 const Rutas = () => {
   return (
@@ -34,6 +35,7 @@ const Rutas = () => {
         />
         <Route path='/gestiondiscentes' element={<GestionDiscentes />} />
         <Route path='/gestionpracticas' element={<GestionPracticas />} />
+        <Route path='/gestionevaluaciones' element={<GestionEvaluaciones />} />
         <Route path='/gestionnotas' element={<GestionNotas />} />
         <Route path='/detallediscente/:id' element={<DetalleDiscente />} />
         <Route path='/creacionclase' element={<CreacionClase />} />
