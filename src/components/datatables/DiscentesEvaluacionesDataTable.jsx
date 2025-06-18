@@ -4,9 +4,22 @@ import { Column } from "primereact/column";
 import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "primereact/row";
 import useEstilos from "../../hooks/useEstilos.js";
+import ValorEstado from "../complementos/ValorEstado.jsx";
 
-const TablaEvaluaciones = ({ evaluaciones }) => {
+const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
   const { colorNota } = useEstilos();
+
+  /*******************************************************************
+   * IMPORTANTE
+   * El array de objetos con las evaluaciones hay que ordenarlo para que todas
+   * las evaluaciones se muestren agrupadas en el DataTable (si no es así aparecen separadas).
+   */
+
+  const evaluacionesOrdenadas = evaluaciones.sort((a, b) => {
+    if (a.id_evaluacion < b.id_evaluacion) return -1;
+    if (a.id_evaluacion > b.id_evaluacion) return 1;
+    return 0;
+  });
 
   /*******************************************************************
    * Contenido para la expansión.
@@ -16,12 +29,12 @@ const TablaEvaluaciones = ({ evaluaciones }) => {
 
   const cabeceraTablaGrupo = (options) => {
     return (
-      <React.Fragment>
+      <>
         <span className='vertical-align-middle ml-2 font-bold line-height-3'>
           {options.nombre_evaluacion} (
           {evaluaciones && calcularMediaPonderada(options.id_evaluacion)})
         </span>
-      </React.Fragment>
+      </>
     );
   };
 
@@ -53,9 +66,7 @@ const TablaEvaluaciones = ({ evaluaciones }) => {
   };
 
   const mostrarNota = (options) => {
-    return (
-      <span style={{ color: colorNota(options.nota) }}>{options.nota}</span>
-    );
+    return <span className={colorNota(options.nota)}>{options.nota}</span>;
   };
 
   const calcularMediaPonderada = (id) => {
@@ -63,14 +74,14 @@ const TablaEvaluaciones = ({ evaluaciones }) => {
     let pesoTotal = 0;
     if (id === "curso") {
       evaluaciones.map((eva) => {
-        subtotal += eva.nota * eva.peso;
-        pesoTotal += eva.peso;
+        subtotal += parseInt(eva.nota) * parseInt(eva.peso);
+        pesoTotal += parseInt(eva.peso);
       });
     } else {
       evaluaciones.map((eva) => {
         if (eva.id_evaluacion === id) {
-          subtotal += eva.nota * eva.peso;
-          pesoTotal += eva.peso;
+          subtotal += parseInt(eva.nota) * parseInt(eva.peso);
+          pesoTotal += parseInt(eva.peso);
         }
       });
     }
@@ -90,6 +101,8 @@ const TablaEvaluaciones = ({ evaluaciones }) => {
     return total;
   };
 
+  const cabeceraTabla = `${evaluaciones[0].nombre_modulo}`;
+
   const pieTabla = (
     <ColumnGroup>
       <Row>
@@ -104,48 +117,51 @@ const TablaEvaluaciones = ({ evaluaciones }) => {
   );
 
   return (
-    <DataTable
-      value={evaluaciones}
-      dataKey={evaluaciones.id_practica}
-      //showGridlines
-      stripedRows
-      resizableColumns
-      removableSort
-      editMode='row'
-      columnResizeMode='fit'
-      //paginator
-      //rows={10}
-      footerColumnGroup={pieTabla}
-      expandableRowGroups
-      expandedRows={contenidoExpandible}
-      rowGroupMode='subheader'
-      groupRowsBy='nombre_evaluacion'
-      onRowToggle={(e) => {
-        setContenidoExpandible(e.data);
-      }}
-      rowGroupHeaderTemplate={cabeceraTablaGrupo}
-      rowGroupFooterTemplate={pieTablaGrupo}
-    >
-      <Column></Column>
-      <Column
-        field='numero'
-        header='Nombre de la práctica'
-        body={(options) => {
-          return mostrarNombreCompleto(options);
+    <>
+      <DataTable
+        header={cabeceraTabla}
+        value={evaluacionesOrdenadas}
+        dataKey={evaluaciones.id_practica}
+        //showGridlines
+        stripedRows
+        resizableColumns
+        removableSort
+        //editMode='row'
+        columnResizeMode='fit'
+        //paginator
+        //rows={10}
+        footerColumnGroup={pieTabla}
+        expandableRowGroups
+        expandedRows={contenidoExpandible}
+        rowGroupMode='subheader' //"subheader" and "rowgroup"
+        groupRowsBy='id_evaluacion'
+        onRowToggle={(e) => {
+          setContenidoExpandible(e.data);
         }}
-      ></Column>
-      <Column field='unidad' header='Unidad de Trabajo'></Column>
-      <Column
-        field='nota'
-        header='Nota'
-        //style={{ color: "red" }}
-        body={(options) => {
-          return mostrarNota(options);
-        }}
-      ></Column>
-      <Column field='peso' header='Peso'></Column>
-    </DataTable>
+        rowGroupHeaderTemplate={cabeceraTablaGrupo}
+        rowGroupFooterTemplate={pieTablaGrupo}
+      >
+        <Column></Column>
+        <Column
+          field='numero'
+          header='Nombre de la práctica'
+          body={(options) => {
+            return mostrarNombreCompleto(options);
+          }}
+        ></Column>
+        <Column field='unidad' header='Unidad de Trabajo'></Column>
+        <Column
+          field='nota'
+          header='Nota'
+          //style={{ color: "red" }}
+          body={(options) => {
+            return mostrarNota(options);
+          }}
+        ></Column>
+        <Column field='peso' header='Peso'></Column>
+      </DataTable>
+    </>
   );
 };
 
-export default TablaEvaluaciones;
+export default DiscentesEvaluacionesDataTable;

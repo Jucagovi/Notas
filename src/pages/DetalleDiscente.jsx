@@ -30,6 +30,7 @@ const DetalleDiscente = () => {
     cursos,
     curso,
     cambiarCurso,
+    cursoActual,
   } = useDatos();
 
   const dataTableRef = useRef(null);
@@ -38,41 +39,26 @@ const DetalleDiscente = () => {
    * Estado para los componentes del formulario (PrimeReact).
    */
   const [cursoSeleccionado, setCursoSeleccionado] = useState({});
-  const [listadoEvaluacionesCursos, setListadoEvaluacionesCursos] = useState(
+  const [listadoEvaluacionesCiclos, setListadoEvaluacionesCiclos] = useState(
     []
   );
-  const [listadoFiltrado, setListadoFiltrado] = useState([]);
 
   const cargaInicialDatos = async () => {
-    const filtro = { columna: "id_discente", valor: id };
-    /**
-     * Es mejor crear una vista con las consultas multitabla en Supabase.
-     * Se pasa el setter de evaluanFiltrado para actualizar la tabla de detalle directamente.
-     */
-
+    // Se obtienen todas las prácticas (evaluan) sólo del discente en cuestión.
+    // Así se evita traer todos los datos (que eventualmente serán muchos).
+    // La vista está ordenada por nombre de la evaluación para que se muestre bien en el DataTable de notas.
     await obtenerConsulta(
       "listado_evaluaciones_ciclos",
-      setListadoEvaluacionesCursos,
-      filtro
+      setListadoEvaluacionesCiclos,
+      { columna: "id_discente", valor: id }
     );
     // Se actualiza el curso actual con el último curso creado.
-    setCursoSeleccionado(cursos[cursos.length - 1]);
-  };
-
-  const filtrarListadoCurso = (cursoFiltrar) => {
-    const _listado = listadoEvaluacionesCursos.filter((evaluacion) => {
-      return evaluacion.id_curso === cursoFiltrar.id_curso;
-    });
-    setListadoFiltrado(_listado);
+    setCursoSeleccionado(cursoActual);
   };
 
   useEffect(() => {
     cargaInicialDatos();
   }, []);
-
-  useEffect(() => {
-    filtrarListadoCurso(cursoSeleccionado);
-  }, [cursoSeleccionado]);
 
   return (
     <ColumnaSimple>
@@ -95,18 +81,25 @@ const DetalleDiscente = () => {
               placeholder='Elige un curso'
               className=''
             ></Dropdown>
+            {/* <ValorEstado mostrar={cursoSeleccionado} /> */}
           </div>
         </ColumnaSimple>
         <ColumnaSimple>
           <div>
-            {Array.isArray(listadoFiltrado) && listadoFiltrado.length ? (
-              <DetalleDiscenteEvaluaciones evaluaciones={listadoFiltrado} />
+            {Array.isArray(listadoEvaluacionesCiclos) &&
+            listadoEvaluacionesCiclos?.length ? (
+              <DetalleDiscenteEvaluaciones
+                evaluaciones={listadoEvaluacionesCiclos}
+                curso={cursoSeleccionado}
+              />
             ) : (
-              "No se han encontrado datos del/la discente."
+              "No se han encontrado datos de/la discente."
             )}
           </div>
         </ColumnaSimple>
       </ColumnaSimple>
+      {/*  Todas las prácticas {listadoEvaluacionesCiclos.length}
+      <ValorEstado mostrar={listadoEvaluacionesCiclos} /> */}
     </ColumnaSimple>
   );
 };

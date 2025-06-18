@@ -1,57 +1,29 @@
 import React, { useState, useEffect } from "react";
 import ColumnaSimple from "../layout/ColumnaSimple.jsx";
-import { FloatLabel } from "primereact/floatlabel";
 import { Dropdown } from "primereact/dropdown";
-import { Column } from "primereact/column";
 import { Button } from "primereact/button";
-import { DataTable } from "primereact/datatable";
-import { InputText } from "primereact/inputtext";
-import { IconField } from "primereact/iconfield";
-import { InputIcon } from "primereact/inputicon";
 import { confirmDialog } from "primereact/confirmdialog";
 import useDatos from "../hooks/useDatos.js";
 import useEstilos from "../hooks/useEstilos.js";
 import useTostadas from "../hooks/useTostadas.js";
-import { InputTextarea } from "primereact/inputtextarea";
-import ValorEstado from "../components/complementos/ValorEstado.jsx";
-import { FilterMatchMode, FilterOperator } from "primereact/api";
-import InsercionMasiva from "../components/herramientas/InsercionMasiva.jsx";
 import CreacionClaseCurso from "../components/creacionClase/CreacionClaseCurso.jsx";
 import CreacionClaseModulo from "../components/creacionClase/CreacionClaseModulo.jsx";
 import CreacionClaseEvaluaciones from "../components/creacionClase/CreacionClaseEvaluaciones.jsx";
 import CreacionClaseDiscentes from "../components/creacionClase/CreacionClaseDiscentes.jsx";
+import CrearClaseDataTable from "../components/datatables/CrearClaseDataTable.jsx";
+import EliminacionClase from "../components/creacionClase/EliminacionClase.jsx";
+import ValorEstado from "../components/complementos/ValorEstado.jsx";
 
 const CreacionClase = () => {
   const cursoInicial = {
     curso: "",
     modulo: "",
-    evaluaciones: null /* [
-      {
-        nombre: "",
-        fecha_ini: "",
-        fecha_fin: "",
-        descripcion: "",
-        id_curso: "",
-        id_modulo: "",
-      },
-    ] */,
-    discentes: null /* [
-       {
-        nombre: "",
-        apellidos: "",
-        correo: "",
-        fecha_nac: "",
-        localidad: "",
-        imagen: "",
-      },
-    ] */,
-    imparte: [
-      /* { id_discente: "", id_curso: "", id_modulo: "" } */
-    ],
+    evaluaciones: null,
+    discentes: null,
+    imparte: [],
   };
 
   // Datos del curso actual.
-
   const [claseNueva, setClaseNueva] = useState(cursoInicial);
   const [cursoSeleccionado, setCursoSeleccionado] = useState("");
   const [listadoModulos, setListadoModulos] = useState([]);
@@ -59,22 +31,14 @@ const CreacionClase = () => {
   const [discentesSeleccionados, setDiscentesSeleccionados] = useState("");
 
   const {
-    actualizarFormulario,
     insertarDato,
     obtenerTodos,
     cursos,
-    discentes,
     errorGeneral,
+    cambiarEvaluaciones,
   } = useDatos();
   const { iconos } = useEstilos();
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
-
-  const [filtros, setFiltros] = useState({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    nombre: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    apellidos: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  });
-  const [valoresFiltro, setValoresFiltro] = useState(""); // Para el formulario controlado de la búsqueda.
 
   /**
    * Se ejecuta al seleccionar un curso y módulo (DropDown)
@@ -165,7 +129,6 @@ const CreacionClase = () => {
     }
     // Se crean los imparte...
     const imparte_insertar = crearImparte(claseNueva);
-    //console.log(imparte_insertar);
     // ...se insertan los imparte.
     await insertarDato("imparte", imparte_insertar);
     if (!errorGeneral) {
@@ -179,26 +142,8 @@ const CreacionClase = () => {
         detalle: `Los datos de imparte no se ha insertado.`,
       });
     }
-    console.log(claseNueva);
-  };
-
-  const transformarDiscentes = (textoCSV) => {
-    // Se divide le texto en líneas (dividir por el caráter \n).
-    const lineas = textoCSV.split("\n");
-    // Cada una se separa por el caracter ; y se meten en un array bidimensional.
-    const separadas = lineas.map((linea) => {
-      return linea.split(",");
-    });
-    // Por cada ocurrencia del primer array se crea un objeto y se ponen sus claves y sus valores.
-    const objetoJSON = separadas.map((textoCSV) => {
-      let objeto = {};
-      separadas[0].map((val, subindice) => {
-        objeto = { ...objeto, [val]: textoCSV[subindice] };
-      });
-      return objeto;
-    });
-    // El slice quita el primer objeto que son las cabeceras.
-    return objetoJSON.slice(1);
+    // Se actualizan las Evaluaciones en el proveedor para que los datos estén actualizados.
+    obtenerTodos("Evaluaciones", cambiarEvaluaciones);
   };
 
   /**
@@ -220,52 +165,6 @@ const CreacionClase = () => {
         <div>
           ({option.siglas_ciclo}) {option.siglas_modulo} {option.nombre_modulo}
         </div>
-      </div>
-    );
-  };
-  /**
-   * Funciones para el formulario de búsqueda en el DataTable de discentes.
-   */
-  const filtrarDatos = (e) => {
-    const value = e.target.value;
-    let _filtros = { ...filtros };
-    _filtros["global"].value = value;
-    setFiltros(_filtros);
-    setValoresFiltro(value);
-  };
-
-  const limpiarFiltro = () => {
-    setFiltros({
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      nombre: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-      apellidos: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    });
-    setValoresFiltro("");
-  };
-
-  const dibujarCabeceraBusqueda = () => {
-    //className='flex justify-content-between'
-    return (
-      <div className='flex justify-content-end'>
-        <IconField iconPosition='left'>
-          <InputIcon className='pi pi-search' />
-          <InputText
-            value={valoresFiltro}
-            onChange={(e) => {
-              filtrarDatos(e);
-            }}
-            placeholder='Buscar...'
-          />
-        </IconField>
-        <Button
-          type='button'
-          icon='pi pi-filter-slash'
-          label=''
-          text
-          onClick={() => {
-            limpiarFiltro();
-          }}
-        />
       </div>
     );
   };
@@ -355,43 +254,11 @@ const CreacionClase = () => {
             />
           </div>
           <h4>Elige discentes.</h4>
-          {/* <InputTextarea
-            className='m-1'
-            //autoResize
-            placeholder='Introduce aquí los datos a insertar en formato CSV.'
-            value={discentesSeleccionados}
-            onChange={(e) => {
-              setDiscentesSeleccionados(e.target.value);
-              //console.log(transformarDiscentes(e.target.value));
-            }}
-            rows={10}
-            cols={60}
-          /> */}
-          {/* selectionMode={rowClick ? null : 'checkbox'} */}
           <ColumnaSimple>
-            <DataTable
-              paginator
-              rows={10}
-              value={discentes}
-              selectionMode={null}
-              selection={discentesSeleccionados}
-              removableSort
-              filters={filtros}
-              globalFilterFields={["nombre", "apellidos"]}
-              onSelectionChange={(e) => setDiscentesSeleccionados(e.value)}
-              dataKey='id_discente'
-              tableStyle={{ minWidth: "50rem" }}
-              header={dibujarCabeceraBusqueda}
-              emptyMessage='No hay resultados'
-            >
-              <Column
-                selectionMode='multiple'
-                headerStyle={{ width: "3rem" }}
-              ></Column>
-              <Column field='nombre' header='Nombre' sortable></Column>
-              <Column field='apellidos' header='Apellidos' sortable></Column>
-              <Column field='localidad' header='Localidad'></Column>
-            </DataTable>
+            <CrearClaseDataTable
+              valoresSeleccionados={discentesSeleccionados}
+              setter={setDiscentesSeleccionados}
+            />
           </ColumnaSimple>
           <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
             <Button
@@ -402,6 +269,9 @@ const CreacionClase = () => {
               }}
             />
           </div>
+          <ColumnaSimple colorBorde='border-red-500'>
+            <EliminacionClase />
+          </ColumnaSimple>
         </ColumnaSimple>
         <ColumnaSimple estilo='flex-1 align-items-center justify-content-center m-1 px-4 py-2 border-round'>
           <h3>Vista previa.</h3>

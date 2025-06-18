@@ -10,7 +10,7 @@ import useEstilos from "../../hooks/useEstilos.js";
 const NotasDiscentesDataTable = ({ valores, practica }) => {
   const { actualizarDato, errorGeneral } = useDatos();
   const { mostrarTostadaExito, mostrarTostadaError } = useTostadas();
-  const { iconos } = useEstilos();
+  const { iconos, colorNota } = useEstilos();
 
   const editorTexto = (options) => {
     return (
@@ -36,14 +36,6 @@ const NotasDiscentesDataTable = ({ valores, practica }) => {
       else event.preventDefault();
       actualizarNota(rowData.id_evaluan, rowData.nota);
     }
-  };
-
-  const mostrarNota = (datos) => {
-    return datos.nota < 49 ? (
-      <span className='text-red-500'>{datos.nota}</span>
-    ) : (
-      <span>{datos.nota}</span>
-    );
   };
 
   const actualizarNota = async (id_evaluan, nota) => {
@@ -101,7 +93,10 @@ const NotasDiscentesDataTable = ({ valores, practica }) => {
           field='nota'
           header='Nota'
           body={(options) => {
-            return mostrarNota(options);
+            //return mostrarNota(options);
+            return (
+              <span className={colorNota(options.nota)}>{options.nota}</span>
+            );
           }}
           sortable
           editor={(options) => {

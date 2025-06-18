@@ -4,7 +4,6 @@ import ColumnaSimple from "../layout/ColumnaSimple.jsx";
 import { Dropdown } from "primereact/dropdown";
 import { Dialog } from "primereact/dialog";
 import useDatos from "../hooks/useDatos.js";
-import useEstilos from "../hooks/useEstilos.js";
 import useModales from "../hooks/useModales.js";
 import Cargando from "../components/Cargando.jsx";
 import NotasDiscentesDataTable from "../components/datatables/NotasDiscentesDataTable.jsx";
@@ -13,9 +12,8 @@ import NotasPracticasDataTable from "../components/datatables/NotasPracticasData
 const GestionNotas = () => {
   const { obtenerConsultaReturn, evaluaciones, cursoActual, cargando } =
     useDatos();
-  const { iconos } = useEstilos();
 
-  const { alternarModal, visible } = useModales();
+  const { alternarModal } = useModales();
 
   const [practicasFiltradas, setPracticasFiltradas] = useState([]);
   const [practicaSeleccionada, setPracticaSeleccionada] = useState({});

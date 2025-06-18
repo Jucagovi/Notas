@@ -1,191 +1,38 @@
 import React, { useState, useEffect } from "react";
-import supabase from "../config/config_supabase.js";
 import ColumnaSimple from "../layout/ColumnaSimple.jsx";
-import { FloatLabel } from "primereact/floatlabel";
 import { Dropdown } from "primereact/dropdown";
-import { Column } from "primereact/column";
-import { Button } from "primereact/button";
-import { DataTable } from "primereact/datatable";
-import { InputText } from "primereact/inputtext";
-import { IconField } from "primereact/iconfield";
-import { InputIcon } from "primereact/inputicon";
-import { confirmDialog } from "primereact/confirmdialog";
 import useDatos from "../hooks/useDatos.js";
-import useEstilos from "../hooks/useEstilos.js";
-import useTostadas from "../hooks/useTostadas.js";
-import { InputTextarea } from "primereact/inputtextarea";
-import ValorEstado from "../components/complementos/ValorEstado.jsx";
-import { FilterMatchMode, FilterOperator } from "primereact/api";
-import InsercionMasiva from "../components/herramientas/InsercionMasiva.jsx";
-import CreacionClaseCurso from "../components/creacionClase/CreacionClaseCurso.jsx";
-import CreacionClaseModulo from "../components/creacionClase/CreacionClaseModulo.jsx";
-import CreacionClaseEvaluaciones from "../components/creacionClase/CreacionClaseEvaluaciones.jsx";
-import CreacionClaseDiscentes from "../components/creacionClase/CreacionClaseDiscentes.jsx";
 import MostrarPracticas from "../components/MostrarPracticas.jsx";
+import ValorEstado from "../components/complementos/ValorEstado.jsx";
+import PracticasEvaluacionDataTable from "../components/datatables/PracticasEvaluacionDataTable.jsx";
 
 const GestionPracticas = () => {
+  /**
+   * ¿Problema?
+   * Cada evaluación pertenece a un módulo.
+   * Cada práctica está asociada a un módulo.
+   * Cuando se asignan prácticas a módulos (tal y como está ahora) es posible asignar prácticas
+   * de un módulo a una evaluación de un módulo distinto. Hay dos formas de afrontar esto:
+   *    ->  en <GestionPracticas>, cada vez que se seleccione una evaluación se filtran
+   *        las prácticas de ese módulo y se muestran en el DataTable. Así se pierde la posibilidad
+   *        de asignar una práctica que no pertenece a un módulo (más libertad a la hora de reutilizar prácticas),
+   *    ->  dejar más libertad para la asignación pero en la vista de consulta de los datos de discente (listado_evaluaciones_ciclos)
+   *        hay que añadir un salto entre Evaluaciones.id_modulo = Modulos.id_modulos y no entre Prácticas y módulos
+   *        como estaba inicialmente.
+   */
+
   const {
-    actualizarFormulario,
-    insertarDato,
-    obtenerTodos,
-    obtenerConsulta,
     obtenerConsultaReturn,
     practicas,
     evaluaciones,
     cursos,
     cursoActual,
-    errorGeneral,
-    cambiarErrorGeneral,
   } = useDatos();
-  const { iconos } = useEstilos();
-
-  const practicasInicial = [];
-  const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
 
   const [practicasSeleccionadas, setPracticasSeleccionadas] = useState([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState({});
   const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState({});
   const [evaluacionesFiltradas, setEvaluacionesFiltradas] = useState([]);
-
-  const [filtros, setFiltros] = useState({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    nombre: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    apellidos: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  });
-  const [valoresFiltro, setValoresFiltro] = useState(""); // Para el formulario controlado de la búsqueda.
-
-  const confirmarInsercion = (datos) => {
-    confirmDialog({
-      message: `¿Quieres insertar las prácticas en la evaluación ${evaluacionSeleccionada.nombre}?`,
-      header: "Confirmación de asignación prácticas",
-      icon: "pi pi-info-circle",
-      defaultFocus: "reject",
-      acceptClassName: "p-button-danger",
-      accept: () => {
-        crearDisponen(datos);
-      },
-    });
-  };
-
-  /**
-   * Acción que se realiza al pulsar el botón que se ha sustituido por
-   * el evento onRowSelect del DataTable. Si se selecciona se inserta en la tabla,
-   * si se deselecciona se borra de la tabla.
-   */
-  const crearDisponen = async (datos) => {
-    // Se comprueba si datos tiene valores.
-    if (datos.length) {
-      /**
-       * NOTA IMPORTANTE
-       * Si en un map se coloca una función asíncrona, invariablemente se devolverá
-       * una promesa, por lo que hay que poner ese map dentro de un Promise.allSettled
-       * para que devuelva las promesas consumidas.
-       */
-      const _nuevos = await Promise.allSettled(
-        datos.map(async (dato) => {
-          // Se comprueba si existe en la BBDD.
-          const { data, error } = await supabase
-            .from("disponen")
-            .select("*")
-            .eq("id_practica", dato.id_practica)
-            .eq("id_evaluacion", evaluacionSeleccionada.id_evaluacion);
-          // Si la respuesta contiene algo es que existe el registro y no se inserta.
-          if (!data || data.length === 0) {
-            return {
-              id_practica: dato.id_practica,
-              id_evaluacion: evaluacionSeleccionada.id_evaluacion,
-            };
-          }
-        })
-      );
-      // Se crea el array de objetos a insertar.
-      const insertar = _nuevos
-        // Se filtran los objetos que tengan value (que son los que hay que insertar).
-        .filter((_nuevo) => {
-          if (_nuevo.value) return _nuevo.value;
-        })
-        // De los objetos filtardos sólo interesa el objeto value.
-        .map((unico) => {
-          return unico.value;
-        });
-      // Se insertan los datos.
-      /* await insertarDato("disponen", insertar);
-      if (!errorGeneral) {
-        mostrarTostadaExito({
-          resumen: "Datos insertados.",
-          detalle: `Los datos de dispone se ha insertado correctamente.`,
-        });
-      } else {
-        mostrarTostadaError({
-          resumen: "Se ha producido un error en la inserción.",
-          detalle: `Los datos de dispone no se ha insertado.`,
-        });
-      } */
-    }
-  };
-
-  const eliminarDisponen = async (options) => {
-    // Es necesario comprobar dos id. Se hace a mano.
-    const { data, error } = await supabase
-      .from("evaluan")
-      .delete()
-      .eq("id_practica", options.data.id_practica)
-      .eq("id_evaluacion", evaluacionSeleccionada.id_evaluacion);
-    if (!error) {
-      mostrarTostadaExito({
-        resumen: "Datos eliminados.",
-        detalle: `Los datos de dispone se han eliminado correctamente.`,
-      });
-    } else {
-      mostrarTostadaError({
-        resumen: "Se ha producido un error con el borrado.",
-        detalle: `Los datos de dispone no se ha eliminado.`,
-      });
-    }
-  };
-
-  const insertarDisponen = async (options) => {
-    // Se obtiene el listado de los discentes de la evaluación a través de una vista.
-    const discentesEvaluacion = await obtenerConsultaReturn(
-      "listado_discentes_curso",
-      {
-        columna: "id_evaluacion",
-        valor: evaluacionSeleccionada.id_evaluacion,
-      }
-    );
-    const discentes =
-      Array.isArray(discentesEvaluacion) && discentesEvaluacion.length
-        ? discentesEvaluacion.map((discente) => {
-            return {
-              id_evaluacion: evaluacionSeleccionada.id_evaluacion,
-              id_discente: discente.id_discente,
-              id_practica: options.data.id_practica,
-            };
-          })
-        : cambiarErrorGeneral(
-            "No se han encontrado discentes para esa evaluación."
-          );
-    /**
-     * Una vez construido el listado de todos los discentes de la evaluación
-     * se introducen en la tabla "evaluan" junto con la evaluación y la práctica.
-     * Eso sí, tras comprobar si se han encontrado discentes para esa evaluación.
-     */
-
-    // Shortcircuit operator -> si todo va bien (todo es true) hago la sentencia del final.
-    !errorGeneral && (await insertarDato("evaluan", discentes));
-
-    if (errorGeneral) {
-      mostrarTostadaError({
-        resumen: "Se ha producido un error en la inserción.",
-        detalle: `Los datos de dispone no se ha insertado: ${errorGeneral}.`,
-      });
-    } else {
-      mostrarTostadaExito({
-        resumen: "Datos insertados.",
-        detalle: `Los datos de dispone se ha insertado correctamente.`,
-      });
-    }
-  };
 
   /**
    * Plantillas para los DropDown.
@@ -210,53 +57,6 @@ const GestionPracticas = () => {
     );
   };
 
-  /**
-   * Funciones para el formulario de búsqueda en el DataTable de discentes.
-   */
-  const filtrarDatos = (e) => {
-    const value = e.target.value;
-    let _filtros = { ...filtros };
-    _filtros["global"].value = value;
-    setFiltros(_filtros);
-    setValoresFiltro(value);
-  };
-
-  const limpiarFiltro = () => {
-    setFiltros({
-      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-      nombre: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-      apellidos: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    });
-    setValoresFiltro("");
-  };
-
-  const dibujarCabeceraBusqueda = () => {
-    //className='flex justify-content-between'
-    return (
-      <div className='flex justify-content-end'>
-        <IconField iconPosition='left'>
-          <InputIcon className='pi pi-search' />
-          <InputText
-            value={valoresFiltro}
-            onChange={(e) => {
-              filtrarDatos(e);
-            }}
-            placeholder='Buscar...'
-          />
-        </IconField>
-        <Button
-          type='button'
-          icon='pi pi-filter-slash'
-          label=''
-          text
-          onClick={() => {
-            limpiarFiltro();
-          }}
-        />
-      </div>
-    );
-  };
-
   const buscarPracticas = async () => {
     // Se obtienen las prácticas de esa evaluación de la vista "listado_practicas_evaluaciones".
     const datosDisponen = await obtenerConsultaReturn(
@@ -266,6 +66,7 @@ const GestionPracticas = () => {
         valor: evaluacionSeleccionada.id_evaluacion,
       }
     );
+    //console.log(datosDisponen);
     // Si existen, se crea un array con los identificadores de las prácticas.
     if (datosDisponen.length) {
       const identificadores = datosDisponen.map((dato) => {
@@ -276,7 +77,12 @@ const GestionPracticas = () => {
         //Lo evuelve si el id_está en algunos de los valores que salen de dispone.
         return identificadores.includes(practica.id_practica);
       });
+      //console.log(_filtrado);
       setPracticasSeleccionadas(_filtrado);
+      //setPracticasSeleccionadas(datosDisponen);
+    } else {
+      // Si no hay prácticas para esa evaluación, se limpia el estado.
+      setPracticasSeleccionadas([]);
     }
   };
 
@@ -294,8 +100,6 @@ const GestionPracticas = () => {
   useEffect(() => {
     // Si el objeto no esta vacío...
     Object.keys(evaluacionSeleccionada).length && buscarPracticas();
-    // Se deseleccionan las prácticas seleccionadas (DataTable).
-    setPracticasSeleccionadas([]);
   }, [evaluacionSeleccionada]);
 
   useEffect(() => {
@@ -342,49 +146,23 @@ const GestionPracticas = () => {
                 className='w-full '
               />
             </div>
-            <MostrarPracticas practicas={practicasSeleccionadas} />
 
-            {/* <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
-              <Button
-                label='Guardar prácticas en la evaluación'
-                icon={iconos.aceptar}
-                onClick={(evento) => {
-                  confirmarInsercion(practicasSeleccionadas);
-                }}
-              />
-            </div> */}
+            <MostrarPracticas practicas={practicasSeleccionadas} />
           </ColumnaSimple>
           <ColumnaSimple estilo='flex-1 align-items-center justify-content-center m-1 px-2 py-2 border-round'>
-            <DataTable
-              paginator
-              paginatorPosition='top'
-              rows={15}
-              value={
-                evaluacionSeleccionada.id_evaluacion
-                  ? practicas
-                  : practicasInicial
-              }
-              selectionMode={null}
-              selection={practicasSeleccionadas}
-              removableSort
-              filters={filtros}
-              globalFilterFields={["nombre", "unidad", "enunciado", "numero"]}
-              onSelectionChange={(e) => setPracticasSeleccionadas(e.value)}
-              dataKey='id_practica'
-              tableStyle={{ minWidth: "50rem" }}
-              header={dibujarCabeceraBusqueda}
-              onRowUnselect={eliminarDisponen}
-              onRowSelect={insertarDisponen}
-              emptyMessage='Selecciona una evaluación para comenzar.'
-            >
-              <Column
-                selectionMode='multiple'
-                headerStyle={{ width: "3rem" }}
-              ></Column>
-              <Column field='numero' header='Número' sortable></Column>
-              <Column field='nombre' header='Nombre' sortable></Column>
-              <Column field='enunciado' header='Enunciado' sortable></Column>
-            </DataTable>
+            {Object.keys(evaluacionSeleccionada).length ? (
+              <>
+                <PracticasEvaluacionDataTable
+                  seleccion={practicasSeleccionadas}
+                  setter={setPracticasSeleccionadas}
+                  evaluacion={evaluacionSeleccionada}
+                />
+              </>
+            ) : (
+              <div className='flex align-items-center justify-content-center vertical-align-middle m-1 px-2 py-2 h-full'>
+                Selecciona una evaluación para comenzar.
+              </div>
+            )}
           </ColumnaSimple>
         </div>
       </>

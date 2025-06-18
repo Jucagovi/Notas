@@ -35,6 +35,7 @@ const ProveedorEstilos = ({ children }) => {
     evaluacion: "pi pi-list-check",
     consola: "pi pi-desktop",
     cargando: "pi pi-spinner-dotted pi-spin",
+    papelera: "pi pi-trash",
   };
 
   const acortarTexto = (texto, longitud = 0) => {
@@ -54,11 +55,12 @@ const ProveedorEstilos = ({ children }) => {
   };
 
   const colorNota = (nota) => {
-    if (nota == null) return "white";
-    if (nota >= 90) return "green";
-    if (nota > 55) return "white";
-    if (nota < 45) return "red";
-    return "orange";
+    if (nota == null) return "text-900"; // white
+    if (nota == 100) return "text-blue-500";
+    if (nota >= 90) return "text-green-500";
+    if (nota >= 50) return "text-900"; // white
+    if (nota < 50) return "text-red-500";
+    return "text-orange-500";
   };
 
   /*******************************************************************

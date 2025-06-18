@@ -1,3 +1,4 @@
+import React from "react";
 import ProveedorDatos from "./contexts/ProveedorDatos.jsx";
 import ProveedorEstilos from "./contexts/ProveedorEstilos.jsx";
 import ProveedorModales from "./contexts/ProveedorModales.jsx";
