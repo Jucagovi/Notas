@@ -13,6 +13,8 @@ import CreacionClaseDiscentes from "../components/creacionClase/CreacionClaseDis
 import CrearClaseDataTable from "../components/datatables/CrearClaseDataTable.jsx";
 import EliminacionClase from "../components/creacionClase/EliminacionClase.jsx";
 import ValorEstado from "../components/complementos/ValorEstado.jsx";
+import CursosDropDown from "../components/desplegables/CursosDropDown.jsx";
+import ModulosDropDown from "../components/desplegables/ModulosDropDown.jsx";
 
 const CreacionClase = () => {
   const cursoInicial = {
@@ -146,50 +148,23 @@ const CreacionClase = () => {
     obtenerTodos("Evaluaciones", cambiarEvaluaciones);
   };
 
-  /**
-   * Plantillas para los DropDown.
-   */
-  const plantillaCursoDropDown = (option) => {
-    return (
-      <div className='flex align-items-center'>
-        <div>
-          {option.nombre} en {option.centro}
-        </div>
-      </div>
-    );
-  };
-
-  const plantillaModuloDropDown = (option) => {
-    return (
-      <div className='flex align-items-center'>
-        <div>
-          ({option.siglas_ciclo}) {option.siglas_modulo} {option.nombre_modulo}
-        </div>
-      </div>
-    );
-  };
-
-  /**
-   * ¡¡¡NO FUNCIONAN LAS PLANTILLAS!!!
-   * Revisar -> si no van, crear un campo en la vista.
-   * En el evento onChange del DropDown no es posible hacerlo
-   * (sólo permite setear el estado). Si se coloca otra cosa
-   * las plantillas no funcionan.
-   */
   useEffect(() => {
     cursoSeleccionado &&
+      moduloSeleccionado &&
       setClaseNueva({
         ...claseNueva,
         ["curso"]: cursoSeleccionado,
+        ["modulo"]: moduloSeleccionado,
         ["evaluaciones"]: crearEvaluaciones(
           cursoSeleccionado,
           moduloSeleccionado
         ),
       });
-  }, [cursoSeleccionado]);
+  }, [cursoSeleccionado, moduloSeleccionado]);
 
-  useEffect(() => {
+  /*  useEffect(() => {
     moduloSeleccionado &&
+      cursoSeleccionado &&
       setClaseNueva({
         ...claseNueva,
         ["modulo"]: moduloSeleccionado,
@@ -198,7 +173,7 @@ const CreacionClase = () => {
           moduloSeleccionado
         ),
       });
-  }, [moduloSeleccionado]);
+  }, [moduloSeleccionado]); */
 
   useEffect(() => {
     discentesSeleccionados &&
@@ -217,40 +192,23 @@ const CreacionClase = () => {
       <div className='flex'>
         <ColumnaSimple estilo='flex-1 align-items-center justify-content-center font-bold m-2 px-4 py-2 border-round'>
           <h2>Asistente para crear una clase.</h2>
-
           <h4>Selecciona un curso.</h4>
           <div className='card flex justify-content-center'>
-            <Dropdown
-              id='cursoSeleccionado'
-              name='cursoSeleccionado'
-              value={cursoSeleccionado}
-              onChange={(evento) => {
-                setCursoSeleccionado(evento.value);
-              }}
-              options={cursos}
-              optionLabel='nombre'
-              placeholder='Elige un curso donde crear la clase'
-              //valueTemplate={!cursoSeleccionado && plantillaCursoDropDown}
-              //itemTemplate={!cursoSeleccionado && plantillaCursoDropDown}
-              className='w-full '
+            <CursosDropDown
+              valor={cursoSeleccionado}
+              setter={setCursoSeleccionado}
+              opciones={cursos}
+              tamanyo='w-full'
             />
           </div>
 
           <h4>Especifica el módulo.</h4>
           <div className='card flex justify-content-center'>
-            <Dropdown
-              id='moduloSeleccionado'
-              name='moduloSeleccionado'
-              value={moduloSeleccionado}
-              onChange={(evento) => {
-                setModuloSeleccionado(evento.value);
-              }}
-              options={listadoModulos}
-              optionLabel='valor_drop'
-              placeholder='Elige un módulo que impartir en clase'
-              //valueTemplate={plantillaModuloDropDown}
-              //itemTemplate={plantillaModuloDropDown}
-              className='w-full '
+            <ModulosDropDown
+              valor={moduloSeleccionado}
+              setter={setModuloSeleccionado}
+              opciones={listadoModulos}
+              tamanyo='w-full'
             />
           </div>
           <h4>Elige discentes.</h4>
@@ -269,11 +227,15 @@ const CreacionClase = () => {
               }}
             />
           </div>
+          <h3>Zona peligrosa</h3>
+          <ColumnaSimple colorBorde='border-orange-500' estilo='my-2 px-2 py-2'>
+            <h3>Edición de clases</h3>
+          </ColumnaSimple>
           <ColumnaSimple colorBorde='border-red-500'>
             <EliminacionClase />
           </ColumnaSimple>
         </ColumnaSimple>
-        <ColumnaSimple estilo='flex-1 align-items-center justify-content-center m-1 px-4 py-2 border-round'>
+        <ColumnaSimple estilo='flex-1 align-items-center justify-content-center m-1 px-4 py-2'>
           <h3>Vista previa.</h3>
           {claseNueva.curso && <CreacionClaseCurso datos={claseNueva.curso} />}
           {claseNueva.modulo && (

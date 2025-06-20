@@ -7,6 +7,7 @@ import useDatos from "../../hooks/useDatos.js";
 import useEstilos from "../../hooks/useEstilos.js";
 import useTostadas from "../../hooks/useTostadas.js";
 import ValorEstado from "../complementos/ValorEstado.jsx";
+import ClasesDropDown from "../desplegables/ClasesDropDown.jsx";
 
 const EliminacionClase = () => {
   const [claseSeleccionada, setClaseSeleccionada] = useState();
@@ -171,7 +172,13 @@ const EliminacionClase = () => {
   return (
     <>
       <h3 className='text-red-500'>Eliminar una clase</h3>
-      <Dropdown
+      <ClasesDropDown
+        valores={claseSeleccionada}
+        setter={setClaseSeleccionada}
+        opciones={listadoClases}
+        tamanyo='w-full'
+      />
+      {/*  <Dropdown
         id='claseSeleccionada'
         name='claseSeleccionada'
         value={claseSeleccionada}
@@ -180,11 +187,11 @@ const EliminacionClase = () => {
         }}
         options={listadoClases}
         optionLabel='valor_drop'
-        placeholder='Elige una clase a eliminar...'
+        placeholder='Elige una clase...'
         itemTemplate={plantillaClaseDropDown} //Plantilla para el listado de elementos.
         valueTemplate={plantillaClaseDropDown} //Plantilla para el elemento seleccionado.
         className='w-full'
-      />
+      /> */}
       <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
         <Button
           label='Eliminar clase'

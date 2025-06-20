@@ -75,7 +75,7 @@ const CrearClaseDataTable = ({ valoresSeleccionados, setter }) => {
       globalFilterFields={["nombre", "apellidos"]}
       onSelectionChange={(e) => setter(e.value)}
       dataKey='id_discente'
-      tableStyle={{ minWidth: "50rem" }}
+      //tableStyle={{ minWidth: "50rem" }}
       header={dibujarCabeceraBusqueda}
       emptyMessage='No hay resultados'
     >

@@ -1,0 +1,67 @@
+import React, { useState, useEffect } from "react";
+import useEstilos from "../../hooks/useEstilos.js";
+import { Avatar } from "primereact/avatar";
+import { Badge } from "primereact/badge";
+import DiscentesEvaluacionesDataTable from "../datatables/DiscentesEvaluacionesDataTable.jsx";
+import ColumnaSimple from "../../layout/ColumnaSimple.jsx";
+import NotasLineChart from "../graficos/NotasLineChart.jsx";
+
+const DiscenteDetalleEvaluaciones = ({
+  evaluaciones,
+  curso,
+  identificador,
+}) => {
+  const { iconos, extraerUnicos } = useEstilos();
+  /**
+   * Para el listado de módulos de el curso elegido (se obtienen valores únicos).
+   * Controla los <DiscentesEvaluacionesDataTable>.
+   */
+  const [modulosUnicos, setModulosUnicos] = useState([]);
+
+  const mostrarCabecera = (valor) => {
+    return (
+      <span className='flex align-items-center gap-2 w-full'>
+        <Avatar image={iconos.modulo} shape='circle' />
+        <span className='font-bold white-space-nowrap'>{valor}</span>
+        <Badge value='2' className='ml-auto' />
+      </span>
+    );
+  };
+
+  const filtrarListadoCurso = (cursoFiltrar) => {
+    const _listado = evaluaciones.filter((evaluacion) => {
+      return evaluacion.id_curso === cursoFiltrar.id_curso;
+    });
+
+    // Se extraen los módulos únicos (por cada uno se pinta un <DiscentesEvaluacionesDataTable>).
+    setModulosUnicos(extraerUnicos(_listado, "id_modulo"));
+  };
+
+  useEffect(() => {
+    filtrarListadoCurso(curso);
+  }, [curso]);
+
+  return (
+    <>
+      <div>
+        {Array.isArray(modulosUnicos) && modulosUnicos?.length
+          ? modulosUnicos.map((moduloUnico, indice) => {
+              const _filtrado = evaluaciones.filter((eva) => {
+                return eva.id_modulo === moduloUnico;
+              });
+              return (
+                <div key={indice} className='my-5'>
+                  <DiscentesEvaluacionesDataTable evaluaciones={_filtrado} />
+                </div>
+              );
+            })
+          : "No se han encontrado módulos."}
+      </div>
+      <div>
+        <NotasLineChart identificador={identificador} />
+      </div>
+    </>
+  );
+};
+
+export default DiscenteDetalleEvaluaciones;

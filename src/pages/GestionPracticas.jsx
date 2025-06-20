@@ -3,8 +3,10 @@ import ColumnaSimple from "../layout/ColumnaSimple.jsx";
 import { Dropdown } from "primereact/dropdown";
 import useDatos from "../hooks/useDatos.js";
 import MostrarPracticas from "../components/MostrarPracticas.jsx";
+import CursosDropDown from "../components/desplegables/CursosDropDown.jsx";
 import ValorEstado from "../components/complementos/ValorEstado.jsx";
 import PracticasEvaluacionDataTable from "../components/datatables/PracticasEvaluacionDataTable.jsx";
+import useEstilos from "../hooks/useEstilos.js";
 
 const GestionPracticas = () => {
   /**
@@ -33,6 +35,11 @@ const GestionPracticas = () => {
   const [cursoSeleccionado, setCursoSeleccionado] = useState({});
   const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState({});
   const [evaluacionesFiltradas, setEvaluacionesFiltradas] = useState([]);
+
+  const { ordenarColeccion } = useEstilos();
+
+  // Funciona de alguna forma inexplicable.
+  ordenarColeccion(practicasSeleccionadas, "numero");
 
   /**
    * Plantillas para los DropDown.
@@ -116,18 +123,12 @@ const GestionPracticas = () => {
             <h2>Asigna prácticas a una evaluación.</h2>
 
             <h4>Selecciona un curso.</h4>
-            <div className='card flex justify-content-center'>
-              <Dropdown
-                id='cursoSeleccionado'
-                name='cursoSeleccionado'
-                value={cursoSeleccionado}
-                onChange={(evento) => {
-                  setCursoSeleccionado(evento.value);
-                }}
-                options={cursos}
-                optionLabel='nombre'
-                placeholder='Elige un curso...'
-                className='w-full '
+            <div className='card flex justify-content-left'>
+              <CursosDropDown
+                valor={cursoSeleccionado}
+                opciones={cursos}
+                setter={setCursoSeleccionado}
+                tamanyo='w-full'
               />
             </div>
 

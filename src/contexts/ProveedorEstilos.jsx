@@ -36,6 +36,7 @@ const ProveedorEstilos = ({ children }) => {
     consola: "pi pi-desktop",
     cargando: "pi pi-spinner-dotted pi-spin",
     papelera: "pi pi-trash",
+    boton: "pi pi-power-off",
   };
 
   const acortarTexto = (texto, longitud = 0) => {
@@ -63,6 +64,39 @@ const ProveedorEstilos = ({ children }) => {
     return "text-orange-500";
   };
 
+  const coloresGrafico = {
+    rojo: "#C74242",
+    azul: "#354BB9",
+    blanco: "white",
+    verde: "#6CC773",
+    naranja: "#E4A660",
+    gris: "grey",
+  };
+
+  const procesarFecha = (fechaCadena) => {
+    // Se separa la fecha.
+    const [anio, mes, dia] = fechaCadena.split("-").map(Number);
+    // Se crear objeto Date.
+    const fecha = new Date(anio, mes - 1, dia);
+    // Array de nombres de meses.
+    const meses = [
+      "enero",
+      "febrero",
+      "marzo",
+      "abril",
+      "mayo",
+      "junio",
+      "julio",
+      "agosto",
+      "septiembre",
+      "octubre",
+      "noviembre",
+      "diciembre",
+    ];
+    // Formato europeo extendido.
+    return `${dia} de ${meses[mes - 1]} de ${anio}`;
+  };
+
   /*******************************************************************
    * Función para individualizar valores en evaluaciones.
    * Crea un nuevo (new) conjunto de datos (Set) individualizando los
@@ -80,10 +114,11 @@ const ProveedorEstilos = ({ children }) => {
     ];
   };
 
-  /******************************************************
-   * Funciones para la exportación de ficheros.
-   *
-   */
+  const ordenarColeccion = (coleccion, campo) => {
+    coleccion.sort((a, b) => {
+      return a[campo].localeCompare(b[campo]);
+    });
+  };
 
   const exportarCSV = (referencia, selectionOnly) => {
     //dataTableRef.current.exportCSV({ selectionOnly });
@@ -92,11 +127,14 @@ const ProveedorEstilos = ({ children }) => {
 
   const datosAproveer = {
     iconos,
+    coloresGrafico,
     acortarTexto,
     exportarCSV,
     calcularEdad,
     colorNota,
     extraerUnicos,
+    procesarFecha,
+    ordenarColeccion,
   };
 
   return (

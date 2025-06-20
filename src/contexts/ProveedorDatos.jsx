@@ -149,14 +149,13 @@ const ProveedorDatos = ({ children }) => {
 
   // Obtiene datos de la tabla y utiliza el setter para actualizar el estado.
   // Todo en la misma función asíncrona para evitar repeticiones.
-  const obtenerTodos = async (tabla, setter, orden) => {
+  const obtenerTodos = async (tabla, setter, orden = "created_at") => {
     setErrorGeneral(errorInicial);
     setCargando(true);
-    const ordenarPor = orden ? orden : "created_at";
     const { data, error } = await supabase
       .from(tabla)
       .select("*")
-      .order(ordenarPor, { ascending: true });
+      .order(orden, { ascending: true });
     setCargando(false);
     error ? setErrorGeneral(error.message) : setter(data);
   };
@@ -170,27 +169,34 @@ const ProveedorDatos = ({ children }) => {
    * La consulta siempre de hará con un .eq en Supabase.
    * */
 
-  const obtenerConsulta = async (tabla, setter, filtro) => {
+  const obtenerConsulta = async (
+    tabla,
+    setter,
+    filtro,
+    orden = "created_at"
+  ) => {
     setErrorGeneral(errorInicial);
     setCargando(true);
     setter(""); // Evitar actualizar datos entre cargas (efecto visual). Se solcionará cuando se haga el hook para datos con estado Loading...
     const { data, error } = await supabase
       .from(tabla)
       .select("*")
-      .eq(filtro.columna, filtro.valor);
+      .eq(filtro.columna, filtro.valor)
+      .order(orden, { ascending: true });
     setCargando(false);
     error ? setErrorGeneral(error.message) : setter(data);
   };
   /**
    * Consulta parametrizada sin utilizar setter (devuelve el resultado de la consulta).
    */
-  const obtenerConsultaReturn = async (tabla, filtro) => {
+  const obtenerConsultaReturn = async (tabla, filtro, orden = "created_at") => {
     setErrorGeneral(errorInicial);
     setCargando(true);
     const { data, error } = await supabase
       .from(tabla)
       .select("*")
-      .eq(filtro.columna, filtro.valor);
+      .eq(filtro.columna, filtro.valor)
+      .order(orden, { ascending: true });
     setCargando(false);
     if (error) {
       setErrorGeneral(error.message);

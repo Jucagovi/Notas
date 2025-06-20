@@ -32,7 +32,8 @@ const GestionNotas = () => {
       {
         columna: "id_evaluacion",
         valor: evaluacion.id_evaluacion,
-      }
+      },
+      "numero"
     );
     setPracticasFiltradas(practicas);
   };

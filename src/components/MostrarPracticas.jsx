@@ -1,9 +1,10 @@
 import React from "react";
 import useEstilos from "../hooks/useEstilos.js";
 import MostrarPractica from "./MostrarPractica.jsx";
+import ValorEstado from "./complementos/ValorEstado.jsx";
 
 const MostrarPracticas = ({ practicas }) => {
-  const { iconos } = useEstilos();
+  const { iconos, ordenarColeccion } = useEstilos();
 
   return (
     <>
@@ -21,6 +22,7 @@ const MostrarPracticas = ({ practicas }) => {
             );
           })
         : "Esta evaluación no dispone de prácticas."}
+      <ValorEstado mostrar={practicas} />;
     </>
   );
 };

@@ -62,7 +62,6 @@ const EvaluacionPesoDataTable = ({ valores, evaluacion }) => {
   };
 
   const evaluacionesPie = (datos) => {
-    console.log(datos);
     if (Array.isArray(datos) && datos?.length) {
       const total = datos.reduce((acumulador, valor, indice, array) => {
         return acumulador + valor.peso;

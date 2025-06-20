@@ -11,7 +11,7 @@ import useDatos from "../../hooks/useDatos.js";
 import useEstilos from "../../hooks/useEstilos.js";
 
 const DiscentesListadoDataTable = ({ referencia }) => {
-  const { discentes } = useDatos();
+  const { discentes, cambiarIdDiscente } = useDatos();
   const { iconos, calcularEdad } = useEstilos();
 
   const navegar = useNavigate();
@@ -96,7 +96,9 @@ const DiscentesListadoDataTable = ({ referencia }) => {
         selectionMode='single'
         //selection={discente}
         onRowSelect={(e) => {
-          navegar(`/detallediscente/${e.data.id_discente}`);
+          /* // Se cambia el estado del proveedor para la ficha del/la discente.
+          cambiarIdDiscente(e.data.id_discente); */
+          navegar(`/discentedetalle/${e.data.id_discente}`);
         }}
         filters={filtros}
         //filterDisplay='row'

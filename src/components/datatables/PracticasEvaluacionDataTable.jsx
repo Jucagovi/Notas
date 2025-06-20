@@ -86,6 +86,7 @@ const PracticasEvaluacionDataTable = ({ seleccion, setter, evaluacion }) => {
         : cambiarErrorGeneral(
             "No se han encontrado discentes para esa evaluación."
           );
+
     /**
      * Una vez construido el listado de todos los discentes de la evaluación
      * se introducen en la tabla "evaluan" junto con la evaluación y la práctica.
@@ -154,6 +155,12 @@ const PracticasEvaluacionDataTable = ({ seleccion, setter, evaluacion }) => {
   return (
     <>
       <DataTable
+        /**
+         * El atributo "key" se puede utilizar para actualizar el DataTable y redibujarse.
+         * POr eso lleva asociado la variable "seleccion" , cuando cambia su selección se
+         * vuelve a dibujar. Así se consigue que se ejecute la función del "body" de la
+         * primera columna (la que muestra el icono al seleccionar).
+         */
         key={seleccion}
         paginator
         paginatorPosition='top'

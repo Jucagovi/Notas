@@ -4,7 +4,6 @@ import { Column } from "primereact/column";
 import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "primereact/row";
 import useEstilos from "../../hooks/useEstilos.js";
-import ValorEstado from "../complementos/ValorEstado.jsx";
 
 const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
   const { colorNota } = useEstilos();
@@ -85,10 +84,10 @@ const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
         }
       });
     }
-
+    const resultado = Math.trunc(subtotal / pesoTotal);
     return (
-      <span style={{ color: colorNota(Math.trunc(subtotal / pesoTotal)) }}>
-        {Math.trunc(subtotal / pesoTotal)}
+      <span style={{ color: colorNota(resultado) }}>
+        {resultado ? resultado : ""}
       </span>
     );
   };
@@ -108,7 +107,7 @@ const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
       <Row>
         <Column
           footer='Media del curso'
-          colSpan={4}
+          colSpan={3}
           footerStyle={{ textAlign: "right" }}
         />
         <Column footer={calcularMediaPonderada("curso")} />
@@ -149,7 +148,7 @@ const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
             return mostrarNombreCompleto(options);
           }}
         ></Column>
-        <Column field='unidad' header='Unidad de Trabajo'></Column>
+        {/* <Column field='unidad' header='Unidad de Trabajo'></Column> */}
         <Column
           field='nota'
           header='Nota'

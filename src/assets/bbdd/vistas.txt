@@ -1,0 +1,131 @@
+create view listado_clases
+with
+  (security_invoker = on) as
+select distinct
+  i.created_at,
+  i.id_curso,
+  c.nombre as "nombre_curso",
+  i.id_modulo,
+  m.nombre as "nombre_modulo"
+from
+  "imparte" as "i",
+  "Cursos" as "c",
+  "Modulos" as "m"
+where
+  i.id_curso = c.id_curso
+  and i.id_modulo = m.id_modulo
+
+create view listado_discentes_evaluacion
+with
+(security_invoker = on) as
+select
+  e.created_at,
+  e.id_evaluan,
+  e.id_evaluacion,
+  e.id_practica,
+  e.nota,
+  e.peso,
+  d.nombre as "nombre_discente",
+  d.apellidos,
+  d.id_discente
+from
+  "Discentes" as "d",
+  "evaluan" as "e"
+where
+  d.id_discente = e.id_discente
+
+create view listado_discentes_curso
+with
+(security_invoker = on) as
+select
+  e.created_at,
+  e.id_evaluacion,
+  d.nombre as "nombre_discente",
+  d.apellidos,
+  d.id_discente,
+  m.id_modulo
+from
+  "Evaluaciones" as "e",
+  "Discentes" as "d",
+  "Cursos" as "c",
+  "imparte" as "i",
+  "Modulos" as "m"
+where
+  e.id_curso = c.id_curso
+  and c.id_curso = i.id_curso
+  and i.id_discente = d.id_discente
+  and e.id_modulo = m.id_modulo
+  and i.id_modulo = m.id_modulo
+
+  create view listado_ciclos_modulos
+with
+  (security_invoker = on) as
+select
+  c.id_ciclo,
+  c.nombre as "nombre_ciclo",
+  c.siglas as "siglas_ciclo",
+  m.id_modulo,
+  m.nombre as "nombre_modulo",
+  m.siglas as "modulo_siglas",
+  CONCAT(c.siglas, ' ', m.nombre, ' (', m.siglas, ')') as "valor_drop"
+from
+  "Ciclos" as "c",
+  "Modulos" as "m"
+where
+  c.id_ciclo = m.id_ciclo;
+
+create view listado_evaluaciones_ciclos
+with
+(security_invoker = on) as
+select
+  evaluan.id_discente,
+  evaluan.peso,
+  evaluan.nota,
+  e.nombre as "nombre_evaluacion",
+  e.id_evaluacion,
+  e.fecha_ini,
+  e.fecha_fin,
+  d.nombre as "nombre_discente",
+  d.apellidos,
+  p.id_practica,
+  p.numero,
+  p.enunciado,
+  p.unidad,
+  p.nombre as "nombre_practica",
+  c.nombre as "nombre_curso",
+  m.id_modulo,
+  m.nombre as "nombre_modulo",
+  c.anyo,
+  c.id_curso,
+  c.descripcion
+from
+  "evaluan",
+  "Evaluaciones" as "e",
+  "Discentes" as "d",
+  "Practicas" as "p",
+  "Modulos" as "m",
+  "Cursos" as "c"
+where
+  evaluan.id_evaluacion = e.id_evaluacion
+  and evaluan.id_discente = d.id_discente
+  and evaluan.id_practica = p.id_practica
+  and m.id_modulo = e.id_modulo
+  and e.id_curso = c.id_curso
+order by
+  m.nombre
+
+create view listado_practicas_evaluacion
+with
+(security_invoker = on) as
+select distinct
+  e.id_evaluacion,
+  e.peso,
+  p.*
+from
+  "Practicas" as "p",
+  "evaluan" as "e"
+where
+  p.id_practica = e.id_practica
+
+
+
