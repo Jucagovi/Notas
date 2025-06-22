@@ -10,8 +10,6 @@ import useTostadas from "../../hooks/useTostadas.js";
 const EvaluacionPesoDataTable = ({ valores, evaluacion }) => {
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
 
-  const [totalPorcentaje, setTotalPorcentaje] = useState(0);
-
   const editorTexto = (options) => {
     return (
       <InputText
@@ -28,7 +26,7 @@ const EvaluacionPesoDataTable = ({ valores, evaluacion }) => {
 
   const editarEvaluacion = (e) => {
     let { rowData, newValue, value, field, originalEvent: event } = e;
-    // Se comparan los valoes nuevo y viejo y sólo se actualiza si son diferentes (evota errores).
+    // Se comparan los valoes nuevo y viejo y sólo se actualiza si son diferentes (evita errores).
     if (newValue !== value) {
       if (newValue.trim().length > 0) rowData[field] = newValue;
       else event.preventDefault();
@@ -61,20 +59,14 @@ const EvaluacionPesoDataTable = ({ valores, evaluacion }) => {
     }
   };
 
-  const evaluacionesPie = (datos) => {
-    if (Array.isArray(datos) && datos?.length) {
-      const total = datos.reduce((acumulador, valor, indice, array) => {
-        return acumulador + valor.peso;
-      }, 0);
-      setTotalPorcentaje(total);
-    } else {
-      return "0";
+  const evaluacionesPie = () => {
+    let total = 0;
+    for (let valor of valores) {
+      total += parseInt(valor.peso);
     }
-  };
 
-  useEffect(() => {
-    evaluacionesPie(valores);
-  }, [evaluacion]);
+    return isNaN(total) ? 0 : total;
+  };
 
   const pieTabla = (
     <ColumnGroup>
@@ -86,48 +78,51 @@ const EvaluacionPesoDataTable = ({ valores, evaluacion }) => {
         />
         <Column
           footerStyle={{ textAlign: "center" }}
-          footer={totalPorcentaje}
+          footer={evaluacionesPie}
         />
       </Row>
     </ColumnGroup>
   );
 
   return (
-    <DataTable
-      removableSort
-      editMode='cell'
-      dataKey='id_practica'
-      tableStyle={{ maxWidth: "50rem" }}
-      value={valores}
-      emptyMessage='Selecciona una evaluación para comenzar.'
-      footerColumnGroup={pieTabla}
-    >
-      <Column
-        style={{ width: "15%" }}
-        field='numero'
-        header='Número'
-        sortable
-      ></Column>
-      <Column
-        style={{ width: "70%" }}
-        field='enunciado'
-        header='Enunciado'
-        sortable
-      ></Column>
-      <Column
-        className='text-center'
-        style={{ width: "15%" }}
-        field='peso'
-        header='Peso'
-        sortable
-        editor={(options) => {
-          return editorTexto(options);
-        }}
-        onCellEditComplete={(options) => {
-          editarEvaluacion(options);
-        }}
-      ></Column>
-    </DataTable>
+    <>
+      <DataTable
+        //key={valores}
+        removableSort
+        editMode='cell'
+        dataKey='id_practica'
+        tableStyle={{ maxWidth: "50rem" }}
+        value={valores}
+        emptyMessage='Selecciona una evaluación para comenzar.'
+        footerColumnGroup={pieTabla}
+      >
+        <Column
+          style={{ width: "15%" }}
+          field='numero'
+          header='Número'
+          sortable
+        ></Column>
+        <Column
+          style={{ width: "70%" }}
+          field='enunciado'
+          header='Enunciado'
+          sortable
+        ></Column>
+        <Column
+          className='text-center'
+          style={{ width: "15%" }}
+          field='peso'
+          header='Peso'
+          sortable
+          editor={(options) => {
+            return editorTexto(options);
+          }}
+          onCellEditComplete={(options) => {
+            editarEvaluacion(options);
+          }}
+        ></Column>
+      </DataTable>
+    </>
   );
 };
 

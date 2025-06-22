@@ -28,6 +28,13 @@ const MenuBarra = () => {
       },
     },
     {
+      label: "Clases",
+      icon: iconos.curso,
+      command: () => {
+        navegar("/creacionclase");
+      },
+    },
+    {
       label: "Prácticas",
       icon: iconos.practica,
       command: () => {
@@ -93,13 +100,7 @@ const MenuBarra = () => {
             },
           ],
         },
-        {
-          label: "Crear clase",
-          icon: iconos.curso,
-          command: () => {
-            navegar("/creacionclase");
-          },
-        },
+
         {
           label: "Inserción datos",
           icon: iconos.insercion,
@@ -115,18 +116,11 @@ const MenuBarra = () => {
           },
         },
         {
-          label: "Informes",
-          icon: iconos.informe,
-          items: [
-            {
-              label: "Apollo",
-              icon: iconos.informe,
-            },
-            {
-              label: "Ultima",
-              icon: iconos.informe,
-            },
-          ],
+          label: "Copia seguridad",
+          icon: iconos.basedatos,
+          command: () => {
+            navegar("/copiaseguridad");
+          },
         },
         {
           label: "Acerca de",

@@ -10,8 +10,8 @@ import NotasLineChart from "../graficos/NotasLineChart.jsx";
 import { TabView, TabPanel } from "primereact/tabview";
 import Cargando from "../Cargando.jsx";
 import useEstilos from "../../hooks/useEstilos.js";
-import "./estilos.css";
 import DiscentesEvaluacionesDataTable from "../datatables/DiscentesEvaluacionesDataTable.jsx";
+import NotasAgrupadasBarChart from "../graficos/NotasAgrupadasBarChart.jsx";
 
 const DiscenteDetalle = () => {
   //Se recoge el id pasado por parámetro y se cambia el estado del proveedor.
@@ -58,7 +58,12 @@ const DiscenteDetalle = () => {
     const _filtrado = listadoEvaluacionesCiclos.filter((eva) => {
       return eva.nombre_modulo === modulo;
     });
-    return <NotasLineChart identificador={id} datosBrutos={_filtrado} />;
+    return (
+      <>
+        <NotasLineChart datosBrutos={_filtrado} />
+        <NotasAgrupadasBarChart datosBrutos={_filtrado} />
+      </>
+    );
   };
 
   useEffect(() => {
@@ -96,20 +101,6 @@ const DiscenteDetalle = () => {
             })}
         </TabView>
       </ColumnaSimple>
-      {/*  <ColumnaSimple estilo='m-1 my-2'>
-        <div>
-          {Array.isArray(listadoEvaluacionesCiclos) &&
-          listadoEvaluacionesCiclos?.length ? (
-            <DiscenteDetalleEvaluaciones
-              evaluaciones={listadoEvaluacionesCiclos}
-              curso={cursoSeleccionado}
-              identificador={id}
-            />
-          ) : (
-            <Cargando />
-          )}
-        </div>
-      </ColumnaSimple> */}
     </ColumnaSimple>
   );
 };

@@ -22,7 +22,6 @@ const MostrarPracticas = ({ practicas }) => {
             );
           })
         : "Esta evaluación no dispone de prácticas."}
-      <ValorEstado mostrar={practicas} />;
     </>
   );
 };

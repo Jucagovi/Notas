@@ -130,8 +130,8 @@ const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
         //paginator
         //rows={10}
         footerColumnGroup={pieTabla}
-        expandableRowGroups
-        expandedRows={contenidoExpandible}
+        //expandableRowGroups
+        //expandedRows={contenidoExpandible}
         rowGroupMode='subheader' //"subheader" and "rowgroup"
         groupRowsBy='id_evaluacion'
         onRowToggle={(e) => {

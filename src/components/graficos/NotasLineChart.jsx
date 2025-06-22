@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Chart } from "primereact/chart";
-import useDatos from "../../hooks/useDatos.js";
-import ValorEstado from "../complementos/ValorEstado";
 import useEstilos from "../../hooks/useEstilos.js";
 
-const NotasLineChart = ({ identificador, datosBrutos }) => {
+const NotasLineChart = ({ datosBrutos }) => {
   const [datos, setDatos] = useState({});
   const [opciones, setOpciones] = useState({});
   const { coloresGrafico } = useEstilos();
@@ -67,7 +65,7 @@ const NotasLineChart = ({ identificador, datosBrutos }) => {
   };
 
   // Se contruyen los datos para la gráfica.
-  const construirDatos = async (datosBruto) => {
+  const construirDatos = (datosBruto) => {
     // Sólo si hay datos.
     if (Array.isArray(datosBruto) && datosBruto?.length) {
       // Se obtienen las etiquetas.

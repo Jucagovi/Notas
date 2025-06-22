@@ -37,6 +37,7 @@ const ProveedorEstilos = ({ children }) => {
     cargando: "pi pi-spinner-dotted pi-spin",
     papelera: "pi pi-trash",
     boton: "pi pi-power-off",
+    basedatos: "pi pi-database",
   };
 
   const acortarTexto = (texto, longitud = 0) => {

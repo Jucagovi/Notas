@@ -228,10 +228,10 @@ const CreacionClase = () => {
             />
           </div>
           <h3>Zona peligrosa</h3>
-          <ColumnaSimple colorBorde='border-orange-500' estilo='my-2 px-2 py-2'>
+          <ColumnaSimple modo='advertencia' estilo='my-2 px-2 py-2'>
             <h3>Edición de clases</h3>
           </ColumnaSimple>
-          <ColumnaSimple colorBorde='border-red-500'>
+          <ColumnaSimple modo='peligro'>
             <EliminacionClase />
           </ColumnaSimple>
         </ColumnaSimple>

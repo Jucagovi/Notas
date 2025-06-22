@@ -19,6 +19,7 @@ import CreacionClase from "../pages/CreacionClase.jsx";
 import InsercionDatosMasivos from "../pages/InsercionDatosMasivos.jsx";
 import Consola from "../components/herramientas/Consola.jsx";
 import GestionEvaluaciones from "../pages/GestionEvaluaciones.jsx";
+import CopiaSeguridad from "../components/herramientas/CopiaSeguridad.jsx";
 
 const Rutas = () => {
   return (
@@ -40,6 +41,7 @@ const Rutas = () => {
         <Route path='/discentedetalle/:id' element={<DiscenteDetalle />} />
         <Route path='/creacionclase' element={<CreacionClase />} />
         <Route path='/inserciondatos' element={<InsercionDatosMasivos />} />
+        <Route path='/copiaseguridad' element={<CopiaSeguridad />} />
         <Route path='/acercade' element={<AcercaDe />} />
         <Route path='/informes' element={<Informes />} />
         <Route path='/login' element={<Login />} />
