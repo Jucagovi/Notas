@@ -8,6 +8,10 @@ import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import useDatos from "../../hooks/useDatos.js";
 
+/**
+ * ¿Poner un estado en el componente padre para controlar las inserciones desde fuera o hacerla aquí?
+ */
+
 const CrearClaseDataTable = ({ valoresSeleccionados, setter }) => {
   const [filtros, setFiltros] = useState({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -63,6 +67,7 @@ const CrearClaseDataTable = ({ valoresSeleccionados, setter }) => {
       </div>
     );
   };
+
   return (
     <DataTable
       paginator

@@ -11,10 +11,11 @@ import CreacionClaseModulo from "../components/creacionClase/CreacionClaseModulo
 import CreacionClaseEvaluaciones from "../components/creacionClase/CreacionClaseEvaluaciones.jsx";
 import CreacionClaseDiscentes from "../components/creacionClase/CreacionClaseDiscentes.jsx";
 import CrearClaseDataTable from "../components/datatables/CrearClaseDataTable.jsx";
-import EliminacionClase from "../components/creacionClase/EliminacionClase.jsx";
+import EliminacionClase from "./EliminacionClase.jsx";
 import ValorEstado from "../components/complementos/ValorEstado.jsx";
 import CursosDropDown from "../components/desplegables/CursosDropDown.jsx";
 import ModulosDropDown from "../components/desplegables/ModulosDropDown.jsx";
+import EdicionClase from "./EdicionClase.jsx";
 
 const CreacionClase = () => {
   const cursoInicial = {
@@ -227,13 +228,6 @@ const CreacionClase = () => {
               }}
             />
           </div>
-          <h3>Zona peligrosa</h3>
-          <ColumnaSimple modo='advertencia' estilo='my-2 px-2 py-2'>
-            <h3>Edición de clases</h3>
-          </ColumnaSimple>
-          <ColumnaSimple modo='peligro'>
-            <EliminacionClase />
-          </ColumnaSimple>
         </ColumnaSimple>
         <ColumnaSimple estilo='flex-1 align-items-center justify-content-center m-1 px-4 py-2'>
           <h3>Vista previa.</h3>

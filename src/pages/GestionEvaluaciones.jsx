@@ -24,6 +24,7 @@ import CreacionClaseDiscentes from "../components/creacionClase/CreacionClaseDis
 import MostrarPracticas from "../components/MostrarPracticas.jsx";
 import Cargando from "../components/Cargando.jsx";
 import EvaluacionPesoDataTable from "../components/datatables/EvaluacionPesoDataTable.jsx";
+import EvaluacionesDropDown from "../components/desplegables/EvaluacionesDropDown.jsx";
 
 const GestionEvaluaciones = () => {
   const {
@@ -82,18 +83,11 @@ const GestionEvaluaciones = () => {
       <div>
         <h4>Elige la evaluación.</h4>
         <div className='card flex '>
-          <Dropdown
-            id='evaluacionSeleccionada'
-            name='evaluacionSeleccionada'
-            value={evaluacionSeleccionada}
-            onChange={(evento) => {
-              setEvaluacionSeleccionada(evento.value);
-            }}
-            options={evaluacionesActuales}
-            optionLabel='nombre'
-            placeholder='Elige una evaluación...'
-            scrollHeight='400px'
-            //className='w-full '
+          <EvaluacionesDropDown
+            valor={evaluacionSeleccionada}
+            opciones={evaluacionesActuales}
+            setter={setEvaluacionSeleccionada}
+            tamanyo='w-6'
           />
         </div>
         <div className='my-3'>

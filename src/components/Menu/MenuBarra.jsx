@@ -29,10 +29,30 @@ const MenuBarra = () => {
     },
     {
       label: "Clases",
-      icon: iconos.curso,
-      command: () => {
-        navegar("/creacionclase");
-      },
+      icon: iconos.archivo,
+      items: [
+        {
+          label: "Crear clase",
+          icon: iconos.descripcion,
+          command: () => {
+            navegar("/creacionclase");
+          },
+        },
+        {
+          label: "Modificar clase",
+          icon: iconos.editar,
+          command: () => {
+            navegar("/edicionclase");
+          },
+        },
+        {
+          label: "Eliminar clase",
+          icon: iconos.eliminar,
+          command: () => {
+            navegar("/eliminacionclase");
+          },
+        },
+      ],
     },
     {
       label: "Prácticas",

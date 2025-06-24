@@ -13,13 +13,13 @@ const plantillaClaseDropDown = (option) => {
   }
 };
 
-const ClasesDropDown = ({ valores, opciones, setter, tamanyo = "" }) => {
+const ClasesDropDown = ({ valor, opciones, setter, tamanyo = "" }) => {
   return (
     <>
       <Dropdown
         id='claseSeleccionada'
         name='claseSeleccionada'
-        value={valores}
+        value={valor}
         onChange={(evento) => {
           setter(evento.value);
         }}
@@ -27,7 +27,7 @@ const ClasesDropDown = ({ valores, opciones, setter, tamanyo = "" }) => {
         optionLabel='valor_drop'
         placeholder='Elige una clase...'
         itemTemplate={plantillaClaseDropDown} //Plantilla para el listado de elementos.
-        valueTemplate={valores && plantillaClaseDropDown} //Plantilla para el elemento seleccionado.
+        valueTemplate={Object.keys(valor).length && plantillaClaseDropDown} //Plantilla para el elemento seleccionado.
         className={tamanyo}
       />
     </>

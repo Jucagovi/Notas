@@ -1,41 +1,28 @@
 import React, { useState, useEffect } from "react";
-import supabase from "../../config/config_supabase.js";
+import supabase from "../config/config_supabase.js";
+import ColumnaSimple from "../layout/ColumnaSimple.jsx";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { confirmDialog } from "primereact/confirmdialog";
-import useDatos from "../../hooks/useDatos.js";
-import useEstilos from "../../hooks/useEstilos.js";
-import useTostadas from "../../hooks/useTostadas.js";
-import ValorEstado from "../complementos/ValorEstado.jsx";
-import ClasesDropDown from "../desplegables/ClasesDropDown.jsx";
+import useDatos from "../hooks/useDatos.js";
+import useEstilos from "../hooks/useEstilos.js";
+import useTostadas from "../hooks/useTostadas.js";
+import ValorEstado from "../components/complementos/ValorEstado.jsx";
+import ClasesDropDown from "../components/desplegables/ClasesDropDown.jsx";
 
-const EliminacionClase = () => {
-  const [claseSeleccionada, setClaseSeleccionada] = useState();
-  const [listadoClases, setListadoClases] = useState();
+const EliminacionClase = ({ valores, setter }) => {
+  const [claseSeleccionada, setClaseSeleccionada] = useState({});
+  const [listadoClases, setListadoClases] = useState([]);
+
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
 
   const {
     obtenerTodos,
-    obtenerConsultaReturn,
-    borrarDato,
     errorGeneral,
     cambiarErrorGeneral,
     cambiarEvaluaciones,
   } = useDatos();
   const { iconos } = useEstilos();
-
-  const plantillaClaseDropDown = (option, props) => {
-    if (option) {
-      return (
-        <div className='flex align-items-center'>
-          <div>
-            {option.nombre_curso} {option.nombre_modulo}
-          </div>
-        </div>
-      );
-    }
-    return <span>{props.placeholder}</span>;
-  };
 
   const confirmarBorrarClase = (clase) => {
     confirmDialog({
@@ -66,7 +53,7 @@ const EliminacionClase = () => {
     // Se borran las Evaluaciones, por último.
     !errorGeneral && (await borrarEvaluaciones(ordenadas));
     // Se actualiza el estado del DropDown.
-    await obtenerTodos("listado_clases", setListadoClases);
+    await obtenerTodos("listado_clases", setter);
     // Se actualiza el estado Evaluaciones del proveedor
     obtenerTodos("Evaluaciones", cambiarEvaluaciones);
   };
@@ -166,41 +153,31 @@ const EliminacionClase = () => {
 
   useEffect(() => {
     // Se obtienen todas las clases.
-    obtenerTodos("listado_clases", setListadoClases);
+    obtenerTodos("listado_clases", setListadoClases, "nombre_curso");
   }, []);
 
   return (
     <>
-      <h3 className='text-red-500'>Eliminar una clase</h3>
-      <ClasesDropDown
-        valores={claseSeleccionada}
-        setter={setClaseSeleccionada}
-        opciones={listadoClases}
-        tamanyo='w-full'
-      />
-      {/*  <Dropdown
-        id='claseSeleccionada'
-        name='claseSeleccionada'
-        value={claseSeleccionada}
-        onChange={(evento) => {
-          setClaseSeleccionada(evento.value);
-        }}
-        options={listadoClases}
-        optionLabel='valor_drop'
-        placeholder='Elige una clase...'
-        itemTemplate={plantillaClaseDropDown} //Plantilla para el listado de elementos.
-        valueTemplate={plantillaClaseDropDown} //Plantilla para el elemento seleccionado.
-        className='w-full'
-      /> */}
-      <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
-        <Button
-          label='Eliminar clase'
-          severity='danger'
-          icon={iconos.papelera}
-          onClick={() => {
-            confirmarBorrarClase(claseSeleccionada);
-          }}
-        />
+      <div className='flex w-6'>
+        <ColumnaSimple estilo='flex-1 align-items-center justify-content-center font-bold m-2 px-4 py-2 border-round'>
+          <h3 className='text-red-500'>Eliminar una clase</h3>
+          <ClasesDropDown
+            valor={claseSeleccionada}
+            setter={setClaseSeleccionada}
+            opciones={listadoClases}
+            tamanyo='w-full'
+          />
+          <div className='p-inputgroup flex-1 justify-content-end herramientasModulos_input'>
+            <Button
+              label='Eliminar clase'
+              severity='danger'
+              icon={iconos.papelera}
+              onClick={() => {
+                confirmarBorrarClase(claseSeleccionada);
+              }}
+            />
+          </div>
+        </ColumnaSimple>
       </div>
     </>
   );

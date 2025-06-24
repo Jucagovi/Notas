@@ -161,7 +161,7 @@ const GestionPracticas = () => {
               </>
             ) : (
               <div className='flex align-items-center justify-content-center vertical-align-middle m-1 px-2 py-2 h-full'>
-                Selecciona una evaluación para comenzar.
+                <h3>Selecciona una evaluación para comenzar.</h3>
               </div>
             )}
           </ColumnaSimple>

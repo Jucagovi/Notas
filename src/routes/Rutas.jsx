@@ -20,6 +20,8 @@ import InsercionDatosMasivos from "../pages/InsercionDatosMasivos.jsx";
 import Consola from "../components/herramientas/Consola.jsx";
 import GestionEvaluaciones from "../pages/GestionEvaluaciones.jsx";
 import CopiaSeguridad from "../components/herramientas/CopiaSeguridad.jsx";
+import EdicionClase from "../pages/EdicionClase.jsx";
+import EliminacionClase from "../pages/EliminacionClase.jsx";
 
 const Rutas = () => {
   return (
@@ -40,6 +42,8 @@ const Rutas = () => {
         <Route path='/gestionnotas' element={<GestionNotas />} />
         <Route path='/discentedetalle/:id' element={<DiscenteDetalle />} />
         <Route path='/creacionclase' element={<CreacionClase />} />
+        <Route path='/edicionclase' element={<EdicionClase />} />
+        <Route path='/eliminacionclase' element={<EliminacionClase />} />
         <Route path='/inserciondatos' element={<InsercionDatosMasivos />} />
         <Route path='/copiaseguridad' element={<CopiaSeguridad />} />
         <Route path='/acercade' element={<AcercaDe />} />
