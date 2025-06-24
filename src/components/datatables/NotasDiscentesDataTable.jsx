@@ -17,7 +17,7 @@ const NotasDiscentesDataTable = ({ valores, practica }) => {
       <div>
         <InputText
           type='text'
-          className='w-6'
+          className='w-4rem'
           value={options.value || ""}
           onChange={(e) => {
             options.editorCallback(e.target.value);
@@ -93,9 +93,14 @@ const NotasDiscentesDataTable = ({ valores, practica }) => {
           field='nota'
           header='Nota'
           body={(options) => {
-            //return mostrarNota(options);
             return (
-              <span className={colorNota(options.nota)}>{options.nota}</span>
+              <span className={colorNota(options.nota)}>
+                {options.nota ? (
+                  options.nota
+                ) : (
+                  <i className={iconos.pregunta}></i>
+                )}
+              </span>
             );
           }}
           sortable

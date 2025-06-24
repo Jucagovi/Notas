@@ -3,10 +3,15 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { ColumnGroup } from "primereact/columngroup";
 import { Row } from "primereact/row";
+import { InputText } from "primereact/inputtext";
 import useEstilos from "../../hooks/useEstilos.js";
+import useDatos from "../../hooks/useDatos.js";
+import useTostadas from "../../hooks/useTostadas.js";
 
 const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
-  const { colorNota } = useEstilos();
+  const { colorNota, iconos } = useEstilos();
+  const { actualizarDato, errorGeneral } = useDatos();
+  const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
 
   /*******************************************************************
    * IMPORTANTE
@@ -61,11 +66,15 @@ const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
   // Para el contenido de la expansión.
 
   const mostrarNombreCompleto = (options) => {
-    return `${options.numero} ${options.nombre_practica} ${options.enunciado}`;
+    return `${options.numero} ${options.enunciado}`;
   };
 
   const mostrarNota = (options) => {
-    return <span className={colorNota(options.nota)}>{options.nota}</span>;
+    return (
+      <span className={colorNota(options.nota)}>
+        {options.nota ? options.nota : <i className={iconos.pregunta}></i>}
+      </span>
+    );
   };
 
   const calcularMediaPonderada = (id) => {
@@ -98,6 +107,48 @@ const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
       total += dato.peso;
     });
     return total;
+  };
+
+  const editorTexto = (options) => {
+    return (
+      <div>
+        <InputText
+          type='text'
+          className='w-4rem'
+          value={options.value || ""}
+          onChange={(e) => {
+            options.editorCallback(e.target.value);
+          }}
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      </div>
+    );
+  };
+
+  const editarNota = (e) => {
+    let { rowData, newValue, field, value, originalEvent: event } = e;
+    // Se comparan los valoes nuevo y viejo y sólo se actualiza si son diferentes (evota errores).
+    if (newValue !== value) {
+      if (newValue.trim().length > 0) rowData[field] = newValue;
+      else event.preventDefault();
+      actualizarNota(rowData.id_evaluan, rowData.nota);
+    }
+  };
+
+  const actualizarNota = async (id_evaluan, nota) => {
+    const datos = { id_evaluan: id_evaluan, nota: nota };
+    await actualizarDato("evaluan", "id_evaluan", datos);
+    if (!errorGeneral) {
+      mostrarTostadaExito({
+        resumen: "Nota actualizada.",
+        detalle: `La nota se ha actualizado.`,
+      });
+    } else {
+      mostrarTostadaError({
+        resumen: "Hay un error en la actualización.",
+        detalle: `La nota no se ha actualizado.`,
+      });
+    }
   };
 
   const cabeceraTabla = `${evaluaciones[0].nombre_modulo}`;
@@ -137,6 +188,7 @@ const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
         onRowToggle={(e) => {
           setContenidoExpandible(e.data);
         }}
+        editMode='cell'
         rowGroupHeaderTemplate={cabeceraTablaGrupo}
         rowGroupFooterTemplate={pieTablaGrupo}
       >
@@ -155,6 +207,12 @@ const DiscentesEvaluacionesDataTable = ({ evaluaciones }) => {
           //style={{ color: "red" }}
           body={(options) => {
             return mostrarNota(options);
+          }}
+          editor={(options) => {
+            return editorTexto(options);
+          }}
+          onCellEditComplete={(options) => {
+            editarNota(options);
           }}
         ></Column>
         <Column field='peso' header='Peso'></Column>

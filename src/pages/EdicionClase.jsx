@@ -41,7 +41,7 @@ const EdicionClase = () => {
   }, []);
 
   useEffect(() => {
-    claseSeleccionada && buscarDiscentesClase();
+    Object.keys(claseSeleccionada).length && buscarDiscentesClase();
   }, [claseSeleccionada]);
 
   return (
@@ -57,7 +57,7 @@ const EdicionClase = () => {
           />
         </ColumnaSimple>
         <ColumnaSimple estilo='flex-1 align-items-center justify-content-center m-1 px-4 py-2'>
-          {claseSeleccionada ? (
+          {Object.keys(claseSeleccionada).length ? (
             <>
               <h4>Edita discentes para el curso</h4>
               <ColumnaSimple>

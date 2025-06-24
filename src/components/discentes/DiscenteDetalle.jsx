@@ -29,24 +29,6 @@ const DiscenteDetalle = () => {
   // Estado para las pestañas.
   const [indiceActivo, setIndiceActivo] = useState(0);
 
-  useEffect(() => {
-    // Se obtienen todas las prácticas (evaluan) sólo del discente en cuestión.
-    // Así se evita traer todos los datos (que eventualmente serán muchos).
-    // La vista está ordenada por nombre de la evaluación para que se muestre bien en el DataTable de notas.
-    obtenerConsulta(
-      "listado_evaluaciones_ciclos",
-      setListadoEvaluacionesCiclos,
-      { columna: "id_discente", valor: id },
-      "numero"
-    );
-    // Se actualiza el curso actual con el último curso creado.
-    setCursoSeleccionado(cursoActual);
-  }, []);
-
-  /*  useEffect(() => {
-    setListadoEvaluacionesCiclos([]);
-  }, [cursoSeleccionado]); */
-
   const filtrarEvaluaciones = (modulo) => {
     const _filtrado = listadoEvaluacionesCiclos.filter((eva) => {
       return eva.nombre_modulo === modulo;
@@ -65,6 +47,24 @@ const DiscenteDetalle = () => {
       </>
     );
   };
+
+  useEffect(() => {
+    // Se obtienen todas las prácticas (evaluan) sólo del discente en cuestión.
+    // Así se evita traer todos los datos (que eventualmente serán muchos).
+    // La vista está ordenada por nombre de la evaluación para que se muestre bien en el DataTable de notas.
+    obtenerConsulta(
+      "listado_evaluaciones_ciclos",
+      setListadoEvaluacionesCiclos,
+      { columna: "id_discente", valor: id },
+      "numero"
+    );
+    // Se actualiza el curso actual con el último curso creado.
+    setCursoSeleccionado(cursoActual);
+  }, []);
+
+  /*  useEffect(() => {
+    setListadoEvaluacionesCiclos([]);
+  }, [cursoSeleccionado]); */
 
   useEffect(() => {
     listadoEvaluacionesCiclos &&

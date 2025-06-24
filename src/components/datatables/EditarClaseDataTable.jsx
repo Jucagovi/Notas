@@ -205,7 +205,6 @@ const EditarClaseDataTable = ({ valoresSeleccionados, setter, clase }) => {
       clase.id_curso,
       clase.id_modulo
     );
-    console.log(evaluaciones);
     // Para cada una elimino los datos con id_discente e id_evaluacion (evaluan).
     evaluaciones && borrarEvaluaciones(evaluaciones, datos.data.id_discente);
     // Se elimina de imparte por id_discente, id_curso e id_modulo.

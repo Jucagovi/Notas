@@ -48,7 +48,7 @@ const NotasAgrupadasBarChart = ({ datosBrutos }) => {
         else if (practica.nota <= 79) notasAgrupadas[4]++;
         else if (practica.nota <= 89) notasAgrupadas[5]++;
         else if (practica.nota <= 99) notasAgrupadas[6]++;
-        else grupos[7]++;
+        else notasAgrupadas[7]++;
       });
 
       //Se termina de completar el objeto.

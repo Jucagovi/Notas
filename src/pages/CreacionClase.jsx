@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ColumnaSimple from "../layout/ColumnaSimple.jsx";
+import supabase from "../config/config_supabase.js";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { confirmDialog } from "primereact/confirmdialog";
@@ -103,6 +104,17 @@ const CreacionClase = () => {
     return _imparte;
   };
 
+  const comprobarExistenciaClase = async (curso, modulo) => {
+    const { data, error } = await supabase
+      .from("imparte")
+      .select("*")
+      .eq("id_curso", curso)
+      .eq("id_modulo", modulo);
+
+    //return Object.keys(data).length !== 0;
+    return data.length !== 0;
+  };
+
   const confirmarInsercion = (datos) => {
     confirmDialog({
       message: `¿Quieres crear una clase para el curso ${datos.curso.nombre} y el módulo ${datos.modulo.nombre_modulo}?`,
@@ -110,8 +122,19 @@ const CreacionClase = () => {
       icon: "pi pi-info-circle",
       defaultFocus: "reject",
       acceptClassName: "p-button-danger",
-      accept: () => {
-        crearClase(datos);
+      accept: async () => {
+        const existe = await comprobarExistenciaClase(
+          claseNueva.curso.id_curso,
+          claseNueva.modulo.id_modulo
+        );
+        if (existe) {
+          mostrarTostadaError({
+            resumen: "Se ha producido un error con la clase.",
+            detalle: `La clase indicada ya existe.`,
+          });
+        } else {
+          crearClase();
+        }
       },
     });
   };
@@ -162,19 +185,6 @@ const CreacionClase = () => {
         ),
       });
   }, [cursoSeleccionado, moduloSeleccionado]);
-
-  /*  useEffect(() => {
-    moduloSeleccionado &&
-      cursoSeleccionado &&
-      setClaseNueva({
-        ...claseNueva,
-        ["modulo"]: moduloSeleccionado,
-        ["evaluaciones"]: crearEvaluaciones(
-          cursoSeleccionado,
-          moduloSeleccionado
-        ),
-      });
-  }, [moduloSeleccionado]); */
 
   useEffect(() => {
     discentesSeleccionados &&

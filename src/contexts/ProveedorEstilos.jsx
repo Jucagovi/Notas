@@ -39,6 +39,7 @@ const ProveedorEstilos = ({ children }) => {
     papelera: "pi pi-trash",
     boton: "pi pi-power-off",
     basedatos: "pi pi-database",
+    pregunta: "pi pi-question",
   };
 
   const acortarTexto = (texto, longitud = 0) => {

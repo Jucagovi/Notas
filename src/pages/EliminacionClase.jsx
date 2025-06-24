@@ -53,7 +53,7 @@ const EliminacionClase = ({ valores, setter }) => {
     // Se borran las Evaluaciones, por último.
     !errorGeneral && (await borrarEvaluaciones(ordenadas));
     // Se actualiza el estado del DropDown.
-    await obtenerTodos("listado_clases", setter);
+    await obtenerTodos("listado_clases", setter, "nombre_curso");
     // Se actualiza el estado Evaluaciones del proveedor
     obtenerTodos("Evaluaciones", cambiarEvaluaciones);
   };
