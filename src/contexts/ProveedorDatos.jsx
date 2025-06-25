@@ -160,6 +160,20 @@ const ProveedorDatos = ({ children }) => {
     error ? setErrorGeneral(error.message) : setter(data);
   };
 
+  const obtenerTodosReturn = async (tabla, orden = "created_at") => {
+    setErrorGeneral(errorInicial);
+    setCargando(true);
+    const { data, error } = await supabase
+      .from(tabla)
+      .select("*")
+      .order(orden, { ascending: true });
+    setCargando(false);
+    if (error) {
+      setErrorGeneral(error.message);
+    } else {
+      return data;
+    }
+  };
   /***
    * Para parametrizar esta función un poro más, filtro es un objeto:
    * {
@@ -245,6 +259,7 @@ const ProveedorDatos = ({ children }) => {
   const datosAProveer = {
     actualizarFormulario,
     obtenerTodos,
+    obtenerTodosReturn,
     obtenerConsulta,
     obtenerConsultaReturn,
     actualizarDato,
