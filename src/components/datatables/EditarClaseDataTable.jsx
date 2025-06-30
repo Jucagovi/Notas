@@ -25,8 +25,14 @@ const EditarClaseDataTable = ({ valoresSeleccionados, setter, clase }) => {
   // Para el formulario controlado de la búsqueda.
   const [valoresFiltro, setValoresFiltro] = useState("");
 
-  const { discentes, errorGeneral, cambiarErrorGeneral, insertarDato } =
-    useDatos();
+  const {
+    discentes,
+    errorGeneral,
+    cambiarErrorGeneral,
+    insertarDato,
+    obtenerConsultaReturn,
+    consultaPracticasEvaluacion,
+  } = useDatos();
   const { extraerUnicos } = useEstilos();
   const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
 
@@ -74,7 +80,7 @@ const EditarClaseDataTable = ({ valoresSeleccionados, setter, clase }) => {
     );
   };
 
-  const obtenerEvaluaciones = async (curso, modulo) => {
+  /*  const obtenerEvaluaciones_old = async (curso, modulo) => {
     // Se obtienen a través de curso y módulo.
     const { data, error } = await supabase
       .from("Evaluaciones")
@@ -86,14 +92,37 @@ const EditarClaseDataTable = ({ valoresSeleccionados, setter, clase }) => {
     return data.map((evaluacion) => {
       return evaluacion.id_evaluacion;
     });
+  }; */
+
+  const obtenerEvaluaciones = async (curso, modulo) => {
+    const datos = await obtenerConsultaReturn("Evaluaciones", [
+      { columna: "id_curso", valor: curso },
+      { columna: "id_modulo", valor: modulo },
+    ]);
+
+    // Se genera un array con los id_evaluacion (para hacer una sola búsqueda).
+    return datos.map((evaluacion) => {
+      return evaluacion.id_evaluacion;
+    });
   };
 
-  const obtenerPracticasEvaluacion = async (datos) => {
+  /*  const obtenerPracticasEvaluacion_old = async (datos) => {
     // Se obtienen las prácticas de todas las evaluaciones.
     const { data, error } = await supabase
       .from("evaluan")
       .select("id_practica, id_evaluacion, peso")
       .in("id_evaluacion", datos);
+    // Se obtienen las prácticas únicas de las evaluaciones realizadas (un objeto).
+    const unicosPorIdPractica = Array.from(
+      new Map(data.map((item) => [item.id_practica, item])).values()
+    );
+    // Cortesía de la IA.
+    return unicosPorIdPractica;
+  }; */
+
+  const obtenerPracticasEvaluacion = async (filtrado) => {
+    // Se obtienen las prácticas de todas las evaluaciones.
+    const data = await consultaPracticasEvaluacion(filtrado);
     // Se obtienen las prácticas únicas de las evaluaciones realizadas (un objeto).
     const unicosPorIdPractica = Array.from(
       new Map(data.map((item) => [item.id_practica, item])).values()
@@ -183,8 +212,7 @@ const EditarClaseDataTable = ({ valoresSeleccionados, setter, clase }) => {
       .eq("id_discente", discente)
       .eq("id_modulo", modulo);
 
-    if (error) {
-      cambiarErrorGeneral(error);
+    if (!errorGeneral) {
       mostrarTostadaError({
         resumen: "Se ha producido un error en la eliminación.",
         detalle: `Las evaluaciones para el ${clase.nombre_curso} no se han eliminado.`,

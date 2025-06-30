@@ -12,6 +12,7 @@ import Cargando from "../Cargando.jsx";
 import useEstilos from "../../hooks/useEstilos.js";
 import DiscentesEvaluacionesDataTable from "../datatables/DiscentesEvaluacionesDataTable.jsx";
 import NotasAgrupadasBarChart from "../graficos/NotasAgrupadasBarChart.jsx";
+import NotasAgrupadasTarta from "../graficos/NotasAgrupadasTarta.jsx";
 
 const DiscenteDetalle = () => {
   //Se recoge el id pasado por parámetro y se cambia el estado del proveedor.
@@ -43,6 +44,7 @@ const DiscenteDetalle = () => {
     return (
       <>
         <NotasLineChart datosBrutos={_filtrado} />
+        {/* <NotasAgrupadasTarta datosBrutos={_filtrado} /> */}
         <NotasAgrupadasBarChart datosBrutos={_filtrado} />
       </>
     );
@@ -55,7 +57,7 @@ const DiscenteDetalle = () => {
     obtenerConsulta(
       "listado_evaluaciones_ciclos",
       setListadoEvaluacionesCiclos,
-      { columna: "id_discente", valor: id },
+      [{ columna: "id_discente", valor: id }],
       "numero"
     );
     // Se actualiza el curso actual con el último curso creado.

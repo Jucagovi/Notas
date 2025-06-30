@@ -5,7 +5,7 @@ import { Button } from "primereact/button";
 import DiscentesListadoDataTable from "../components/datatables/DiscentesListadoDataTable.jsx";
 
 const GestionDiscentes = () => {
-  const { iconos, calcularEdad, exportarCSV } = useEstilos();
+  const { iconos, exportarCSV } = useEstilos();
 
   const dataTableRef = useRef(null);
 

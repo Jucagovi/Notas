@@ -63,7 +63,6 @@ const DiscenteFicha = ({ identificador, modo = "basico" }) => {
                     className={iconos.boton}
                     style={{ fontSize: "1.0rem" }}
                   ></i>
-                  {"  "}
                   EN ACTIVO
                 </span>
               ) : (

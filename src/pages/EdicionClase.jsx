@@ -1,38 +1,22 @@
 import React, { useState, useEffect } from "react";
-import supabase from "../config/config_supabase.js";
 import ColumnaSimple from "../layout/ColumnaSimple.jsx";
 import ClasesDropDown from "../components/desplegables/ClasesDropDown.jsx";
-import { Button } from "primereact/button";
-import useTostadas from "../hooks/useTostadas.js";
 import useDatos from "../hooks/useDatos.js";
 import useEstilos from "../hooks/useEstilos.js";
 import EditarClaseDataTable from "../components/datatables/EditarClaseDataTable.jsx";
-import CrearClaseDataTable from "../components/datatables/CrearClaseDataTable.jsx";
-import ValorEstado from "../components/complementos/ValorEstado.jsx";
 
 const EdicionClase = () => {
   const [claseSeleccionada, setClaseSeleccionada] = useState({});
   const [listadoClases, setListadoClases] = useState([]);
   const [discentesClase, setDiscentesClase] = useState([]);
 
-  const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
-
-  const {
-    obtenerTodos,
-    errorGeneral,
-    cambiarErrorGeneral,
-    cambiarEvaluaciones,
-  } = useDatos();
-  const { iconos } = useEstilos();
+  const { obtenerTodos, obtenerConsulta } = useDatos();
 
   const buscarDiscentesClase = async () => {
-    const { data, error } = await supabase
-      .from("listado_clase_discentes")
-      .select("*")
-      .eq("id_curso", claseSeleccionada.id_curso)
-      .eq("id_modulo", claseSeleccionada.id_modulo);
-
-    setDiscentesClase(data);
+    obtenerConsulta("listado_clase_discentes", setDiscentesClase, [
+      { columna: "id_curso", valor: claseSeleccionada.id_curso },
+      { columna: "id_modulo", valor: claseSeleccionada.id_modulo },
+    ]);
   };
 
   useEffect(() => {

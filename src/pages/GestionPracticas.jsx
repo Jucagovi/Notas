@@ -4,7 +4,7 @@ import { Dropdown } from "primereact/dropdown";
 import useDatos from "../hooks/useDatos.js";
 import MostrarPracticas from "../components/MostrarPracticas.jsx";
 import CursosDropDown from "../components/desplegables/CursosDropDown.jsx";
-import ValorEstado from "../components/complementos/ValorEstado.jsx";
+import EvaluacionesDropDown from "../components/desplegables/EvaluacionesDropDown.jsx";
 import PracticasEvaluacionDataTable from "../components/datatables/PracticasEvaluacionDataTable.jsx";
 import useEstilos from "../hooks/useEstilos.js";
 
@@ -68,10 +68,12 @@ const GestionPracticas = () => {
     // Se obtienen las prácticas de esa evaluación de la vista "listado_practicas_evaluaciones".
     const datosDisponen = await obtenerConsultaReturn(
       "listado_practicas_evaluacion",
-      {
-        columna: "id_evaluacion",
-        valor: evaluacionSeleccionada.id_evaluacion,
-      }
+      [
+        {
+          columna: "id_evaluacion",
+          valor: evaluacionSeleccionada.id_evaluacion,
+        },
+      ]
     );
     //console.log(datosDisponen);
     // Si existen, se crea un array con los identificadores de las prácticas.
@@ -134,17 +136,11 @@ const GestionPracticas = () => {
 
             <h4>Elige la evaluación.</h4>
             <div className='card flex justify-content-center'>
-              <Dropdown
-                id='evaluacionSeleccionada'
-                name='evaluacionSeleccionada'
-                value={evaluacionSeleccionada}
-                onChange={(evento) => {
-                  setEvaluacionSeleccionada(evento.value);
-                }}
-                options={evaluacionesFiltradas}
-                optionLabel='nombre'
-                placeholder='Elige una evaluación...'
-                className='w-full '
+              <EvaluacionesDropDown
+                valor={evaluacionSeleccionada}
+                opciones={evaluacionesFiltradas}
+                setter={setEvaluacionSeleccionada}
+                tamanyo='w-full'
               />
             </div>
 

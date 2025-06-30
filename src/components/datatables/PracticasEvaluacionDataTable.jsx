@@ -68,10 +68,12 @@ const PracticasEvaluacionDataTable = ({ seleccion, setter, evaluacion }) => {
     // Se obtiene el listado de los discentes de la evaluación a través de una vista.
     const discentesEvaluacion = await obtenerConsultaReturn(
       "listado_discentes_curso",
-      {
-        columna: "id_evaluacion",
-        valor: evaluacion.id_evaluacion,
-      }
+      [
+        {
+          columna: "id_evaluacion",
+          valor: evaluacion.id_evaluacion,
+        },
+      ]
     );
 
     const discentes =

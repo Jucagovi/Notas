@@ -9,6 +9,7 @@ const ProveedorSesion = ({ children }) => {
   const datosSesionInicial = {
     email: "",
     password: "",
+    bearer: "",
   };
   const sesionInicial = false;
   const usuarioInicial = {};
@@ -108,7 +109,6 @@ const ProveedorSesion = ({ children }) => {
   const obtenerUsuario = async () => {
     try {
       const { data, error } = await supabase.auth.getUser();
-
       if (error) {
         throw error; // Manda el hilo de ejecución al catch.
       }

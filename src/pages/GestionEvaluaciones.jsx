@@ -1,48 +1,11 @@
 import React, { useState, useEffect } from "react";
-import supabase from "../config/config_supabase.js";
 import ColumnaSimple from "../layout/ColumnaSimple.jsx";
-import { FloatLabel } from "primereact/floatlabel";
-import { Dropdown } from "primereact/dropdown";
-import { Column } from "primereact/column";
-import { Button } from "primereact/button";
-import { DataTable } from "primereact/datatable";
-import { InputText } from "primereact/inputtext";
-import { IconField } from "primereact/iconfield";
-import { InputIcon } from "primereact/inputicon";
-import { confirmDialog } from "primereact/confirmdialog";
 import useDatos from "../hooks/useDatos.js";
-import useEstilos from "../hooks/useEstilos.js";
-import useTostadas from "../hooks/useTostadas.js";
-import { InputTextarea } from "primereact/inputtextarea";
-import ValorEstado from "../components/complementos/ValorEstado.jsx";
-import { FilterMatchMode, FilterOperator } from "primereact/api";
-import InsercionMasiva from "../components/herramientas/InsercionMasiva.jsx";
-import CreacionClaseCurso from "../components/creacionClase/CreacionClaseCurso.jsx";
-import CreacionClaseModulo from "../components/creacionClase/CreacionClaseModulo.jsx";
-import CreacionClaseEvaluaciones from "../components/creacionClase/CreacionClaseEvaluaciones.jsx";
-import CreacionClaseDiscentes from "../components/creacionClase/CreacionClaseDiscentes.jsx";
-import MostrarPracticas from "../components/MostrarPracticas.jsx";
-import Cargando from "../components/Cargando.jsx";
 import EvaluacionPesoDataTable from "../components/datatables/EvaluacionPesoDataTable.jsx";
 import EvaluacionesDropDown from "../components/desplegables/EvaluacionesDropDown.jsx";
 
 const GestionEvaluaciones = () => {
-  const {
-    actualizarFormulario,
-    actualizarDato,
-    insertarDato,
-    obtenerTodos,
-    obtenerConsulta,
-    obtenerConsultaReturn,
-    practicas,
-    evaluaciones,
-    cursos,
-    cursoActual,
-    errorGeneral,
-  } = useDatos();
-  const { iconos } = useEstilos();
-
-  const { mostrarTostadaError, mostrarTostadaExito } = useTostadas();
+  const { obtenerConsultaReturn, evaluaciones, cursoActual } = useDatos();
 
   const [practicasFiltradas, setPracticasFiltradas] = useState([]);
   const [practicaSeleccionada, setPracticaSeleccionada] = useState({});
@@ -53,10 +16,12 @@ const GestionEvaluaciones = () => {
     // Se obtienen las prácticas de esa evaluación de la tabla "disponen".
     const practicas = await obtenerConsultaReturn(
       "listado_practicas_evaluacion",
-      {
-        columna: "id_evaluacion",
-        valor: evaluacion.id_evaluacion,
-      }
+      [
+        {
+          columna: "id_evaluacion",
+          valor: evaluacion.id_evaluacion,
+        },
+      ]
     );
     setPracticasFiltradas(practicas);
   };

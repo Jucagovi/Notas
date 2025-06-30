@@ -175,15 +175,21 @@ const ProveedorDatos = ({ children }) => {
     }
   };
   /***
-   * Para parametrizar esta función un poro más, filtro es un objeto:
-   * {
-   *    columna: "nombre de la columna",
-   *    valor: "valor de la columna"
-   * }
+   * Para parametrizar esta función un poco más, filtro es un array de objeto:
+   * [
+   *  {
+   *    columna: "nombre de la columna0",
+   *    valor: "valor de la columna0"
+   *  },
+   *  {
+   *    columna: "nombre de la columna1",
+   *    valor: "valor de la columna1"
+   *  }
+   * ]
    * La consulta siempre de hará con un .eq en Supabase.
    * */
 
-  const obtenerConsulta = async (
+  const obtenerConsulta_old = async (
     tabla,
     setter,
     filtro,
@@ -200,17 +206,54 @@ const ProveedorDatos = ({ children }) => {
     setCargando(false);
     error ? setErrorGeneral(error.message) : setter(data);
   };
+
+  /**
+   *
+   * @param {Tabla donde se realiza la consulta.} tabla
+   * @param {Setter para modificar el estado tras la consulta} setter
+   * @param {Array de objetos {columna: valor} para añadir a la consulta} filtro
+   * @param {Orden por el que se obtiene el resultado (por defecto "created_at")} orden
+   */
+
+  const obtenerConsulta = async (
+    tabla,
+    setter,
+    filtro,
+    orden = "created_at"
+  ) => {
+    setErrorGeneral(errorInicial);
+    setCargando(true);
+    setter(""); // Evitar actualizar datos entre cargas (efecto visual). Se solcionará cuando se haga el hook para datos con estado Loading...
+    // Se genera el objeto para la consulta con la tabla y la selección de columnas.
+    let consulta = supabase.from(tabla).select("*");
+    // Se añaden los filtros pasados como parámetro (si existen).
+    if (filtro?.length) {
+      for (let i = 0; i < filtro.length; i++) {
+        consulta = consulta.eq(filtro[i].columna, filtro[i].valor);
+      }
+    }
+    // Se añade el orden de la consulta.
+    consulta = consulta.order(orden, { ascending: true });
+    // Se lanza la consulta (por fin).
+    const { data, error } = await consulta;
+    setCargando(false);
+    error ? setErrorGeneral(error.message) : setter(data);
+  };
+
   /**
    * Consulta parametrizada sin utilizar setter (devuelve el resultado de la consulta).
    */
   const obtenerConsultaReturn = async (tabla, filtro, orden = "created_at") => {
     setErrorGeneral(errorInicial);
     setCargando(true);
-    const { data, error } = await supabase
-      .from(tabla)
-      .select("*")
-      .eq(filtro.columna, filtro.valor)
-      .order(orden, { ascending: true });
+    let consulta = supabase.from(tabla).select("*");
+    if (filtro?.length) {
+      for (let i = 0; i < filtro.length; i++) {
+        consulta = consulta.eq(filtro[i].columna, filtro[i].valor);
+      }
+    }
+    consulta = consulta.order(orden, { ascending: true });
+    const { data, error } = await consulta;
     setCargando(false);
     if (error) {
       setErrorGeneral(error.message);
@@ -256,6 +299,20 @@ const ProveedorDatos = ({ children }) => {
     setter({ ...estado, [name]: value });
   };
 
+  /*******************************************************************
+   * Consultas especificas para un objeto en concreto
+   * (revisar si convertirlas a parámetros).
+   */
+
+  // Usada en EditarClaseDataTable.jsx
+  const consultaPracticasEvaluacion = async (datos) => {
+    const { data, error } = await supabase
+      .from("evaluan")
+      .select("id_practica, id_evaluacion, peso")
+      .in("id_evaluacion", datos);
+    return data;
+  };
+
   const datosAProveer = {
     actualizarFormulario,
     obtenerTodos,
@@ -298,6 +355,7 @@ const ProveedorDatos = ({ children }) => {
     cursos,
     cambiarCursos,
     cursoActual,
+    consultaPracticasEvaluacion,
   };
 
   /**

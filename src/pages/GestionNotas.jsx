@@ -8,10 +8,16 @@ import useModales from "../hooks/useModales.js";
 import Cargando from "../components/Cargando.jsx";
 import NotasDiscentesDataTable from "../components/datatables/NotasDiscentesDataTable.jsx";
 import NotasPracticasDataTable from "../components/datatables/NotasPracticasDataTable.jsx";
+import EvaluacionesDropDown from "../components/desplegables/EvaluacionesDropDown.jsx";
 
 const GestionNotas = () => {
-  const { obtenerConsultaReturn, evaluaciones, cursoActual, cargando } =
-    useDatos();
+  const {
+    obtenerConsultaReturn,
+    obtenerConsulta,
+    evaluaciones,
+    cursoActual,
+    cargando,
+  } = useDatos();
 
   const { alternarModal } = useModales();
 
@@ -29,23 +35,22 @@ const GestionNotas = () => {
     // Se obtienen las prácticas de esa evaluación de la tabla "disponen".
     const practicas = await obtenerConsultaReturn(
       "listado_practicas_evaluacion",
-      {
-        columna: "id_evaluacion",
-        valor: evaluacion.id_evaluacion,
-      },
+      [
+        {
+          columna: "id_evaluacion",
+          valor: evaluacion.id_evaluacion,
+        },
+      ],
       "numero"
     );
     setPracticasFiltradas(practicas);
   };
 
   const buscarDiscentes = async (practica, evaluacion) => {
-    const { data, error } = await supabase
-      .from("listado_discentes_evaluacion")
-      .select("*")
-      .eq("id_practica", practica.id_practica)
-      .eq("id_evaluacion", evaluacion.id_evaluacion);
-
-    setDiscentesFiltrados(data);
+    obtenerConsulta("listado_discentes_evaluacion", setDiscentesFiltrados, [
+      { columna: "id_practica", valor: practica.id_practica },
+      { columna: "id_evaluacion", valor: evaluacion.id_evaluacion },
+    ]);
   };
 
   useEffect(() => {
@@ -78,17 +83,11 @@ const GestionNotas = () => {
 
             <h4>Elige la evaluación.</h4>
             <div className='card flex justify-content-center'>
-              <Dropdown
-                id='evaluacionSeleccionada'
-                name='evaluacionSeleccionada'
-                value={evaluacionSeleccionada}
-                onChange={(evento) => {
-                  setEvaluacionSeleccionada(evento.value);
-                }}
-                options={evaluacionesActuales}
-                optionLabel='nombre'
-                placeholder='Elige una evaluación...'
-                className='w-full '
+              <EvaluacionesDropDown
+                valor={evaluacionSeleccionada}
+                opciones={evaluacionesActuales}
+                setter={setEvaluacionSeleccionada}
+                tamanyo='w-full'
               />
             </div>
 
@@ -101,7 +100,7 @@ const GestionNotas = () => {
                 />
               ) : (
                 <div className='flex align-items-center justify-content-center vertical-align-middle m-1 px-2 py-2 h-full'>
-                  Selecciona una práctica para comenzar.
+                  No se han encontrado prácticas para esa evaluación.
                 </div>
               )}
             </div>
