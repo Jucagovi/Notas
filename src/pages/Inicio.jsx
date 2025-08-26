@@ -16,6 +16,12 @@ const Inicio = () => {
     <>
       <ColumnaSimple>
         <h2>Prueba de despliegue en FTP. Prueba dos.</h2>
+        <p>
+          valid inputs are ['server', 'username', 'password', 'port',
+          'protocol', 'local-dir', 'server-dir', 'state-name', 'dry-run',
+          'dangerous-clean-slate', 'exclude', 'log-level', 'security',
+          'timeout']
+        </p>
         {sesionIniciada ? (
           <>
             <h2>Bienvenido/a.</h2>
