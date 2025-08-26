@@ -1,0 +1,1139 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 15.8
+-- Dumped by pg_dump version 17.2
+
+-- Started on 2025-08-07 11:49:15
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 20 (class 2615 OID 2200)
+-- Name: public; Type: SCHEMA; Schema: -; Owner: pg_database_owner
+--
+
+CREATE SCHEMA public;
+
+
+ALTER SCHEMA public OWNER TO pg_database_owner;
+
+--
+-- TOC entry 3974 (class 0 OID 0)
+-- Dependencies: 20
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: pg_database_owner
+--
+
+COMMENT ON SCHEMA public IS 'standard public schema';
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 268 (class 1259 OID 17626)
+-- Name: Ciclos; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Ciclos" (
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    nombre character varying DEFAULT ''::character varying NOT NULL,
+    siglas character varying DEFAULT ''::character varying NOT NULL,
+    descripcion text DEFAULT ''::text,
+    id_ciclo uuid DEFAULT gen_random_uuid() NOT NULL
+);
+
+
+ALTER TABLE public."Ciclos" OWNER TO postgres;
+
+--
+-- TOC entry 269 (class 1259 OID 17636)
+-- Name: Cursos; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Cursos" (
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    centro character varying DEFAULT ''::character varying NOT NULL,
+    nombre character varying DEFAULT ''::character varying NOT NULL,
+    descripcion text DEFAULT ''::text,
+    anyo character varying DEFAULT ''::character varying NOT NULL,
+    id_curso uuid DEFAULT gen_random_uuid() NOT NULL
+);
+
+
+ALTER TABLE public."Cursos" OWNER TO postgres;
+
+--
+-- TOC entry 270 (class 1259 OID 17647)
+-- Name: Discentes; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Discentes" (
+    nombre text NOT NULL,
+    apellidos text NOT NULL,
+    correo text,
+    fecha_nac date,
+    localidad text,
+    id_discente uuid DEFAULT gen_random_uuid() NOT NULL,
+    imagen text,
+    created_at timestamp with time zone DEFAULT now(),
+    "NIA" text,
+    activo boolean DEFAULT true
+);
+
+
+ALTER TABLE public."Discentes" OWNER TO postgres;
+
+--
+-- TOC entry 271 (class 1259 OID 17655)
+-- Name: Evaluaciones; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Evaluaciones" (
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    nombre character varying DEFAULT ''::character varying NOT NULL,
+    fecha_ini date,
+    fecha_fin date,
+    descripcion text DEFAULT ''::text,
+    id_tipoevaluacion bigint,
+    id_evaluacion uuid DEFAULT gen_random_uuid() NOT NULL,
+    id_curso uuid,
+    id_modulo uuid
+);
+
+
+ALTER TABLE public."Evaluaciones" OWNER TO postgres;
+
+--
+-- TOC entry 272 (class 1259 OID 17664)
+-- Name: Modulos; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Modulos" (
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    nombre character varying DEFAULT ''::character varying NOT NULL,
+    siglas character varying DEFAULT ''::character varying NOT NULL,
+    descripcion text DEFAULT ''::text,
+    id_modulo uuid DEFAULT gen_random_uuid() NOT NULL,
+    id_ciclo uuid
+);
+
+
+ALTER TABLE public."Modulos" OWNER TO postgres;
+
+--
+-- TOC entry 273 (class 1259 OID 17674)
+-- Name: Practicas; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."Practicas" (
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    nombre text DEFAULT ''::text NOT NULL,
+    numero character varying DEFAULT ''::character varying NOT NULL,
+    enunciado text DEFAULT ''::text NOT NULL,
+    descripcion text DEFAULT ''::text,
+    id_tipopractica text NOT NULL,
+    unidad character varying DEFAULT ''::character varying NOT NULL,
+    id_practica uuid DEFAULT gen_random_uuid() NOT NULL,
+    id_modulo uuid
+);
+
+
+ALTER TABLE public."Practicas" OWNER TO postgres;
+
+--
+-- TOC entry 274 (class 1259 OID 17686)
+-- Name: TipoEvaluacion; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."TipoEvaluacion" (
+    id_tipoevaluacion bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    nombre character varying DEFAULT ''::character varying NOT NULL,
+    descripcion text DEFAULT ''::text
+);
+
+
+ALTER TABLE public."TipoEvaluacion" OWNER TO postgres;
+
+--
+-- TOC entry 275 (class 1259 OID 17694)
+-- Name: TipoEvaluacion_id_tipoevaluacion_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."TipoEvaluacion" ALTER COLUMN id_tipoevaluacion ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public."TipoEvaluacion_id_tipoevaluacion_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 276 (class 1259 OID 17695)
+-- Name: TipoPracticas; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."TipoPracticas" (
+    id_tipopractica bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    nombre character varying DEFAULT ''::character varying NOT NULL,
+    descripcion text DEFAULT ''::text
+);
+
+
+ALTER TABLE public."TipoPracticas" OWNER TO postgres;
+
+--
+-- TOC entry 277 (class 1259 OID 17703)
+-- Name: TipoPracticas_id_tipopractica_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."TipoPracticas" ALTER COLUMN id_tipopractica ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME public."TipoPracticas_id_tipopractica_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
+-- TOC entry 278 (class 1259 OID 17704)
+-- Name: evaluan; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.evaluan (
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    peso smallint,
+    id_evaluan uuid DEFAULT gen_random_uuid() NOT NULL,
+    id_practica uuid NOT NULL,
+    id_evaluacion uuid NOT NULL,
+    id_discente uuid NOT NULL,
+    nota integer
+);
+
+
+ALTER TABLE public.evaluan OWNER TO postgres;
+
+--
+-- TOC entry 279 (class 1259 OID 17709)
+-- Name: imparte; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.imparte (
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    notas character varying,
+    id_imparte uuid DEFAULT gen_random_uuid() NOT NULL,
+    id_curso uuid,
+    id_modulo uuid,
+    id_discente uuid
+);
+
+
+ALTER TABLE public.imparte OWNER TO postgres;
+
+--
+-- TOC entry 280 (class 1259 OID 17716)
+-- Name: listado_ciclos_modulos; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.listado_ciclos_modulos WITH (security_invoker='on') AS
+ SELECT c.id_ciclo,
+    c.nombre AS nombre_ciclo,
+    c.siglas AS siglas_ciclo,
+    m.id_modulo,
+    m.nombre AS nombre_modulo,
+    m.siglas AS modulo_siglas,
+    concat(c.siglas, ' ', m.nombre, ' (', m.siglas, ')') AS valor_drop
+   FROM public."Ciclos" c,
+    public."Modulos" m
+  WHERE (c.id_ciclo = m.id_ciclo);
+
+
+ALTER VIEW public.listado_ciclos_modulos OWNER TO postgres;
+
+--
+-- TOC entry 281 (class 1259 OID 17720)
+-- Name: listado_clase_discentes; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.listado_clase_discentes WITH (security_invoker='on') AS
+ SELECT DISTINCT i.id_imparte,
+    i.id_curso,
+    i.id_modulo,
+    d.nombre,
+    d.apellidos,
+    d.correo,
+    d.fecha_nac,
+    d.localidad,
+    d.id_discente,
+    d.imagen,
+    d.created_at,
+    d."NIA",
+    d.activo
+   FROM public.imparte i,
+    public."Discentes" d
+  WHERE (i.id_discente = d.id_discente);
+
+
+ALTER VIEW public.listado_clase_discentes OWNER TO postgres;
+
+--
+-- TOC entry 282 (class 1259 OID 17724)
+-- Name: listado_clases; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.listado_clases WITH (security_invoker='on') AS
+ SELECT DISTINCT i.id_curso,
+    c.nombre AS nombre_curso,
+    i.id_modulo,
+    m.nombre AS nombre_modulo
+   FROM public.imparte i,
+    public."Cursos" c,
+    public."Modulos" m
+  WHERE ((i.id_curso = c.id_curso) AND (i.id_modulo = m.id_modulo));
+
+
+ALTER VIEW public.listado_clases OWNER TO postgres;
+
+--
+-- TOC entry 283 (class 1259 OID 17728)
+-- Name: listado_discentes_curso; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.listado_discentes_curso WITH (security_invoker='on') AS
+ SELECT e.created_at,
+    e.id_evaluacion,
+    d.nombre AS nombre_discente,
+    d.apellidos,
+    d.id_discente,
+    m.id_modulo
+   FROM public."Evaluaciones" e,
+    public."Discentes" d,
+    public."Cursos" c,
+    public.imparte i,
+    public."Modulos" m
+  WHERE ((e.id_curso = c.id_curso) AND (c.id_curso = i.id_curso) AND (i.id_discente = d.id_discente) AND (e.id_modulo = m.id_modulo) AND (i.id_modulo = m.id_modulo));
+
+
+ALTER VIEW public.listado_discentes_curso OWNER TO postgres;
+
+--
+-- TOC entry 284 (class 1259 OID 17732)
+-- Name: listado_discentes_evaluacion; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.listado_discentes_evaluacion WITH (security_invoker='on') AS
+ SELECT e.created_at,
+    e.id_evaluan,
+    e.id_evaluacion,
+    e.id_practica,
+    e.nota,
+    e.peso,
+    d.nombre AS nombre_discente,
+    d.apellidos,
+    d.id_discente
+   FROM public."Discentes" d,
+    public.evaluan e
+  WHERE (d.id_discente = e.id_discente);
+
+
+ALTER VIEW public.listado_discentes_evaluacion OWNER TO postgres;
+
+--
+-- TOC entry 285 (class 1259 OID 17736)
+-- Name: listado_evaluaciones_ciclos; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.listado_evaluaciones_ciclos WITH (security_invoker='on') AS
+ SELECT evaluan.created_at,
+    evaluan.id_discente,
+    evaluan.peso,
+    evaluan.nota,
+    evaluan.id_evaluan,
+    e.nombre AS nombre_evaluacion,
+    e.id_evaluacion,
+    e.fecha_ini,
+    e.fecha_fin,
+    d.nombre AS nombre_discente,
+    d.apellidos,
+    p.id_practica,
+    p.numero,
+    p.enunciado,
+    p.unidad,
+    p.nombre AS nombre_practica,
+    c.nombre AS nombre_curso,
+    m.id_modulo,
+    m.nombre AS nombre_modulo,
+    c.anyo,
+    c.id_curso,
+    c.descripcion
+   FROM public.evaluan,
+    public."Evaluaciones" e,
+    public."Discentes" d,
+    public."Practicas" p,
+    public."Modulos" m,
+    public."Cursos" c
+  WHERE ((evaluan.id_evaluacion = e.id_evaluacion) AND (evaluan.id_discente = d.id_discente) AND (evaluan.id_practica = p.id_practica) AND (m.id_modulo = e.id_modulo) AND (e.id_curso = c.id_curso))
+  ORDER BY m.nombre;
+
+
+ALTER VIEW public.listado_evaluaciones_ciclos OWNER TO postgres;
+
+--
+-- TOC entry 286 (class 1259 OID 17741)
+-- Name: listado_practicas_evaluacion; Type: VIEW; Schema: public; Owner: postgres
+--
+
+CREATE VIEW public.listado_practicas_evaluacion WITH (security_invoker='on') AS
+ SELECT DISTINCT e.id_evaluacion,
+    e.peso,
+    p.created_at,
+    p.nombre,
+    p.numero,
+    p.enunciado,
+    p.descripcion,
+    p.id_tipopractica,
+    p.unidad,
+    p.id_practica,
+    p.id_modulo
+   FROM public."Practicas" p,
+    public.evaluan e
+  WHERE (p.id_practica = e.id_practica);
+
+
+ALTER VIEW public.listado_practicas_evaluacion OWNER TO postgres;
+
+--
+-- TOC entry 287 (class 1259 OID 17745)
+-- Name: poseen; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.poseen (
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    id_poseen uuid DEFAULT gen_random_uuid() NOT NULL,
+    id_practica uuid,
+    id_modulo uuid
+);
+
+
+ALTER TABLE public.poseen OWNER TO postgres;
+
+--
+-- TOC entry 3754 (class 2606 OID 17853)
+-- Name: Ciclos Ciclos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Ciclos"
+    ADD CONSTRAINT "Ciclos_pkey" PRIMARY KEY (id_ciclo);
+
+
+--
+-- TOC entry 3756 (class 2606 OID 17855)
+-- Name: Cursos Cursos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Cursos"
+    ADD CONSTRAINT "Cursos_pkey" PRIMARY KEY (id_curso);
+
+
+--
+-- TOC entry 3758 (class 2606 OID 17857)
+-- Name: Discentes Discentes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Discentes"
+    ADD CONSTRAINT "Discentes_pkey" PRIMARY KEY (id_discente);
+
+
+--
+-- TOC entry 3760 (class 2606 OID 17859)
+-- Name: Evaluaciones Evaluaciones_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Evaluaciones"
+    ADD CONSTRAINT "Evaluaciones_pkey" PRIMARY KEY (id_evaluacion);
+
+
+--
+-- TOC entry 3762 (class 2606 OID 17861)
+-- Name: Modulos Modulos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Modulos"
+    ADD CONSTRAINT "Modulos_pkey" PRIMARY KEY (id_modulo);
+
+
+--
+-- TOC entry 3764 (class 2606 OID 17863)
+-- Name: Practicas Practicas_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Practicas"
+    ADD CONSTRAINT "Practicas_pkey" PRIMARY KEY (id_practica);
+
+
+--
+-- TOC entry 3766 (class 2606 OID 17865)
+-- Name: TipoEvaluacion TipoEvaluacion_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."TipoEvaluacion"
+    ADD CONSTRAINT "TipoEvaluacion_pkey" PRIMARY KEY (id_tipoevaluacion);
+
+
+--
+-- TOC entry 3768 (class 2606 OID 17867)
+-- Name: TipoPracticas TipoPracticas_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."TipoPracticas"
+    ADD CONSTRAINT "TipoPracticas_pkey" PRIMARY KEY (id_tipopractica);
+
+
+--
+-- TOC entry 3770 (class 2606 OID 17869)
+-- Name: evaluan evaluan_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.evaluan
+    ADD CONSTRAINT evaluan_pkey PRIMARY KEY (id_evaluan);
+
+
+--
+-- TOC entry 3772 (class 2606 OID 17871)
+-- Name: imparte imparte_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.imparte
+    ADD CONSTRAINT imparte_pkey PRIMARY KEY (id_imparte);
+
+
+--
+-- TOC entry 3774 (class 2606 OID 17873)
+-- Name: poseen poseen_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.poseen
+    ADD CONSTRAINT poseen_pkey PRIMARY KEY (id_poseen);
+
+
+--
+-- TOC entry 3775 (class 2606 OID 17994)
+-- Name: Evaluaciones Evaluaciones_id_curso_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Evaluaciones"
+    ADD CONSTRAINT "Evaluaciones_id_curso_fkey" FOREIGN KEY (id_curso) REFERENCES public."Cursos"(id_curso) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3776 (class 2606 OID 17999)
+-- Name: Modulos Modulos_id_ciclo_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Modulos"
+    ADD CONSTRAINT "Modulos_id_ciclo_fkey" FOREIGN KEY (id_ciclo) REFERENCES public."Ciclos"(id_ciclo) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3777 (class 2606 OID 18004)
+-- Name: Practicas Practicas_id_modulo_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Practicas"
+    ADD CONSTRAINT "Practicas_id_modulo_fkey" FOREIGN KEY (id_modulo) REFERENCES public."Modulos"(id_modulo) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3945 (class 3256 OID 18029)
+-- Name: Ciclos Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public."Ciclos" FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3946 (class 3256 OID 18030)
+-- Name: Cursos Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public."Cursos" FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3947 (class 3256 OID 18031)
+-- Name: Discentes Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public."Discentes" FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3948 (class 3256 OID 18032)
+-- Name: Evaluaciones Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public."Evaluaciones" FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3949 (class 3256 OID 18033)
+-- Name: Modulos Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public."Modulos" FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3950 (class 3256 OID 18034)
+-- Name: Practicas Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public."Practicas" FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3951 (class 3256 OID 18035)
+-- Name: TipoEvaluacion Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public."TipoEvaluacion" FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3952 (class 3256 OID 18036)
+-- Name: TipoPracticas Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public."TipoPracticas" FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3953 (class 3256 OID 18037)
+-- Name: evaluan Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public.evaluan FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3954 (class 3256 OID 18038)
+-- Name: imparte Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public.imparte FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3955 (class 3256 OID 18039)
+-- Name: poseen Acceso SELECT usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Acceso SELECT usuarios autentificados" ON public.poseen FOR SELECT TO authenticated USING (true);
+
+
+--
+-- TOC entry 3956 (class 3256 OID 18040)
+-- Name: Modulos Actualizar autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Actualizar autentificados" ON public."Modulos" FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+
+--
+-- TOC entry 3957 (class 3256 OID 18041)
+-- Name: Modulos Borrar para usuarios autentificados; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Borrar para usuarios autentificados" ON public."Modulos" FOR DELETE TO authenticated USING (true);
+
+
+--
+-- TOC entry 3934 (class 0 OID 17626)
+-- Dependencies: 268
+-- Name: Ciclos; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."Ciclos" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3935 (class 0 OID 17636)
+-- Dependencies: 269
+-- Name: Cursos; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."Cursos" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3936 (class 0 OID 17647)
+-- Dependencies: 270
+-- Name: Discentes; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."Discentes" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3937 (class 0 OID 17655)
+-- Dependencies: 271
+-- Name: Evaluaciones; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."Evaluaciones" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3958 (class 3256 OID 18042)
+-- Name: Modulos Insertar; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Insertar" ON public."Modulos" FOR INSERT TO authenticated WITH CHECK (true);
+
+
+--
+-- TOC entry 3938 (class 0 OID 17664)
+-- Dependencies: 272
+-- Name: Modulos; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."Modulos" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3959 (class 3256 OID 18043)
+-- Name: Cursos Permiso total; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Permiso total" ON public."Cursos" USING (true) WITH CHECK (true);
+
+
+--
+-- TOC entry 3960 (class 3256 OID 18044)
+-- Name: TipoEvaluacion Permiso total; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Permiso total" ON public."TipoEvaluacion" USING (true) WITH CHECK (true);
+
+
+--
+-- TOC entry 3961 (class 3256 OID 18045)
+-- Name: Ciclos Permisos totales; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Permisos totales" ON public."Ciclos" TO authenticated USING (true) WITH CHECK (true);
+
+
+--
+-- TOC entry 3962 (class 3256 OID 18046)
+-- Name: Practicas Permisos totales; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Permisos totales" ON public."Practicas" TO authenticated USING (true) WITH CHECK (true);
+
+
+--
+-- TOC entry 3939 (class 0 OID 17674)
+-- Dependencies: 273
+-- Name: Practicas; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."Practicas" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3940 (class 0 OID 17686)
+-- Dependencies: 274
+-- Name: TipoEvaluacion; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."TipoEvaluacion" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3941 (class 0 OID 17695)
+-- Dependencies: 276
+-- Name: TipoPracticas; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public."TipoPracticas" ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3963 (class 3256 OID 18047)
+-- Name: Discentes Todos los permisos; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Todos los permisos" ON public."Discentes" USING (true) WITH CHECK (true);
+
+
+--
+-- TOC entry 3964 (class 3256 OID 18048)
+-- Name: Evaluaciones Todos los permisos; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Todos los permisos" ON public."Evaluaciones" USING (true) WITH CHECK (true);
+
+
+--
+-- TOC entry 3965 (class 3256 OID 18049)
+-- Name: evaluan Todos los permisos; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Todos los permisos" ON public.evaluan TO authenticated USING (true) WITH CHECK (true);
+
+
+--
+-- TOC entry 3966 (class 3256 OID 18050)
+-- Name: imparte Todos permisos; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "Todos permisos" ON public.imparte USING (true) WITH CHECK (true);
+
+
+--
+-- TOC entry 3942 (class 0 OID 17704)
+-- Dependencies: 278
+-- Name: evaluan; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.evaluan ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3943 (class 0 OID 17709)
+-- Dependencies: 279
+-- Name: imparte; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.imparte ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3967 (class 3256 OID 18051)
+-- Name: TipoPracticas permiso total; Type: POLICY; Schema: public; Owner: postgres
+--
+
+CREATE POLICY "permiso total" ON public."TipoPracticas" USING (true) WITH CHECK (true);
+
+
+--
+-- TOC entry 3944 (class 0 OID 17745)
+-- Dependencies: 287
+-- Name: poseen; Type: ROW SECURITY; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.poseen ENABLE ROW LEVEL SECURITY;
+
+--
+-- TOC entry 3975 (class 0 OID 0)
+-- Dependencies: 20
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: pg_database_owner
+--
+
+GRANT USAGE ON SCHEMA public TO postgres;
+GRANT USAGE ON SCHEMA public TO anon;
+GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT USAGE ON SCHEMA public TO service_role;
+
+
+--
+-- TOC entry 3976 (class 0 OID 0)
+-- Dependencies: 268
+-- Name: TABLE "Ciclos"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Ciclos" TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Ciclos" TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Ciclos" TO service_role;
+
+
+--
+-- TOC entry 3977 (class 0 OID 0)
+-- Dependencies: 269
+-- Name: TABLE "Cursos"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Cursos" TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Cursos" TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Cursos" TO service_role;
+
+
+--
+-- TOC entry 3978 (class 0 OID 0)
+-- Dependencies: 270
+-- Name: TABLE "Discentes"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Discentes" TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Discentes" TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Discentes" TO service_role;
+
+
+--
+-- TOC entry 3979 (class 0 OID 0)
+-- Dependencies: 271
+-- Name: TABLE "Evaluaciones"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Evaluaciones" TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Evaluaciones" TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Evaluaciones" TO service_role;
+
+
+--
+-- TOC entry 3980 (class 0 OID 0)
+-- Dependencies: 272
+-- Name: TABLE "Modulos"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Modulos" TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Modulos" TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Modulos" TO service_role;
+
+
+--
+-- TOC entry 3981 (class 0 OID 0)
+-- Dependencies: 273
+-- Name: TABLE "Practicas"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Practicas" TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Practicas" TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."Practicas" TO service_role;
+
+
+--
+-- TOC entry 3982 (class 0 OID 0)
+-- Dependencies: 274
+-- Name: TABLE "TipoEvaluacion"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."TipoEvaluacion" TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."TipoEvaluacion" TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."TipoEvaluacion" TO service_role;
+
+
+--
+-- TOC entry 3983 (class 0 OID 0)
+-- Dependencies: 275
+-- Name: SEQUENCE "TipoEvaluacion_id_tipoevaluacion_seq"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE public."TipoEvaluacion_id_tipoevaluacion_seq" TO anon;
+GRANT ALL ON SEQUENCE public."TipoEvaluacion_id_tipoevaluacion_seq" TO authenticated;
+GRANT ALL ON SEQUENCE public."TipoEvaluacion_id_tipoevaluacion_seq" TO service_role;
+
+
+--
+-- TOC entry 3984 (class 0 OID 0)
+-- Dependencies: 276
+-- Name: TABLE "TipoPracticas"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."TipoPracticas" TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."TipoPracticas" TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public."TipoPracticas" TO service_role;
+
+
+--
+-- TOC entry 3985 (class 0 OID 0)
+-- Dependencies: 277
+-- Name: SEQUENCE "TipoPracticas_id_tipopractica_seq"; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE public."TipoPracticas_id_tipopractica_seq" TO anon;
+GRANT ALL ON SEQUENCE public."TipoPracticas_id_tipopractica_seq" TO authenticated;
+GRANT ALL ON SEQUENCE public."TipoPracticas_id_tipopractica_seq" TO service_role;
+
+
+--
+-- TOC entry 3986 (class 0 OID 0)
+-- Dependencies: 278
+-- Name: TABLE evaluan; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.evaluan TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.evaluan TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.evaluan TO service_role;
+
+
+--
+-- TOC entry 3987 (class 0 OID 0)
+-- Dependencies: 279
+-- Name: TABLE imparte; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.imparte TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.imparte TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.imparte TO service_role;
+
+
+--
+-- TOC entry 3988 (class 0 OID 0)
+-- Dependencies: 280
+-- Name: TABLE listado_ciclos_modulos; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_ciclos_modulos TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_ciclos_modulos TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_ciclos_modulos TO service_role;
+
+
+--
+-- TOC entry 3989 (class 0 OID 0)
+-- Dependencies: 281
+-- Name: TABLE listado_clase_discentes; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_clase_discentes TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_clase_discentes TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_clase_discentes TO service_role;
+
+
+--
+-- TOC entry 3990 (class 0 OID 0)
+-- Dependencies: 282
+-- Name: TABLE listado_clases; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_clases TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_clases TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_clases TO service_role;
+
+
+--
+-- TOC entry 3991 (class 0 OID 0)
+-- Dependencies: 283
+-- Name: TABLE listado_discentes_curso; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_discentes_curso TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_discentes_curso TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_discentes_curso TO service_role;
+
+
+--
+-- TOC entry 3992 (class 0 OID 0)
+-- Dependencies: 284
+-- Name: TABLE listado_discentes_evaluacion; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_discentes_evaluacion TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_discentes_evaluacion TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_discentes_evaluacion TO service_role;
+
+
+--
+-- TOC entry 3993 (class 0 OID 0)
+-- Dependencies: 285
+-- Name: TABLE listado_evaluaciones_ciclos; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_evaluaciones_ciclos TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_evaluaciones_ciclos TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_evaluaciones_ciclos TO service_role;
+
+
+--
+-- TOC entry 3994 (class 0 OID 0)
+-- Dependencies: 286
+-- Name: TABLE listado_practicas_evaluacion; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_practicas_evaluacion TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_practicas_evaluacion TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.listado_practicas_evaluacion TO service_role;
+
+
+--
+-- TOC entry 3995 (class 0 OID 0)
+-- Dependencies: 287
+-- Name: TABLE poseen; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.poseen TO anon;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.poseen TO authenticated;
+GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLE public.poseen TO service_role;
+
+
+--
+-- TOC entry 2523 (class 826 OID 18071)
+-- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: postgres
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON SEQUENCES TO service_role;
+
+
+--
+-- TOC entry 2526 (class 826 OID 18072)
+-- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: supabase_admin
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON SEQUENCES TO service_role;
+
+
+--
+-- TOC entry 2528 (class 826 OID 18073)
+-- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: postgres
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT ALL ON FUNCTIONS TO service_role;
+
+
+--
+-- TOC entry 2529 (class 826 OID 18074)
+-- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: supabase_admin
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON FUNCTIONS TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON FUNCTIONS TO service_role;
+
+
+--
+-- TOC entry 2530 (class 826 OID 18075)
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: postgres
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO service_role;
+
+
+--
+-- TOC entry 2532 (class 826 OID 18076)
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: supabase_admin
+--
+
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO postgres;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO authenticated;
+ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT SELECT,INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,UPDATE ON TABLES TO service_role;
+
+
+-- Completed on 2025-08-07 11:49:19
+
+--
+-- PostgreSQL database dump complete
+--
+

@@ -14,6 +14,7 @@ import useEstilos from "../hooks/useEstilos.js";
 import useModales from "../hooks/useModales.js";
 import { Dialog } from "primereact/dialog";
 import FormCrearPractica from "../components/formularios/FormCrearPractica.jsx";
+import ValorEstado from "../components/complementos/ValorEstado.jsx";
 
 const HerramientasPracticas = () => {
   /**
@@ -198,10 +199,9 @@ const HerramientasPracticas = () => {
 
   const mostrarTipoPractica = (options) => {
     const tipo = tipoPracticas.filter(
-      (c) => c.id_tipopractica === options.id_tipopractica
+      (c) => c.id_tipopractica == options.id_tipopractica
     );
-    //return tipo[0].nombre;
-    return "Ninguno";
+    return tipo[0].nombre;
   };
 
   const mostrarDescripcion = (valor) => {
@@ -296,7 +296,7 @@ const HerramientasPracticas = () => {
           ></Column>
           <Column
             field='nombre'
-            header='Título'
+            header='Nombre'
             editor={(options) => editorTexto(options, true)}
           ></Column>
           <Column
@@ -317,7 +317,7 @@ const HerramientasPracticas = () => {
           ></Column>
           <Column
             field='descripcion'
-            header='Objetivos/contenidos'
+            header='Descripción/Objetivos'
             body={(options) => {
               return mostrarDescripcion(options.descripcion);
             }}

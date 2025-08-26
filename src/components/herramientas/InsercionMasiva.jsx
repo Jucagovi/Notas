@@ -51,7 +51,7 @@ const InsercionMasiva = ({ insercion, tabla }) => {
     const lineas = valor.split("\n");
     // Cada una se separa por el caracter ; y se meten en un array bidimensional.
     const separadas = lineas.map((linea) => {
-      return linea.split(",");
+      return linea.split(";");
     });
     // Por cada ocurrencia del primer array se crea un objeto y se ponen sus claves y sus valores.
     const objetoJSON = separadas.map((valor) => {
@@ -90,7 +90,14 @@ const InsercionMasiva = ({ insercion, tabla }) => {
   return (
     <>
       <div className='flex '>
-        <ColumnaSimple estilo='flex-1 align-items-center justify-content-center font-bold m-1 border-round'>
+        <ColumnaSimple estilo='flex-1 align-items-center justify-content-center  m-1 border-round'>
+          <p>Introduce los datos de la siguiente manera:</p>
+          <ol>
+            <li>separa las columnas con el caracter ";" (punto y coma),</li>
+            <li>da formato a los datos pulsando el botón "Formatear datos",</li>
+            <li>se revisa la información obtenida y</li>
+            <li>se elige na tabla en donde realizar la inserción.</li>
+          </ol>
           <InputTextarea
             className='m-1'
             //autoResize
