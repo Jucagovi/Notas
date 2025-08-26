@@ -5,8 +5,13 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
+    - name: 🚚 Get latest code
     - uses: actions/checkout@v2
-    - name: Upload ftp
+
+    - name: 🔨 Build Project
+      run: npm run build
+    
+    - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
         server: ${{ secrets.FTP_SERVER }}
