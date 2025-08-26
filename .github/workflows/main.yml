@@ -9,8 +9,8 @@ jobs:
     - name: Upload ftp
       uses: SamKirkland/FTP-Deploy-Action@v4.3.6
       with:
-        host: ${{ secrets.FTP_SERVER }}
-        user: ${{ secrets.FTP_USER }}
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USER }}
         password: ${{ secrets.FTP_PASSWORD }}
-        localDir: "dist"
-        remoteDir: "/"
+        local-dir: "dist"
+        server-dir: "/"
