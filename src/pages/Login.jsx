@@ -39,7 +39,7 @@ const Login = () => {
           }}
         />
       </ColumnaSimple>
-      <ColumnaSimple estilo='p-6 w-4'>
+      {/* <ColumnaSimple estilo='p-6 w-4'>
         <h2 className='text-xl'>¿No tienes cuenta?</h2>
         <InputText
           type='text'
@@ -70,10 +70,7 @@ const Login = () => {
             crearCuenta();
           }}
         />
-      </ColumnaSimple>
-      <ColumnaSimple>
-        <ValorEstado estadoaMostrar={datosSesion} />
-      </ColumnaSimple>
+      </ColumnaSimple> */}
     </ColumnaSimple>
   );
 };

@@ -16,7 +16,6 @@ const Inicio = () => {
     <>
       <ColumnaSimple>
         <h2>Prueba de despliegue en FTP. Prueba dos.</h2>
-        <h2>Prueba de despliegue en FTP. Prueba dos.</h2>
         {sesionIniciada ? (
           <>
             <h2>Bienvenido/a.</h2>
