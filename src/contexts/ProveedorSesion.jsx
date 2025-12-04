@@ -86,6 +86,21 @@ const ProveedorSesion = ({ children }) => {
     }
   };
 
+  const iniciarSesionPassword = async () => {
+    setErrorUsuario(errorUsuarioInicial);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: datosSesion.email,
+        password: datosSesion.password,
+      });
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      setErrorUsuario(error.message);
+    }
+  };
+
   /**
    * Función para cerrar la sesión.
    * Funciona con cualquier método de inicio de sesión.
@@ -177,6 +192,7 @@ const ProveedorSesion = ({ children }) => {
     errorUsuario,
     crearCuenta,
     iniciarSesionMagicLink,
+    iniciarSesionPassword,
     cerrarSesion,
     actualizarDato,
     datosSesion,

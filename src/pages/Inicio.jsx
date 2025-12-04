@@ -7,6 +7,7 @@ import useDatos from "../hooks/useDatos.js";
 import Consola from "../components/herramientas/Consola.jsx";
 import { Button } from "primereact/button";
 import Cargando from "../components/Cargando.jsx";
+import Login from "./Login.jsx";
 
 const Inicio = () => {
   const { curso } = useDatos();
