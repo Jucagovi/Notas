@@ -275,3 +275,73 @@ export const obtenerPracticasAsignadasEvaluacion = async (idCurso, idModulo) => 
     return { data: [], error: err.message || 'Error al obtener las prácticas asignadas a evaluaciones.' };
   }
 };
+
+// Se obtienen todas las asignaciones en la tabla trabajan para los criterios de un módulo profesional
+export const obtenerAsignacionesPorModulo = async (moduloId) => {
+  if (!moduloId) {
+    return { data: [], error: null };
+  }
+
+  try {
+    // 1. Se obtienen los identificadores de RA asociados al módulo
+    const { data: listaRA, error: errorRA } = await supabase
+      .from('RA')
+      .select('id_ra')
+      .eq('id_modulo', moduloId);
+
+    if (errorRA) {
+      console.error(`Error al consultar RA para obtener asignaciones del módulo ${moduloId}:`, errorRA);
+      return { data: [], error: errorRA.message };
+    }
+
+    if (!listaRA || listaRA.length === 0) {
+      return { data: [], error: null };
+    }
+
+    const idsRA = listaRA.map((ra) => ra.id_ra);
+
+    // 2. Se obtienen los CE correspondientes
+    const { data: listaCE, error: errorCE } = await supabase
+      .from('CE')
+      .select('id_ce')
+      .in('id_ra', idsRA);
+
+    if (errorCE) {
+      console.error('Error al consultar CE para asignaciones del módulo:', errorCE);
+      return { data: [], error: errorCE.message };
+    }
+
+    if (!listaCE || listaCE.length === 0) {
+      return { data: [], error: null };
+    }
+
+    const idsCE = listaCE.map((ce) => ce.id_ce);
+
+    // 3. Se consultan las vinculaciones en la tabla trabajan
+    const { data: asignaciones, error: errorTrabajan } = await supabase
+      .from('trabajan')
+      .select(`
+        id_trabajan,
+        id_ce,
+        id_practica,
+        porcentaje,
+        descripcion,
+        Practicas:id_practica (
+          id_practica,
+          nombre,
+          numero
+        )
+      `)
+      .in('id_ce', idsCE);
+
+    if (errorTrabajan) {
+      console.error('Error al consultar tabla trabajan para el módulo:', errorTrabajan);
+      return { data: [], error: errorTrabajan.message };
+    }
+
+    return { data: asignaciones || [], error: null };
+  } catch (err) {
+    console.error('Error inesperado en obtenerAsignacionesPorModulo:', err);
+    return { data: [], error: err.message || 'Error al obtener las asignaciones globales del módulo.' };
+  }
+};

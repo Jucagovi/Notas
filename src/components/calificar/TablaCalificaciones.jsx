@@ -168,13 +168,27 @@ const TablaCalificaciones = ({
   const [filtroTexto, setFiltroTexto] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos"); // 'todos' | 'calificados' | 'pendientes' | 'aprobados' | 'suspensos'
 
+  // Criterio y dirección de ordenación de los discentes
+  const [ordenPor, setOrdenPor] = useState("apellidos"); // 'apellidos' | 'nombre'
+  const [ordenDir, setOrdenDir] = useState(1); // 1 = ascendente, -1 = descendente
+
+  // Alterna o cambia el criterio de ordenación
+  const alternarOrden = (criterio) => {
+    if (ordenPor === criterio) {
+      setOrdenDir((prev) => (prev === 1 ? -1 : 1));
+    } else {
+      setOrdenPor(criterio);
+      setOrdenDir(1);
+    }
+  };
+
   // Modal para calificar de forma masiva
   const [dialogoMasivoVisible, setDialogoMasivoVisible] = useState(false);
   const [notaMasiva, setNotaMasiva] = useState(null);
 
-  // Filtrado reactivo de discentes en la tabla
+  // Filtrado y ordenación reactiva de discentes en la tabla
   const discentesFiltrados = useMemo(() => {
-    return (discentes || []).filter((d) => {
+    const filtrados = (discentes || []).filter((d) => {
       const termino = filtroTexto.trim().toLowerCase();
       const coincideTexto =
         !termino ||
@@ -194,7 +208,28 @@ const TablaCalificaciones = ({
 
       return true;
     });
-  }, [discentes, filtroTexto, filtroEstado]);
+
+    // Se ordenan los discentes por el criterio seleccionado (nombre o apellidos)
+    return [...filtrados].sort((a, b) => {
+      let valA = "";
+      let valB = "";
+
+      if (ordenPor === "nombre") {
+        valA = `${a.nombre || ""} ${a.apellidos || ""}`.trim();
+        valB = `${b.nombre || ""} ${b.apellidos || ""}`.trim();
+      } else {
+        valA = `${a.apellidos || ""} ${a.nombre || ""}`.trim();
+        valB = `${b.apellidos || ""} ${b.nombre || ""}`.trim();
+      }
+
+      const comparacion = valA.localeCompare(valB, "es", {
+        sensitivity: "base",
+        numeric: true,
+      });
+
+      return ordenDir === 1 ? comparacion : -comparacion;
+    });
+  }, [discentes, filtroTexto, filtroEstado, ordenPor, ordenDir]);
 
   // Manejo de la acción masiva
   const ejecutarCalificacionMasiva = async () => {
@@ -381,6 +416,42 @@ const TablaCalificaciones = ({
             />
           </div>
         </div>
+      </div>
+
+      {/* Botones de ordenación por Nombre y por Apellidos situados justo encima del DataTable */}
+      <div className='flex align-items-center justify-content-between gap-2 mb-2'>
+        <div className='flex align-items-center gap-2'>
+          <span className='text-xs font-semibold text-muted'>
+            Ordenar por:
+          </span>
+          <Button
+            type='button'
+            label='Nombre'
+            icon={ordenPor === 'nombre' ? (ordenDir === 1 ? 'pi pi-sort-alpha-down' : 'pi pi-sort-alpha-up') : 'pi pi-sort-alt'}
+            size='small'
+            severity={ordenPor === 'nombre' ? 'primary' : 'secondary'}
+            outlined={ordenPor !== 'nombre'}
+            className='p-1 px-3 text-xs'
+            onClick={() => alternarOrden('nombre')}
+            tooltip='Ordenar alfabéticamente por Nombre'
+            tooltipOptions={{ position: 'top' }}
+          />
+          <Button
+            type='button'
+            label='Apellidos'
+            icon={ordenPor === 'apellidos' ? (ordenDir === 1 ? 'pi pi-sort-alpha-down' : 'pi pi-sort-alpha-up') : 'pi pi-sort-alt'}
+            size='small'
+            severity={ordenPor === 'apellidos' ? 'primary' : 'secondary'}
+            outlined={ordenPor !== 'apellidos'}
+            className='p-1 px-3 text-xs'
+            onClick={() => alternarOrden('apellidos')}
+            tooltip='Ordenar alfabéticamente por Apellidos'
+            tooltipOptions={{ position: 'top' }}
+          />
+        </div>
+        <span className='text-xs text-muted font-medium'>
+          {discentesFiltrados.length} {discentesFiltrados.length === 1 ? 'discente' : 'discentes'}
+        </span>
       </div>
 
       {/* Tabla PrimeReact de Discentes */}

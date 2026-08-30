@@ -5,7 +5,8 @@ import {
   getArbolCriterios,
   savePesoCriterios,
   obtenerAsignacionesPorPractica,
-  obtenerPracticasAsignadasEvaluacion
+  obtenerPracticasAsignadasEvaluacion,
+  obtenerAsignacionesPorModulo
 } from '../services/criteriosService.js';
 import { obtenerModulosPorCurso } from '../services/evaluacionService.js';
 
@@ -48,6 +49,7 @@ const useCriterios = () => {
   const [modulosDisponibles, setModulosDisponibles] = useState([]);
   const [practicasDisponibles, setPracticasDisponibles] = useState([]);
   const [arbolCriterios, setArbolCriterios] = useState([]);
+  const [todasAsignacionesModulo, setTodasAsignacionesModulo] = useState([]);
   const [asignacionesIniciales, setAsignacionesIniciales] = useState({});
 
   // Mapa reactivo de selecciones por id_ce: { [id_ce]: { seleccionado: boolean, porcentaje: number, id_ra: string } }
@@ -173,12 +175,37 @@ const useCriterios = () => {
     ) || null;
   }, [practicasDisponibles, practicaSeleccionadaId]);
 
-  // Carga del árbol jerárquico de RA y CE junto con las asignaciones previas de la práctica en trabajan
+  // Mapa de cobertura global por CE en otras prácticas del módulo:
+  // { [id_ce]: { porcentajeEnOtras: number, asignadoEnOtras: boolean, asignacionesOtras: array } }
+  const coberturaGlobalCE = useMemo(() => {
+    const mapa = {};
+    (todasAsignacionesModulo || []).forEach((asig) => {
+      if (!asig.id_ce) return;
+      if (!mapa[asig.id_ce]) {
+        mapa[asig.id_ce] = {
+          porcentajeEnOtras: 0,
+          asignadoEnOtras: false,
+          asignacionesOtras: []
+        };
+      }
+      const porc = Number(asig.porcentaje) || 0;
+      // Si la asignación pertenece a otra práctica distinta de la actual
+      if (String(asig.id_practica).toLowerCase() !== String(practicaSeleccionadaId).toLowerCase()) {
+        mapa[asig.id_ce].porcentajeEnOtras += porc;
+        mapa[asig.id_ce].asignadoEnOtras = true;
+        mapa[asig.id_ce].asignacionesOtras.push(asig);
+      }
+    });
+    return mapa;
+  }, [todasAsignacionesModulo, practicaSeleccionadaId]);
+
+  // Carga del árbol jerárquico de RA y CE junto con las asignaciones previas de la práctica en trabajan y del módulo
   const cargarArbolYAsignaciones = useCallback(async (idPractica, idModulo) => {
     if (!idModulo || !idPractica) {
       setArbolCriterios([]);
       setSeleccionesCE({});
       setAsignacionesIniciales({});
+      setTodasAsignacionesModulo([]);
       setHayCambiosSinGuardar(false);
       return;
     }
@@ -187,17 +214,20 @@ const useCriterios = () => {
     setErrorOperacion(null);
 
     try {
-      // Se obtienen concurrentemente el árbol del módulo y las asignaciones existentes de la práctica
-      const [respArbol, respAsignaciones] = await Promise.all([
+      // Se obtienen concurrentemente el árbol del módulo, las asignaciones de la práctica y todas las del módulo
+      const [respArbol, respAsignaciones, respAsignacionesModulo] = await Promise.all([
         getArbolCriterios(idModulo),
-        obtenerAsignacionesPorPractica(idPractica)
+        obtenerAsignacionesPorPractica(idPractica),
+        obtenerAsignacionesPorModulo(idModulo)
       ]);
 
       if (respArbol.error) throw new Error(respArbol.error);
       if (respAsignaciones.error) throw new Error(respAsignaciones.error);
+      if (respAsignacionesModulo.error) throw new Error(respAsignacionesModulo.error);
 
       const nodos = respArbol.data || [];
       const asignaciones = respAsignaciones.data || [];
+      const asignacionesModulo = respAsignacionesModulo.data || [];
 
       // Se construye el mapa de asignaciones previas indexadas por id_ce
       const mapaPrevio = {};
@@ -235,6 +265,7 @@ const useCriterios = () => {
       });
 
       setArbolCriterios(nodos);
+      setTodasAsignacionesModulo(asignacionesModulo);
       setSeleccionesCE(mapaEstadoInicial);
       setAsignacionesIniciales(mapaEstadoInicial);
       setHayCambiosSinGuardar(false);
@@ -254,6 +285,7 @@ const useCriterios = () => {
       setArbolCriterios([]);
       setSeleccionesCE({});
       setAsignacionesIniciales({});
+      setTodasAsignacionesModulo([]);
       setHayCambiosSinGuardar(false);
     }
   }, [practicaSeleccionadaId, moduloSeleccionadoId, cargarArbolYAsignaciones]);
@@ -277,11 +309,18 @@ const useCriterios = () => {
       hijos.forEach((hijo) => {
         const idCE = hijo.data.id_ce;
         const actual = prev[idCE] || {};
+        const coberturaCE = coberturaGlobalCE[idCE] || { porcentajeEnOtras: 0 };
+        const porcentajeRestante = Math.max(0, 100 - (coberturaCE.porcentajeEnOtras || 0));
+
+        let nuevoPorcentaje = actual.porcentaje;
+        if (nuevoEstado && (!actual.porcentaje || actual.porcentaje === 0)) {
+          nuevoPorcentaje = porcentajeRestante > 0 ? porcentajeRestante : 0;
+        }
+
         nuevoMapa[idCE] = {
           ...actual,
           seleccionado: nuevoEstado,
-          // Si se selecciona en cascada y no tenía un porcentaje válido, se establece por defecto en 100
-          porcentaje: nuevoEstado ? (actual.porcentaje > 0 ? actual.porcentaje : 100) : (actual.porcentaje || 100),
+          porcentaje: nuevoPorcentaje,
           id_ra: idRA
         };
       });
@@ -290,26 +329,33 @@ const useCriterios = () => {
     });
 
     setHayCambiosSinGuardar(true);
-  }, [arbolCriterios]);
+  }, [arbolCriterios, coberturaGlobalCE]);
 
   // Conmutación individual del estado de selección de un Criterio de Evaluación
   const alternarSeleccionCE = useCallback((idCE) => {
     setSeleccionesCE((prev) => {
       const actual = prev[idCE] || { seleccionado: false, porcentaje: 100 };
       const nuevoEstado = !actual.seleccionado;
+      const coberturaCE = coberturaGlobalCE[idCE] || { porcentajeEnOtras: 0 };
+      const porcentajeRestante = Math.max(0, 100 - (coberturaCE.porcentajeEnOtras || 0));
+
+      let nuevoPorcentaje = actual.porcentaje;
+      if (nuevoEstado && (!actual.porcentaje || actual.porcentaje === 0)) {
+        nuevoPorcentaje = porcentajeRestante > 0 ? porcentajeRestante : 0;
+      }
 
       return {
         ...prev,
         [idCE]: {
           ...actual,
           seleccionado: nuevoEstado,
-          porcentaje: nuevoEstado && (!actual.porcentaje || actual.porcentaje === 0) ? 100 : (actual.porcentaje || 100)
+          porcentaje: nuevoPorcentaje
         }
       };
     });
 
     setHayCambiosSinGuardar(true);
-  }, []);
+  }, [coberturaGlobalCE]);
 
   // Modificación del valor de porcentaje para un Criterio de Evaluación
   const actualizarPorcentajeCE = useCallback((idCE, nuevoPorcentaje) => {
@@ -332,21 +378,25 @@ const useCriterios = () => {
     setHayCambiosSinGuardar(true);
   }, []);
 
-  // Marcado masivo de todos los criterios de evaluación del módulo con porcentaje al 100%
+  // Marcado masivo de todos los criterios de evaluación del módulo respetando coberturas
   const marcarTodosLosCriterios = useCallback(() => {
     setSeleccionesCE((prev) => {
       const nuevoMapa = { ...prev };
       Object.keys(nuevoMapa).forEach((idCE) => {
+        const coberturaCE = coberturaGlobalCE[idCE] || { porcentajeEnOtras: 0 };
+        const porcentajeRestante = Math.max(0, 100 - (coberturaCE.porcentajeEnOtras || 0));
+        const porcActual = nuevoMapa[idCE]?.porcentaje;
+
         nuevoMapa[idCE] = {
           ...nuevoMapa[idCE],
           seleccionado: true,
-          porcentaje: nuevoMapa[idCE].porcentaje > 0 ? nuevoMapa[idCE].porcentaje : 100
+          porcentaje: porcActual > 0 ? porcActual : (porcentajeRestante > 0 ? porcentajeRestante : 100)
         };
       });
       return nuevoMapa;
     });
     setHayCambiosSinGuardar(true);
-  }, []);
+  }, [coberturaGlobalCE]);
 
   // Desmarcado masivo de todos los criterios de evaluación del módulo
   const desmarcarTodosLosCriterios = useCallback(() => {
@@ -401,6 +451,11 @@ const useCriterios = () => {
       setAsignacionesIniciales({ ...seleccionesCE });
       setHayCambiosSinGuardar(false);
 
+      // Se recargan las asignaciones para refrescar coberturas globales del módulo
+      if (practicaSeleccionadaId && moduloSeleccionadoId) {
+        cargarArbolYAsignaciones(practicaSeleccionadaId, moduloSeleccionadoId);
+      }
+
       mostrarExito(
         'Pesos guardados',
         `Se han asignado ${totalGuardados} criterios de evaluación a la práctica.`
@@ -414,7 +469,7 @@ const useCriterios = () => {
     } finally {
       setGuardando(false);
     }
-  }, [practicaSeleccionadaId, seleccionesCE, mostrarExito, mostrarError, mostrarInfo]);
+  }, [practicaSeleccionadaId, moduloSeleccionadoId, seleccionesCE, cargarArbolYAsignaciones, mostrarExito, mostrarError, mostrarInfo]);
 
   // Cálculo de estadísticas resumidas
   const estadisticas = useMemo(() => {
@@ -445,6 +500,7 @@ const useCriterios = () => {
     seleccionarPractica,
     arbolCriterios,
     seleccionesCE,
+    coberturaGlobalCE,
     cargando: cargandoModulos || cargandoPracticas || cargandoArbol,
     cargandoPracticas,
     guardando,

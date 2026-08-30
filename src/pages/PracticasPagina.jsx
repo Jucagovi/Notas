@@ -11,6 +11,7 @@ import { Tag } from 'primereact/tag';
 import { InputText } from 'primereact/inputtext';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Dialog } from 'primereact/dialog';
+import { Tooltip } from 'primereact/tooltip';
 import useAsignacionPracticas from '../hooks/useAsignacionPracticas.js';
 import useToast from '../hooks/useToast.js';
 import { ordenarEvaluaciones } from '../services/evaluacionService.js';
@@ -379,6 +380,8 @@ const PracticasPagina = () => {
             </div>
           </div>
 
+          <Tooltip target=".practica-nombre-tooltip" position="top" />
+
           {/* Tabla de Prácticas */}
           <DataTable
             value={practicasFiltradas}
@@ -414,71 +417,41 @@ const PracticasPagina = () => {
             <Column
               field="numero"
               header="Nº"
-              style={{ width: '80px' }}
+              style={{ width: '70px', textAlign: 'center' }}
               body={(rowData) => (
-                <Tag
-                  value={rowData.numero ? `${rowData.numero}` : '-'}
-                  severity="secondary"
-                  className="font-bold text-xs"
-                />
-              )}
-            />
-
-            {/* Columna de Nombre y Enunciado */}
-            <Column
-              field="nombre"
-              header="Nombre de la Práctica"
-              body={(rowData) => (
-                <div className="flex flex-column gap-1">
-                  <span className="font-semibold text-color text-sm">
-                    {rowData.nombre}
-                  </span>
-                  {rowData.enunciado && (
-                    <span className="text-xs text-muted line-clamp-1" title={rowData.enunciado}>
-                      {rowData.enunciado}
-                    </span>
-                  )}
-                </div>
-              )}
-            />
-
-            {/* Columna de Unidad Didáctica */}
-            <Column
-              field="unidad"
-              header="Unidad"
-              style={{ width: '100px' }}
-              body={(rowData) => (
-                <Tag
-                  value={rowData.unidad ? `UD ${rowData.unidad}` : 'Sin UD'}
-                  severity="info"
-                  className="text-xs"
-                />
-              )}
-            />
-
-            {/* Columna de Tipo de Práctica */}
-            <Column
-              field="id_tipopractica"
-              header="Tipo"
-              style={{ width: '130px' }}
-              body={(rowData) => (
-                <span className="text-xs text-muted">
-                  {rowData.id_tipopractica || '-'}
+                <span className="font-semibold text-sm text-color">
+                  {rowData.numero !== undefined && rowData.numero !== null ? rowData.numero : '-'}
                 </span>
               )}
             />
 
-            {/* Columna de Estado */}
+            {/* Columna de Nombre de la Práctica con enunciado en tooltip */}
+            <Column
+              field="nombre"
+              header="Nombre de la Práctica"
+              body={(rowData) => (
+                <span
+                  className="font-semibold text-color text-sm practica-nombre-tooltip cursor-pointer"
+                  data-pr-tooltip={rowData.enunciado || rowData.nombre}
+                  title={rowData.enunciado || undefined}
+                >
+                  {rowData.nombre}
+                </span>
+              )}
+            />
+
+            {/* Columna de Estado en una sola línea */}
             <Column
               field="asignada"
               header="Estado"
-              style={{ width: '130px', textAlign: 'center' }}
+              style={{ width: '150px', textAlign: 'center', whiteSpace: 'nowrap' }}
               body={(rowData) => (
                 <Tag
                   severity={rowData.asignada ? 'success' : 'secondary'}
                   icon={rowData.asignada ? 'pi pi-check' : 'pi pi-minus'}
                   value={rowData.asignada ? 'Asignada' : 'No asignada'}
-                  className="text-xs font-semibold"
+                  className="text-xs font-semibold white-space-nowrap"
+                  style={{ whiteSpace: 'nowrap' }}
                 />
               )}
             />

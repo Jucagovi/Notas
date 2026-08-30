@@ -26,6 +26,7 @@ const CriteriosPagina = () => {
     seleccionarPractica,
     arbolCriterios,
     seleccionesCE,
+    coberturaGlobalCE,
     cargando,
     cargandoPracticas,
     guardando,
@@ -179,6 +180,7 @@ const CriteriosPagina = () => {
           <CriteriosTreeTabla
             arbolCriterios={arbolCriterios}
             seleccionesCE={seleccionesCE}
+            coberturaGlobalCE={coberturaGlobalCE}
             alternarSeleccionRA={alternarSeleccionRA}
             alternarSeleccionCE={alternarSeleccionCE}
             actualizarPorcentajeCE={actualizarPorcentajeCE}

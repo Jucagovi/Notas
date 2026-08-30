@@ -760,19 +760,16 @@ const CrearClaseAsistente = ({ alFinalizarExito = () => {} }) => {
                         <Tag severity="success" value={`${discentesSeleccionados.length} Alumnos`} className="font-bold" />
                       </div>
                       {discentesSeleccionados.length > 0 ? (
-                        <div className="flex flex-wrap gap-1 max-h-10rem overflow-y-auto pt-2">
+                        <ul className="m-0 pl-3 text-sm text-white line-height-3 mt-1 max-h-15rem overflow-y-auto" style={{ color: '#ffffff' }}>
                           {discentesSeleccionados.map((d) => (
-                            <Tag
-                              key={d.id_discente}
-                              severity="secondary"
-                              value={`${d.nombre} ${d.apellidos}`}
-                              className="text-xs"
-                            />
+                            <li key={d.id_discente} className="text-white" style={{ color: '#ffffff' }}>
+                              {d.nombre} {d.apellidos}{d.NIA ? ` (${d.NIA})` : ''}
+                            </li>
                           ))}
-                        </div>
+                        </ul>
                       ) : (
                         <div className="text-sm text-muted font-italic mt-2">
-                          No se han seleccionado discentes (podrán matricularse posteriormente).
+                           No se han seleccionado discentes (podrán matricularse posteriormente).
                         </div>
                       )}
                     </div>

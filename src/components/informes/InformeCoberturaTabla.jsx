@@ -2,6 +2,7 @@ import React from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tag } from 'primereact/tag';
+import { Tooltip } from 'primereact/tooltip';
 import { formatearTextoRA, formatearTextoCE } from '../../services/informesService.js';
 
 // Componente de tabla jerárquica y agrupada por RA para la auditoría de cobertura curricular
@@ -34,7 +35,7 @@ const InformeCoberturaTabla = ({
         {/* Nombre y descripción del RA en una sola línea blanca truncada con tooltip completo */}
         <div className="min-w-0 flex-1 overflow-hidden">
           <span
-            className="font-bold text-sm text-white block cursor-help"
+            className="font-bold text-sm text-white block cursor-help cobertura-tooltip"
             style={{
               color: '#ffffff',
               fontSize: '0.875rem',
@@ -43,6 +44,7 @@ const InformeCoberturaTabla = ({
               whiteSpace: 'nowrap',
               maxWidth: '100%'
             }}
+            data-pr-tooltip={textoCabeceraRA}
             title={textoCabeceraRA}
           >
             {textoCabeceraRA}
@@ -75,7 +77,7 @@ const InformeCoberturaTabla = ({
     return (
       <div className="py-1 min-w-0 overflow-hidden w-full">
         <span
-          className="font-semibold text-sm text-white block cursor-help"
+          className="font-semibold text-sm text-white block cursor-help cobertura-tooltip"
           style={{
             color: '#ffffff',
             fontSize: '0.875rem',
@@ -84,6 +86,7 @@ const InformeCoberturaTabla = ({
             whiteSpace: 'nowrap',
             maxWidth: '100%'
           }}
+          data-pr-tooltip={textoCE}
           title={textoCE}
         >
           {textoCE}
@@ -92,7 +95,7 @@ const InformeCoberturaTabla = ({
     );
   };
 
-  // Plantilla para la columna de Prácticas Asociadas mostradas en texto plano truncado con tooltip
+  // Plantilla para la columna de Prácticas Asociadas mostradas una encima de otra con tooltip si el texto es truncado
   const plantillaPracticas = (row) => {
     if (!row.practicas || row.practicas.length === 0) {
       return (
@@ -102,22 +105,34 @@ const InformeCoberturaTabla = ({
       );
     }
 
-    const textoPracticas = row.practicas_texto || row.practicas.map((p) => `${p.etiqueta} (${p.porcentaje}%)`).join(', ');
-
     return (
-      <div className="py-1 min-w-0 overflow-hidden w-full">
-        <span
-          className="text-sm line-height-2 text-color-secondary block cursor-help"
-          style={{
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            maxWidth: '100%'
-          }}
-          title={textoPracticas}
-        >
-          {textoPracticas}
-        </span>
+      <div className="flex flex-column gap-1 py-1 min-w-0 w-full">
+        {row.practicas.map((p, idx) => {
+          const textoItem = `${p.etiqueta} (${p.porcentaje}%)`;
+          const textoTooltip = p.enunciado ? `${textoItem} - ${p.enunciado}` : textoItem;
+
+          return (
+            <div
+              key={p.id_trabajan || idx}
+              className="min-w-0 overflow-hidden w-full"
+            >
+              <span
+                className="text-sm line-height-2 text-color-secondary block cursor-help cobertura-tooltip"
+                style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '100%'
+                }}
+                data-pr-tooltip={textoTooltip}
+                title={textoTooltip}
+              >
+                <span className="font-medium text-color">{p.etiqueta}</span>{' '}
+                <span className="text-primary font-semibold">({p.porcentaje}%)</span>
+              </span>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -176,6 +191,8 @@ const InformeCoberturaTabla = ({
 
   return (
     <div className="surface-card border-round shadow-1 overflow-hidden w-full">
+      <Tooltip target=".cobertura-tooltip" position="top" />
+
       <DataTable
         value={filas}
         rowGroupMode="subheader"
@@ -194,14 +211,14 @@ const InformeCoberturaTabla = ({
           field="ce_numero"
           header="Criterio de Evaluación (CE)"
           body={plantillaCE}
-          style={{ width: '48%' }}
+          style={{ width: '45%' }}
         />
 
         {/* Columna Prácticas Asociadas */}
         <Column
           header="Prácticas Asociadas (% cobertura)"
           body={plantillaPracticas}
-          style={{ width: '34%' }}
+          style={{ width: '38%' }}
         />
 
         {/* Columna Porcentaje Total */}
@@ -209,7 +226,7 @@ const InformeCoberturaTabla = ({
           field="porcentaje_total"
           header="Porcentaje Total"
           body={plantillaPorcentajeTotal}
-          style={{ width: '18%', textAlign: 'center' }}
+          style={{ width: '17%', textAlign: 'center' }}
           alignHeader="center"
         />
       </DataTable>

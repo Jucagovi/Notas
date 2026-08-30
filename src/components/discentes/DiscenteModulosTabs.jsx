@@ -521,16 +521,12 @@ const DiscenteModulosTabs = ({ modulos = [], alGuardarNota = () => {} }) => {
                     header='Práctica / Tarea'
                     style={{ minWidth: "240px" }}
                     body={(row) => (
-                      <div className='flex flex-column py-1'>
-                        <span className='font-semibold text-color text-sm'>
-                          {row.nombrePractica}
-                        </span>
-                        {row.enunciado && (
-                          <span className='text-xs text-muted truncate max-w-24rem'>
-                            {row.enunciado}
-                          </span>
-                        )}
-                      </div>
+                      <span
+                        className='font-semibold text-color text-sm'
+                        title={row.enunciado || undefined}
+                      >
+                        {row.nombrePractica}
+                      </span>
                     )}
                   />
                   <Column

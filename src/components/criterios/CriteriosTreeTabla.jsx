@@ -7,10 +7,11 @@ import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Card } from 'primereact/card';
 
-// Componente jerárquico con TreeTable para el mapeo de Prácticas a RA y CE
+// Componente jerárquico con TreeTable para el mapeo de Prácticas a RA y CE con colores condicionales y estado de cobertura
 const CriteriosTreeTabla = ({
   arbolCriterios = [],
   seleccionesCE = {},
+  coberturaGlobalCE = {},
   alternarSeleccionRA,
   alternarSeleccionCE,
   actualizarPorcentajeCE
@@ -37,7 +38,7 @@ const CriteriosTreeTabla = ({
     setExpandedKeys({});
   };
 
-  // Cálculo del estado de selección de un nodo padre (Resultado de Aprendizaje)
+  // Cálculo del estado de selección local de un nodo padre (Resultado de Aprendizaje) en la práctica actual
   const obtenerEstadoNodoRA = (nodoRA) => {
     const hijos = nodoRA.children || [];
     if (hijos.length === 0) {
@@ -60,6 +61,29 @@ const CriteriosTreeTabla = ({
       total: hijos.length,
       seleccionados: seleccionados.length,
       media
+    };
+  };
+
+  // Cálculo del estado de asignación y color para un Criterio de Evaluación
+  // Gris: ya ha sido asignado a una práctica (en otra práctica o en la actual)
+  // Blanco: no asignado a ninguna práctica
+  const obtenerEstadoCE = (idCE) => {
+    const coberturaCE = coberturaGlobalCE[idCE] || { porcentajeEnOtras: 0, asignadoEnOtras: false };
+    const datosCE = seleccionesCE[idCE] || { seleccionado: false, porcentaje: 100 };
+    const porcEnOtras = coberturaCE.porcentajeEnOtras || 0;
+    const porcEsta = datosCE.seleccionado ? (Number(datosCE.porcentaje) || 0) : 0;
+    const estaAsignado = porcEnOtras > 0 || Boolean(datosCE.seleccionado);
+    const porcTotal = porcEnOtras + porcEsta;
+    const restante = Math.max(0, 100 - porcEnOtras);
+
+    return {
+      estaAsignado,
+      color: estaAsignado ? '#9ca3af' : '#ffffff',
+      porcEnOtras,
+      porcEsta,
+      porcTotal,
+      restante,
+      totalmenteAsignadoEnOtras: porcEnOtras >= 100
     };
   };
 
@@ -113,13 +137,15 @@ const CriteriosTreeTabla = ({
     return texto ? `${numStr}: ${texto}` : numStr;
   };
 
-  // Plantilla de renderizado para la columna principal con Checkbox y Nombre en la misma línea
+  // Plantilla de renderizado para la columna principal con Checkbox y Nombre
   const renderColumnaPrincipal = (node) => {
     const esRA = node.data.tipo === 'RA';
 
     if (esRA) {
       const estadoRA = obtenerEstadoNodoRA(node);
       const textoRA = obtenerTextoRA(node.data);
+      // El color del RA es blanco, variando a azul claro (#38bdf8) si la práctica seleccionada contiene algún CE del RA
+      const colorRA = estadoRA.seleccionados > 0 ? '#38bdf8' : '#ffffff';
 
       return (
         <div
@@ -139,16 +165,16 @@ const CriteriosTreeTabla = ({
             tooltip={
               estadoRA.todos
                 ? 'Deseleccionar todos los CE de este RA'
-                : 'Seleccionar todos los CE de este RA (100%)'
+                : 'Seleccionar todos los CE de este RA'
             }
             tooltipOptions={{ position: 'top' }}
           />
 
-          {/* Nombre y texto completo del Resultado de Aprendizaje en color blanco y truncado */}
+          {/* Nombre y texto completo del Resultado de Aprendizaje: blanco por defecto, o azul si tiene CE seleccionados */}
           <span
-            className="font-semibold"
+            className="font-bold cursor-help"
             style={{
-              color: '#ffffff',
+              color: colorRA,
               fontSize: '0.875rem',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -166,6 +192,7 @@ const CriteriosTreeTabla = ({
     // Renderizado para nodo hijo: Criterio de Evaluación (CE)
     const idCE = node.data.id_ce;
     const datosCE = seleccionesCE[idCE] || { seleccionado: false, porcentaje: 100 };
+    const estadoCE = obtenerEstadoCE(idCE);
     const textoCE = obtenerTextoCE(node.data);
 
     return (
@@ -191,16 +218,17 @@ const CriteriosTreeTabla = ({
           tooltipOptions={{ position: 'top' }}
         />
 
-        {/* Nombre y texto completo del Criterio de Evaluación en color blanco y truncado */}
+        {/* Nombre y texto completo del Criterio de Evaluación: gris si ya está asignado o blanco si no está asignado */}
         <span
+          className="cursor-help"
           style={{
-            color: '#ffffff',
+            color: estadoCE.color,
             fontSize: '0.875rem',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
             display: 'inline-block',
-            opacity: datosCE.seleccionado ? 1 : 0.85
+            fontWeight: datosCE.seleccionado ? '600' : 'normal'
           }}
           title={textoCE}
         >
@@ -210,7 +238,7 @@ const CriteriosTreeTabla = ({
     );
   };
 
-  // Plantilla de renderizado para la columna de Cobertura / Porcentaje con InputNumber
+  // Plantilla de renderizado para la columna de Cobertura / Porcentaje con InputNumber y placeholder informativo
   const renderColumnaPorcentaje = (node) => {
     const esRA = node.data.tipo === 'RA';
 
@@ -235,12 +263,27 @@ const CriteriosTreeTabla = ({
     // Renderizado del InputNumber para Criterios de Evaluación (CE)
     const idCE = node.data.id_ce;
     const datosCE = seleccionesCE[idCE] || { seleccionado: false, porcentaje: 100 };
+    const estadoCE = obtenerEstadoCE(idCE);
     const valorPorcentaje = datosCE.porcentaje !== null && datosCE.porcentaje !== undefined ? Number(datosCE.porcentaje) : 100;
 
+    // Placeholder numérico e indicativo de si está totalmente asignado en otras prácticas o no
+    const placeholderInput = estadoCE.totalmenteAsignadoEnOtras
+      ? '0'
+      : estadoCE.porcEnOtras > 0
+      ? String(estadoCE.restante)
+      : '100';
+
+    const tooltipInput = estadoCE.totalmenteAsignadoEnOtras
+      ? 'Totalmente asignado (100%) en otras prácticas'
+      : estadoCE.porcEnOtras > 0
+      ? `Asignado un ${estadoCE.porcEnOtras}% en otras prácticas (Queda un ${estadoCE.restante}% por cubrir)`
+      : 'Porcentaje de cobertura de este CE (0-100%)';
+
     return (
-      <div className="flex align-items-center justify-content-center">
+      <div className="flex align-items-center justify-content-center py-1">
         <InputNumber
-          value={valorPorcentaje}
+          value={datosCE.seleccionado ? valorPorcentaje : null}
+          placeholder={placeholderInput}
           onValueChange={(e) => actualizarPorcentajeCE(idCE, e.value)}
           min={0}
           max={100}
@@ -258,7 +301,7 @@ const CriteriosTreeTabla = ({
           inputClassName={`text-center font-bold text-sm ${
             !datosCE.seleccionado ? 'text-muted' : 'text-primary'
           }`}
-          tooltip={datosCE.seleccionado ? 'Porcentaje de cobertura de este CE (0-100%)' : 'Marque el criterio para editar el porcentaje'}
+          tooltip={tooltipInput}
           tooltipOptions={{ position: 'top' }}
         />
       </div>
@@ -278,10 +321,10 @@ const CriteriosTreeTabla = ({
             icon={estadoRA.todos ? 'pi pi-check' : estadoRA.alguno ? 'pi pi-info-circle' : 'pi pi-minus'}
             value={
               estadoRA.todos
-                ? 'Cubierto total'
+                ? 'Todos seleccionados'
                 : estadoRA.alguno
-                ? `Parcial (${estadoRA.seleccionados}/${estadoRA.total})`
-                : 'Sin cobertura'
+                ? `Seleccionados (${estadoRA.seleccionados}/${estadoRA.total})`
+                : 'Sin seleccionar'
             }
             className="text-xs font-semibold"
           />
@@ -291,13 +334,32 @@ const CriteriosTreeTabla = ({
 
     const idCE = node.data.id_ce;
     const datosCE = seleccionesCE[idCE] || { seleccionado: false, porcentaje: 100 };
+    const estadoCE = obtenerEstadoCE(idCE);
 
     return (
       <div className="flex align-items-center justify-content-center">
         <Tag
-          severity={datosCE.seleccionado ? 'success' : 'secondary'}
-          icon={datosCE.seleccionado ? 'pi pi-check' : 'pi pi-minus'}
-          value={datosCE.seleccionado ? `Asignado (${datosCE.porcentaje}%)` : 'No asignado'}
+          severity={
+            datosCE.seleccionado
+              ? 'success'
+              : estadoCE.porcEnOtras > 0
+              ? 'warning'
+              : 'secondary'
+          }
+          icon={
+            datosCE.seleccionado
+              ? 'pi pi-check'
+              : estadoCE.porcEnOtras > 0
+              ? 'pi pi-info-circle'
+              : 'pi pi-minus'
+          }
+          value={
+            datosCE.seleccionado
+              ? `Asignado (${datosCE.porcentaje}%)`
+              : estadoCE.porcEnOtras > 0
+              ? `En otras (${estadoCE.porcEnOtras}%)`
+              : 'No asignado'
+          }
           className="text-xs font-semibold"
         />
       </div>

@@ -15,8 +15,7 @@ const EliminarClase = ({ alEliminarExito = () => {} }) => {
   const {
     clases,
     cargando: cargandoClases,
-    borrarClase,
-    borrarCurso
+    borrarClase
   } = useClases();
 
   const [claseSeleccionadaId, setClaseSeleccionadaId] = useState(null);
@@ -97,37 +96,10 @@ const EliminarClase = ({ alEliminarExito = () => {} }) => {
     }
   };
 
-  // Se ejecuta la eliminación en cascada del curso completo
-  const ejecutarEliminacionCurso = async () => {
-    if (!claseActual) return;
-    setEliminando(true);
-    mostrarInfo('Eliminando curso', 'Borrando curso y todas sus dependencias...');
-
-    try {
-      const res = await borrarCurso(claseActual.id_curso);
-
-      if (res.exito) {
-        mostrarExito(
-          'Curso eliminado',
-          `Se ha eliminado el curso "${claseActual.curso?.nombre}" y todas sus clases en cascada.`
-        );
-        setClaseSeleccionadaId(null);
-        alEliminarExito();
-      } else {
-        mostrarError('Error al eliminar curso', res.error || 'No se pudo completar el borrado.');
-      }
-    } catch (err) {
-      console.error('Error al eliminar curso:', err);
-      mostrarError('Error', err.message || 'Fallo durante la eliminación del curso.');
-    } finally {
-      setEliminando(false);
-    }
-  };
-
   // Se solicita confirmación estricta antes de eliminar la clase
   const confirmarEliminarClase = () => {
     confirmDialog({
-      message: `¿Está absolutamente seguro de que desea eliminar la clase "${claseActual?.nombre}"? Esta acción eliminará permanentemente las evaluaciones, notas en evaluan y matriculaciones en imparte asociadas a este módulo.`,
+      message: `¿Está absolutamente seguro de que desea eliminar la clase "${claseActual?.nombre}"? Esta acción eliminará permanentemente las evaluaciones, notas en evaluan, asociaciones entre prácticas y CE en trabajan, y matriculaciones en imparte asociadas a este módulo.`,
       header: 'Confirmar Eliminación de Clase en Cascada',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Sí, eliminar clase',
@@ -135,20 +107,6 @@ const EliminarClase = ({ alEliminarExito = () => {} }) => {
       acceptClassName: 'p-button-danger',
       rejectClassName: 'p-button-secondary p-button-text',
       accept: ejecutarEliminacionClase
-    });
-  };
-
-  // Se solicita confirmación estricta antes de eliminar el curso completo
-  const confirmarEliminarCurso = () => {
-    confirmDialog({
-      message: `¿Está seguro de que desea eliminar TODO el curso académico "${claseActual?.curso?.nombre}"? Se borrarán todos los módulos, evaluaciones, notas y asignaciones del curso en todas las tablas.`,
-      header: 'Confirmar Eliminación Completa de Curso',
-      icon: 'pi pi-trash',
-      acceptLabel: 'Sí, eliminar curso completo',
-      rejectLabel: 'Cancelar',
-      acceptClassName: 'p-button-danger',
-      rejectClassName: 'p-button-secondary p-button-text',
-      accept: ejecutarEliminacionCurso
     });
   };
 
@@ -163,7 +121,7 @@ const EliminarClase = ({ alEliminarExito = () => {} }) => {
             Eliminar Clase y Borrado en Cascada
           </h2>
           <p className="text-muted text-sm m-0 mt-1">
-            Seleccione la clase que desea dar de baja. Se eliminarán en cascada todos los registros en las tablas afectadas (imparte, Evaluaciones, evaluan).
+            Seleccione la clase que desea dar de baja. Se eliminarán en cascada todos los registros en las tablas afectadas (imparte, Evaluaciones, evaluan, trabajan).
           </p>
         </div>
 
@@ -212,6 +170,9 @@ const EliminarClase = ({ alEliminarExito = () => {} }) => {
                   <ul className="text-sm text-red-700 dark:text-red-300 pl-3 my-2 line-height-3">
                     <li>
                       Se eliminarán todas las calificaciones registradas en la tabla <code>evaluan</code> para esta clase.
+                    </li>
+                    <li>
+                      Se eliminará la asociación entre prácticas y criterios de evaluación (CE) en la tabla <code>trabajan</code> para todas las prácticas pertenecientes a las evaluaciones de la clase.
                     </li>
                     <li>
                       Se borrarán los registros de periodos de evaluación en la tabla <code>Evaluaciones</code>.
@@ -268,15 +229,6 @@ const EliminarClase = ({ alEliminarExito = () => {} }) => {
                   severity="danger"
                   loading={eliminando}
                   onClick={confirmarEliminarClase}
-                />
-                <Button
-                  label="Eliminar Todo el Curso"
-                  icon="pi pi-trash"
-                  severity="danger"
-                  outlined
-                  loading={eliminando}
-                  tooltip="Elimina el curso completo y todos sus módulos asociados"
-                  onClick={confirmarEliminarCurso}
                 />
               </div>
             </div>

@@ -14,6 +14,7 @@ import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { SelectButton } from "primereact/selectbutton";
 import useImportacion from "../hooks/useImportacion.js";
 import useToast from "../hooks/useToast.js";
+import { formatearTamanoArchivo } from "../utils/formatters.js";
 
 // Componente principal de página para la importación masiva de datos CSV a tablas del sistema
 const ImportacionPagina = () => {
@@ -144,6 +145,59 @@ const ImportacionPagina = () => {
               <span>{err}</span>
             </div>
           ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Plantilla personalizada para el elemento de archivo en FileUpload con tamaño en formato español (coma y 1 decimal)
+  const plantillaElementoArchivo = (file, props) => {
+    const tamanoFormateado = formatearTamanoArchivo(file.size);
+
+    return (
+      <div className='flex align-items-center justify-content-between p-3 surface-card border-1 surface-border border-round gap-3 w-full my-2'>
+        <div className='flex align-items-center gap-3 overflow-hidden'>
+          <div
+            className='flex align-items-center justify-content-center border-round flex-shrink-0'
+            style={{
+              width: '42px',
+              height: '42px',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              color: '#10b981',
+            }}
+          >
+            <i className='pi pi-file-excel text-xl' />
+          </div>
+          <div className='flex flex-column overflow-hidden'>
+            <span className='font-semibold text-sm text-color text-overflow-ellipsis overflow-hidden white-space-nowrap'>
+              {file.name}
+            </span>
+            <span className='text-xs text-muted font-mono mt-1'>
+              {tamanoFormateado}
+            </span>
+          </div>
+        </div>
+        <div className='flex align-items-center gap-2 flex-shrink-0'>
+          <Tag
+            value={tamanoFormateado}
+            severity='info'
+            className='text-xs font-mono px-2 py-1'
+          />
+          <Button
+            type='button'
+            icon='pi pi-times'
+            rounded
+            text
+            severity='danger'
+            size='small'
+            onClick={(e) => {
+              if (props && typeof props.onRemove === 'function') {
+                props.onRemove(e);
+              }
+            }}
+            tooltip='Quitar archivo'
+            tooltipOptions={{ position: 'top' }}
+          />
         </div>
       </div>
     );
@@ -337,6 +391,7 @@ const ImportacionPagina = () => {
                   uploadLabel='Validar y Procesar'
                   cancelLabel='Cancelar'
                   customUpload
+                  itemTemplate={plantillaElementoArchivo}
                   uploadHandler={(e) => {
                     if (e.files && e.files.length > 0) {
                       procesarArchivo(e.files[0], delimitador);

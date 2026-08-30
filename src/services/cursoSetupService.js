@@ -73,8 +73,25 @@ export const eliminarCurso = async (cursoId) => {
 
     const idsEvaluaciones = (evaluaciones || []).map((ev) => ev.id_evaluacion);
 
-    // 2. Se eliminan las notas en la tabla evaluan asociadas a las evaluaciones encontradas
+    // 2. Se obtienen las prácticas asociadas a las evaluaciones del curso para limpiar la tabla trabajan
     if (idsEvaluaciones.length > 0) {
+      const { data: registrosEvaluan } = await supabase
+        .from('evaluan')
+        .select('id_practica')
+        .in('id_evaluacion', idsEvaluaciones);
+
+      const idsPracticas = Array.from(
+        new Set((registrosEvaluan || []).map((r) => r.id_practica).filter(Boolean))
+      );
+
+      if (idsPracticas.length > 0) {
+        await supabase
+          .from('trabajan')
+          .delete()
+          .in('id_practica', idsPracticas);
+      }
+
+      // Se eliminan las notas en la tabla evaluan asociadas a las evaluaciones encontradas
       const { error: errorEvaluan } = await supabase
         .from('evaluan')
         .delete()
@@ -143,8 +160,36 @@ export const eliminarClase = async (cursoId, moduloId) => {
 
     const idsEvaluaciones = (evaluaciones || []).map((ev) => ev.id_evaluacion);
 
-    // 2. Se eliminan las calificaciones en evaluan correspondientes a dichas evaluaciones
+    // 2. Se obtienen las prácticas vinculadas a dichas evaluaciones y se eliminan sus relaciones en trabajan y evaluan
     if (idsEvaluaciones.length > 0) {
+      const { data: registrosEvaluan, error: errorConsultarEvaluan } = await supabase
+        .from('evaluan')
+        .select('id_practica')
+        .in('id_evaluacion', idsEvaluaciones);
+
+      if (errorConsultarEvaluan) {
+        console.error('Error al consultar prácticas asociadas a evaluaciones de la clase:', errorConsultarEvaluan);
+        throw errorConsultarEvaluan;
+      }
+
+      const idsPracticas = Array.from(
+        new Set((registrosEvaluan || []).map((r) => r.id_practica).filter(Boolean))
+      );
+
+      // Se eliminan las vinculaciones entre prácticas y criterios en la tabla trabajan
+      if (idsPracticas.length > 0) {
+        const { error: errorTrabajan } = await supabase
+          .from('trabajan')
+          .delete()
+          .in('id_practica', idsPracticas);
+
+        if (errorTrabajan) {
+          console.error('Error al eliminar vinculaciones en trabajan para las prácticas de la clase:', errorTrabajan);
+          throw errorTrabajan;
+        }
+      }
+
+      // Se eliminan las calificaciones en evaluan correspondientes a dichas evaluaciones
       const { error: errorEvaluan } = await supabase
         .from('evaluan')
         .delete()

@@ -18,7 +18,7 @@ import InformePendientesTarjetaDashboard from "./informes/InformePendientesTarje
 
 // Componente principal de la pantalla de Dashboard
 const Dashboard = () => {
-  const { estadisticas, cargando, error, origenDatos, recargarEstadisticas } =
+  const { estadisticas, cargando, error, recargarEstadisticas } =
     useDashboard();
 
   // Estado reactivo para adaptar la paleta de colores de los gráficos al tema Nano claro/oscuro
@@ -70,23 +70,38 @@ const Dashboard = () => {
     return () => observador.disconnect();
   }, []);
 
+  // Módulos con calificaciones reales calculadas
+  const modulosConCalificaciones = useMemo(() => {
+    return (estadisticas.mediasPorModulo || []).filter(
+      (m) => m.media !== null && m.totalCalificaciones > 0
+    );
+  }, [estadisticas.mediasPorModulo]);
+
+  // Se determina la existencia de datos para el gráfico de barras
+  const hayDatosBarras = modulosConCalificaciones.length > 0;
+
   // Configuración de datos para el Gráfico de Barras: Nota media por asignatura
   const datosGraficoBarras = useMemo(() => {
-    const modulos = estadisticas.mediasPorModulo || [];
+    if (!hayDatosBarras) return { labels: [], datasets: [] };
+
     return {
-      labels: modulos.map((m) => m.siglas || m.nombre),
+      labels: modulosConCalificaciones.map((m) => m.siglas || m.nombre),
       datasets: [
         {
           label: "Nota Media",
-          backgroundColor: modulos.map((m) => getColorNota(m.media).hex),
-          borderColor: modulos.map((m) => getColorNota(m.media).hex),
+          backgroundColor: modulosConCalificaciones.map(
+            (m) => getColorNota(m.media).hex
+          ),
+          borderColor: modulosConCalificaciones.map(
+            (m) => getColorNota(m.media).hex
+          ),
           borderWidth: 1,
           borderRadius: 6,
-          data: modulos.map((m) => m.media),
+          data: modulosConCalificaciones.map((m) => m.media),
         },
       ],
     };
-  }, [estadisticas.mediasPorModulo]);
+  }, [hayDatosBarras, modulosConCalificaciones]);
 
   // Opciones de renderizado y escalas del Gráfico de Barras
   const opcionesGraficoBarras = useMemo(() => {
@@ -103,7 +118,7 @@ const Dashboard = () => {
           callbacks: {
             label: (context) => {
               const indice = context.dataIndex;
-              const modulo = (estadisticas.mediasPorModulo || [])[indice];
+              const modulo = modulosConCalificaciones[indice];
               const nombreModulo = modulo?.nombre ? ` (${modulo.nombre})` : "";
               return ` Media: ${formatNota(context.raw)} / 100${nombreModulo}`;
             },
@@ -135,7 +150,16 @@ const Dashboard = () => {
         },
       },
     };
-  }, [temaGraficos, estadisticas.mediasPorModulo]);
+  }, [temaGraficos, modulosConCalificaciones]);
+
+  // Se determina la existencia de datos para el gráfico circular
+  const hayDatosDoughnut = Boolean(
+    estadisticas.totalCalificaciones > 0 &&
+      (estadisticas.distribucion.suspensos > 0 ||
+        estadisticas.distribucion.aprobados > 0 ||
+        estadisticas.distribucion.notables > 0 ||
+        estadisticas.distribucion.sobresalientes > 0)
+  );
 
   // Configuración de datos para el Gráfico Doughnut: Distribución de calificaciones
   const datosGraficoDoughnut = useMemo(() => {
@@ -287,13 +311,16 @@ const Dashboard = () => {
 
         {/* Skeleton de tarjetas KPI */}
         <div className='grid'>
-          <div className='col-12 md:col-4'>
+          <div className='col-12 sm:col-6 lg:col-3'>
             <Skeleton width='100%' height='130px' borderRadius='8px' />
           </div>
-          <div className='col-12 md:col-4'>
+          <div className='col-12 sm:col-6 lg:col-3'>
             <Skeleton width='100%' height='130px' borderRadius='8px' />
           </div>
-          <div className='col-12 md:col-4'>
+          <div className='col-12 sm:col-6 lg:col-3'>
+            <Skeleton width='100%' height='130px' borderRadius='8px' />
+          </div>
+          <div className='col-12 sm:col-6 lg:col-3'>
             <Skeleton width='100%' height='130px' borderRadius='8px' />
           </div>
         </div>
@@ -316,30 +343,6 @@ const Dashboard = () => {
     );
   }
 
-  // Renderizado en caso de ausencia total de datos
-  if (!estadisticas.tieneDatos) {
-    return (
-      <div className='page-container p-3'>
-        <div className='flex justify-content-between align-items-center mb-3'>
-          <h1 className='page-title m-0'>Panel de Control</h1>
-          <Button
-            label='Recargar'
-            icon='pi pi-refresh'
-            size='small'
-            outlined
-            onClick={recargarEstadisticas}
-          />
-        </div>
-        <Divider />
-        <Message
-          severity='info'
-          text='Aún no hay datos suficientes para mostrar estadísticas. Comienza añadiendo alumnos y calificaciones.'
-          className='w-full mt-4'
-        />
-      </div>
-    );
-  }
-
   return (
     <div className='page-container p-2'>
       {/* 1. Cabecera principal con título y acciones */}
@@ -352,20 +355,6 @@ const Dashboard = () => {
           </p>
         </div>
         <div className='flex align-items-center gap-2'>
-          {estadisticas.esMock && (
-            <Tag
-              value='Datos de Demostración'
-              severity='info'
-              icon='pi pi-info-circle'
-            />
-          )}
-          {origenDatos === "supabase" && (
-            <Tag
-              value='Supabase Conectado'
-              severity='success'
-              icon='pi pi-check'
-            />
-          )}
           <Button
             type='button'
             icon='pi pi-refresh'
@@ -373,7 +362,7 @@ const Dashboard = () => {
             size='small'
             outlined
             onClick={recargarEstadisticas}
-            tooltip='Volver a consultar estadísticas'
+            tooltip='Volver a consultar estadísticas de Supabase'
             tooltipOptions={{ position: "bottom" }}
           />
         </div>
@@ -381,18 +370,18 @@ const Dashboard = () => {
 
       {error && (
         <Message
-          severity='warn'
-          text={`Aviso: ${error}. Se muestran datos simulados para no interrumpir la navegación.`}
+          severity='error'
+          text={`Error en la consulta de datos: ${error}.`}
           className='w-full mb-3'
         />
       )}
 
       <Divider />
 
-      {/* 2. Grid superior con 3 Tarjetas (Cards): Total Alumnos, Nota Media Global y Tasa de Aprobados */}
+      {/* 2. Grid superior con 4 Tarjetas KPI: Total Discentes, Módulos Activos, Nota Media Global y Tasa de Aprobados */}
       <div className='grid'>
         {/* Tarjeta 1: Total Alumnos */}
-        <div className='col-12 md:col-4'>
+        <div className='col-12 sm:col-6 lg:col-3'>
           <Card className='h-full shadow-1 border-round surface-card'>
             <div className='flex justify-content-between align-items-start'>
               <div>
@@ -403,8 +392,16 @@ const Dashboard = () => {
                   {estadisticas.totalAlumnos}
                 </div>
                 <div className='text-xs text-muted mt-2'>
-                  <span className='text-green-500 font-bold'>100% </span>
-                  matriculados y activos
+                  {estadisticas.totalAlumnos > 0 ? (
+                    <>
+                      <span className='text-green-500 font-bold'>100% </span>
+                      <span>matriculados y activos</span>
+                    </>
+                  ) : (
+                    <span className='text-orange-500 font-medium'>
+                      Sin discentes registrados
+                    </span>
+                  )}
                 </div>
               </div>
               <div
@@ -421,26 +418,76 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Tarjeta 2: Nota Media Global */}
-        <div className='col-12 md:col-4'>
+        {/* Tarjeta 2: Total Módulos / Asignaturas */}
+        <div className='col-12 sm:col-6 lg:col-3'>
+          <Card className='h-full shadow-1 border-round surface-card'>
+            <div className='flex justify-content-between align-items-start'>
+              <div>
+                <span className='block font-semibold mb-2 text-sm text-muted'>
+                  MÓDULOS ACTIVOS
+                </span>
+                <div className='font-bold text-3xl text-color'>
+                  {estadisticas.totalModulos}
+                </div>
+                <div className='text-xs text-muted mt-2'>
+                  {estadisticas.totalModulos > 0 ? (
+                    <span>Módulos profesionales registrados</span>
+                  ) : (
+                    <span className='text-orange-500 font-medium'>
+                      Sin módulos registrados
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div
+                className='flex align-items-center justify-content-center border-round'
+                style={{
+                  width: "2.8rem",
+                  height: "2.8rem",
+                  backgroundColor: "rgba(168, 85, 247, 0.15)",
+                }}
+              >
+                <i className='pi pi-book text-xl text-purple-500 font-bold'></i>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Tarjeta 3: Nota Media Global */}
+        <div className='col-12 sm:col-6 lg:col-3'>
           <Card className='h-full shadow-1 border-round surface-card'>
             <div className='flex justify-content-between align-items-start'>
               <div>
                 <span className='block font-semibold mb-2 text-sm text-muted'>
                   NOTA MEDIA GLOBAL
                 </span>
-                <div className='font-bold text-3xl text-color flex align-items-baseline gap-2'>
-                  {formatNota(estadisticas.notaMediaGlobal)}
-                  <span className='text-sm font-normal text-muted'>
-                    ({formatNota(estadisticas.notaMediaGlobal / 10)} / 10)
-                  </span>
-                </div>
-                <div className='mt-2'>
-                  <Tag
-                    value={getColorNota(estadisticas.notaMediaGlobal).label}
-                    className={`${getColorNota(estadisticas.notaMediaGlobal).bg} ${getColorNota(estadisticas.notaMediaGlobal).text}`}
-                  />
-                </div>
+                {estadisticas.notaMediaGlobal !== null ? (
+                  <>
+                    <div className='font-bold text-3xl text-color flex align-items-baseline gap-2'>
+                      {formatNota(estadisticas.notaMediaGlobal)}
+                      <span className='text-sm font-normal text-muted'>
+                        ({formatNota(estadisticas.notaMediaGlobal / 10)} / 10)
+                      </span>
+                    </div>
+                    <div className='mt-2'>
+                      <Tag
+                        value={getColorNota(estadisticas.notaMediaGlobal).label}
+                        className={`${getColorNota(estadisticas.notaMediaGlobal).bg} ${getColorNota(estadisticas.notaMediaGlobal).text}`}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className='font-bold text-3xl text-color'>—</div>
+                    <div className='mt-2'>
+                      <Tag
+                        value='Sin calificaciones'
+                        severity='secondary'
+                        icon='pi pi-info-circle'
+                      />
+                    </div>
+                  </>
+                )}
               </div>
               <div
                 className='flex align-items-center justify-content-center border-round'
@@ -456,35 +503,56 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Tarjeta 3: Tasa de Aprobados */}
-        <div className='col-12 md:col-4'>
+        {/* Tarjeta 4: Tasa de Aprobados */}
+        <div className='col-12 sm:col-6 lg:col-3'>
           <Card className='h-full shadow-1 border-round surface-card'>
             <div className='flex justify-content-between align-items-start'>
               <div className='w-full mr-2'>
                 <span className='block font-semibold mb-2 text-sm text-muted'>
                   TASA DE APROBADOS
                 </span>
-                <div className='font-bold text-3xl text-green-600 mb-2'>
-                  {estadisticas.tasaAprobados.toLocaleString("es-ES", {
-                    minimumFractionDigits: 1,
-                    maximumFractionDigits: 2,
-                  })}
-                  %
-                </div>
-                <ProgressBar
-                  value={estadisticas.tasaAprobados}
-                  showValue={false}
-                  style={{ height: "7px" }}
-                  color={
-                    estadisticas.tasaAprobados >= 70 ? "#10b981" : "#f59e0b"
-                  }
-                />
-                <div className='text-xs text-muted mt-2'>
-                  {estadisticas.distribucion.aprobados +
-                    estadisticas.distribucion.notables +
-                    estadisticas.distribucion.sobresalientes}{" "}
-                  de {estadisticas.totalCalificaciones} calificaciones superadas
-                </div>
+                {estadisticas.tasaAprobados !== null ? (
+                  <>
+                    <div className='font-bold text-3xl text-green-600 mb-2'>
+                      {estadisticas.tasaAprobados.toLocaleString("es-ES", {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 2,
+                      })}
+                      %
+                    </div>
+                    <ProgressBar
+                      value={estadisticas.tasaAprobados}
+                      showValue={false}
+                      style={{ height: "7px" }}
+                      color={
+                        estadisticas.tasaAprobados >= 70
+                          ? "#10b981"
+                          : "#f59e0b"
+                      }
+                    />
+                    <div className='text-xs text-muted mt-2'>
+                      {estadisticas.distribucion.aprobados +
+                        estadisticas.distribucion.notables +
+                        estadisticas.distribucion.sobresalientes}{" "}
+                      de {estadisticas.totalCalificaciones} calificaciones
+                      superadas
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className='font-bold text-3xl text-color mb-2'>—</div>
+                    <ProgressBar
+                      value={0}
+                      showValue={false}
+                      style={{ height: "7px" }}
+                    />
+                    <div className='text-xs text-muted mt-2'>
+                      <span className='text-orange-500 font-medium'>
+                        Sin datos evaluativos
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
               <div
                 className='flex align-items-center justify-content-center border-round flex-shrink-0'
@@ -501,7 +569,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 3. Grid central con dos gráficos (Chart): Barras y Doughnut */}
+      {/* 3. Grid central con dos gráficos (Chart): Barras y Doughnut con gestión de estado vacío individual */}
       <div className='grid mt-2'>
         {/* Gráfico de Barras: Nota media por asignatura */}
         <div className='col-12 lg:col-7'>
@@ -509,14 +577,33 @@ const Dashboard = () => {
             title='Nota media por asignatura'
             className='h-full shadow-1 border-round surface-card'
           >
-            <div style={{ height: "320px" }}>
-              <Chart
-                type='bar'
-                data={datosGraficoBarras}
-                options={opcionesGraficoBarras}
-                style={{ height: "100%" }}
-              />
-            </div>
+            {hayDatosBarras ? (
+              <div style={{ height: "320px" }}>
+                <Chart
+                  type='bar'
+                  data={datosGraficoBarras}
+                  options={opcionesGraficoBarras}
+                  style={{ height: "100%" }}
+                />
+              </div>
+            ) : (
+              <div
+                className='flex flex-column align-items-center justify-content-center text-center p-4 border-round surface-ground'
+                style={{ height: "320px" }}
+              >
+                <i className='pi pi-chart-bar text-4xl text-400 mb-3' />
+                <Message
+                  severity='info'
+                  text='No hay calificaciones registradas por asignatura.'
+                  className='w-full max-w-28rem mb-2'
+                />
+                <span className='text-xs text-muted max-w-28rem'>
+                  El gráfico comparativo de notas medias se generará
+                  automáticamente a medida que se califiquen las prácticas de los
+                  módulos.
+                </span>
+              </div>
+            )}
           </Card>
         </div>
 
@@ -526,14 +613,32 @@ const Dashboard = () => {
             title='Distribución de calificaciones'
             className='h-full shadow-1 border-round surface-card'
           >
-            <div style={{ height: "320px" }}>
-              <Chart
-                type='doughnut'
-                data={datosGraficoDoughnut}
-                options={opcionesGraficoDoughnut}
-                style={{ height: "100%" }}
-              />
-            </div>
+            {hayDatosDoughnut ? (
+              <div style={{ height: "320px" }}>
+                <Chart
+                  type='doughnut'
+                  data={datosGraficoDoughnut}
+                  options={opcionesGraficoDoughnut}
+                  style={{ height: "100%" }}
+                />
+              </div>
+            ) : (
+              <div
+                className='flex flex-column align-items-center justify-content-center text-center p-4 border-round surface-ground'
+                style={{ height: "320px" }}
+              >
+                <i className='pi pi-chart-pie text-4xl text-400 mb-3' />
+                <Message
+                  severity='info'
+                  text='No hay datos de distribución de calificaciones.'
+                  className='w-full max-w-28rem mb-2'
+                />
+                <span className='text-xs text-muted max-w-28rem'>
+                  Se mostrará la proporción de suspensos, aprobados, notables y
+                  sobresalientes cuando existan calificaciones en el sistema.
+                </span>
+              </div>
+            )}
           </Card>
         </div>
       </div>
@@ -566,7 +671,11 @@ const Dashboard = () => {
           <DataTable
             value={estadisticas.alumnosEnRiesgo}
             responsiveLayout='scroll'
-            emptyMessage='No se han detectado alumnos en situación de riesgo académico.'
+            emptyMessage={
+              estadisticas.totalCalificaciones === 0
+                ? "No hay calificaciones registradas en el sistema para evaluar situaciones de riesgo."
+                : "No se han detectado alumnos en situación de riesgo académico."
+            }
             className='p-datatable-sm'
             stripedRows
           >

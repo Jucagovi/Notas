@@ -1,9 +1,4 @@
 import { supabase } from "./supabaseClient.js";
-import {
-  DATOS_MOCK_DISCENTES,
-  DATOS_MOCK_MODULOS,
-  DATOS_MOCK_CALIFICACIONES,
-} from "./dashboardService.js";
 import { ordenarEvaluaciones } from "./evaluacionService.js";
 
 // Se obtienen todos los discentes registrados con información complementaria para el listado principal
@@ -45,27 +40,13 @@ export const obtenerListaDiscentes = async (filtroTexto = "") => {
       return { data: resultado, error: null, esMock: false };
     }
 
-    // Si la base de datos no contiene registros, se suministran los datos de demostración
-    let resultadoMock = DATOS_MOCK_DISCENTES;
-    if (filtroTexto && filtroTexto.trim() !== "") {
-      const termino = filtroTexto.trim().toLowerCase();
-      resultadoMock = DATOS_MOCK_DISCENTES.filter((d) => {
-        const nombreCompleto = `${d.nombre} ${d.apellidos}`.toLowerCase();
-        return (
-          nombreCompleto.includes(termino) ||
-          d.NIA.toLowerCase().includes(termino) ||
-          d.correo.toLowerCase().includes(termino)
-        );
-      });
-    }
-
-    return { data: resultadoMock, error: null, esMock: true };
+    return { data: [], error: null, esMock: false };
   } catch (err) {
     console.error("Error inesperado en obtenerListaDiscentes:", err);
     return {
-      data: DATOS_MOCK_DISCENTES,
+      data: [],
       error: err.message || "Error al obtener discentes.",
-      esMock: true,
+      esMock: false,
     };
   }
 };
@@ -91,20 +72,10 @@ export const obtenerDiscentePorId = async (discenteId) => {
       return { data, error: null };
     }
 
-    // Búsqueda en datos simulados si no se localiza en la base de datos
-    const mockEncontrado = DATOS_MOCK_DISCENTES.find(
-      (d) => d.id_discente === discenteId,
-    );
-    if (mockEncontrado) {
-      return { data: mockEncontrado, error: null };
-    }
-
     return { data: null, error: "Discente no encontrado." };
   } catch (err) {
     console.error("Error inesperado en obtenerDiscentePorId:", err);
-    const mock =
-      DATOS_MOCK_DISCENTES.find((d) => d.id_discente === discenteId) || null;
-    return { data: mock, error: err.message || "Error al obtener discente." };
+    return { data: null, error: err.message || "Error al obtener discente." };
   }
 };
 
@@ -266,21 +237,6 @@ export const getHistorialDiscente = async (discenteId, cursoId = null) => {
           }
         });
         modulosDelAlumno = Array.from(mapaModulos.values());
-      }
-    }
-
-    // En caso de modo mock puro para desarrollo offline sin conexión
-    if (modulosDelAlumno.length === 0 && respDiscente.esMock) {
-      const modulosMockDiscente = DATOS_MOCK_CALIFICACIONES.filter(
-        (c) => c.id_discente === discenteId,
-      )
-        .map((c) => DATOS_MOCK_MODULOS.find((m) => m.id_modulo === c.id_modulo))
-        .filter(Boolean);
-
-      if (modulosMockDiscente.length > 0) {
-        const mapaMock = new Map();
-        modulosMockDiscente.forEach((m) => mapaMock.set(m.id_modulo, m));
-        modulosDelAlumno = Array.from(mapaMock.values());
       }
     }
 

@@ -8,7 +8,7 @@ const ModulosPagina = () => {
   const { datos, cargando, crear, modificar, eliminar, recargar } = useModulosContexto();
   const { datos: ciclos } = useCiclosContexto();
 
-  // Se transforman los ciclos en opciones para el desplegable de clave foránea
+  // Se transforman los ciclos en opciones para el desplegable de clave foránea en el formulario
   const opcionesCiclos = useMemo(() => {
     return (ciclos || []).map((c) => ({
       label: `${c.siglas ? `[${c.siglas}] ` : ''}${c.nombre}`,
@@ -38,9 +38,13 @@ const ModulosPagina = () => {
       encabezado: 'Ciclo Formativo',
       tipo: 'seleccion',
       opciones: opcionesCiclos,
+      renderizar: (rowData) => {
+        const ciclo = (ciclos || []).find((c) => c.id_ciclo === rowData.id_ciclo);
+        return ciclo?.siglas || '-';
+      },
       requerido: false,
       placeholder: 'Seleccionar ciclo formativo',
-      ancho: '220px'
+      ancho: '140px'
     },
     {
       campo: 'descripcion',
@@ -48,16 +52,8 @@ const ModulosPagina = () => {
       tipo: 'textarea',
       requerido: false,
       placeholder: 'Contenidos y objetivos del módulo'
-    },
-    {
-      campo: 'created_at',
-      encabezado: 'Fecha Creación',
-      tipo: 'fecha',
-      soloLectura: true,
-      mostrarEnFormulario: false,
-      ancho: '140px'
     }
-  ], [opcionesCiclos]);
+  ], [opcionesCiclos, ciclos]);
 
   return (
     <TablaMantenimiento
@@ -77,3 +73,4 @@ const ModulosPagina = () => {
 };
 
 export default ModulosPagina;
+
