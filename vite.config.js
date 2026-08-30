@@ -5,9 +5,10 @@ import react from '@vitejs/plugin-react';
 // Vite configuration is defined
 export default defineConfig({
   plugins: [react()],
+  base: "https://jucagovi.github.io/Notas",
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
-  }
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+  },
 });
