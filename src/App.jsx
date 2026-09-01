@@ -14,8 +14,10 @@ import InformeCoberturaCE from './pages/informes/InformeCoberturaCE.jsx';
 import InformePendientes from './pages/informes/InformePendientes.jsx';
 import InformeDificultad from './pages/informes/InformeDificultad.jsx';
 import InformeEvaluacion from './pages/informes/InformeEvaluacion.jsx';
+import InformeEvaluacionRa from './pages/informes/InformeEvaluacionRa.jsx';
 import InformeCompetencia from './pages/informes/InformeCompetencia.jsx';
 import PesosPagina from './pages/PesosPagina.jsx';
+import PesosRAPagina from './pages/PesosRAPagina.jsx';
 import CriteriosPagina from './pages/CriteriosPagina.jsx';
 import HerramientasPagina from './pages/HerramientasPagina.jsx';
 import AcercaDePagina from './pages/AcercaDePagina.jsx';
@@ -71,6 +73,10 @@ const App = () => {
                 <Route path="practicas" element={<PracticasPagina />} />
                 <Route path="pesos" element={<PesosPagina />} />
                 <Route path="evaluacion/pesos" element={<Navigate to="/pesos" replace />} />
+                <Route path="pesos-ra" element={<PesosRAPagina />} />
+                <Route path="pesos-ra-ce" element={<Navigate to="/pesos-ra" replace />} />
+                <Route path="evaluacion/pesos-ra" element={<Navigate to="/pesos-ra" replace />} />
+                <Route path="evaluacion/pesos-ra-ce" element={<Navigate to="/pesos-ra" replace />} />
                 <Route path="informes" element={<InformesPagina />} />
                 <Route path="informes/competencia" element={<InformeCompetencia />} />
                 <Route path="informes/competencias" element={<InformeCompetencia />} />
@@ -90,6 +96,12 @@ const App = () => {
                 <Route path="informes/analisis-dificultad" element={<Navigate to="/informes/dificultad" replace />} />
                 <Route path="informes/dificultad-practicas" element={<Navigate to="/informes/dificultad" replace />} />
                 <Route path="dificultad" element={<Navigate to="/informes/dificultad" replace />} />
+                <Route path="informes/acta-evaluacion-ra" element={<InformeEvaluacionRa />} />
+                <Route path="informes/acta-ra" element={<InformeEvaluacionRa />} />
+                <Route path="informes/evaluacion-ra" element={<InformeEvaluacionRa />} />
+                <Route path="informes/evaluacion-modulo-ra" element={<InformeEvaluacionRa />} />
+                <Route path="acta-evaluacion-ra" element={<Navigate to="/informes/acta-evaluacion-ra" replace />} />
+                <Route path="acta-ra" element={<Navigate to="/informes/acta-evaluacion-ra" replace />} />
                 <Route path="informes/evaluacion-modulo" element={<InformeEvaluacion />} />
                 <Route path="informes/evaluacion" element={<InformeEvaluacion />} />
                 <Route path="informes/acta" element={<InformeEvaluacion />} />

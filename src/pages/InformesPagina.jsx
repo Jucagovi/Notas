@@ -11,6 +11,19 @@ const InformesPagina = () => {
 
   const informesDisponibles = [
     {
+      id: 'acta-evaluacion-ra',
+      titulo: 'Acta de Evaluación por RA',
+      descripcion:
+        'Detalla la calificación obtenida por cada discente en cada Resultado de Aprendizaje (RA), calculando automáticamente la nota final del módulo o la nota continua para boletines en base a los pesos configurados.',
+      icono: 'pi pi-table',
+      colorIcono: 'text-primary',
+      fondoIcono: 'rgba(59, 130, 246, 0.15)',
+      ruta: '/informes/acta-evaluacion-ra',
+      etiqueta: 'Informe Principal',
+      tipoEtiqueta: 'success',
+      botonTexto: 'Generar Acta RA'
+    },
+    {
       id: 'evaluacion-modulo',
       titulo: 'Acta Oficial de Evaluación (Boletín)',
       descripcion:

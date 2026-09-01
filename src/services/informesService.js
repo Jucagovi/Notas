@@ -2412,6 +2412,862 @@ export const exportarInformeCompetenciasPDF = ({
   }
 };
 
+// Se obtienen los datos completos para el acta de evaluación por Resultados de Aprendizaje (RA) cruzando ra_curso, ce_curso, evaluan y trabajan
+export const getActaPorRA = async (cursoId, moduloId) => {
+  if (!moduloId) {
+    return { data: null, error: 'Identificador de módulo no proporcionado.' };
+  }
+
+  try {
+    // 1. Se obtiene la información del módulo profesional seleccionado
+    const { data: modulo, error: errorModulo } = await supabase
+      .from('Modulos')
+      .select('id_modulo, nombre, siglas, descripcion, id_ciclo')
+      .eq('id_modulo', moduloId)
+      .single();
+
+    if (errorModulo) {
+      console.error(`Error al consultar el módulo ${moduloId}:`, errorModulo);
+      return { data: null, error: errorModulo.message };
+    }
+
+    // 2. Se obtiene la información del curso académico si se especificó
+    let curso = null;
+    if (cursoId) {
+      const { data: datosCurso, error: errorCurso } = await supabase
+        .from('Cursos')
+        .select('id_curso, nombre, anyo, centro, descripcion')
+        .eq('id_curso', cursoId)
+        .maybeSingle();
+
+      if (!errorCurso && datosCurso) {
+        curso = datosCurso;
+      }
+    }
+
+    // 3. Se obtienen los Resultados de Aprendizaje (RA) asociados al módulo ordenados por número
+    const { data: listaRA, error: errorRA } = await supabase
+      .from('RA')
+      .select('id_ra, nombre, numero, descripcion, id_modulo')
+      .eq('id_modulo', moduloId)
+      .order('numero', { ascending: true });
+
+    if (errorRA) {
+      console.error(`Error al consultar los RA del módulo ${moduloId}:`, errorRA);
+      return { data: null, error: errorRA.message };
+    }
+
+    const idsRA = (listaRA || []).map((ra) => ra.id_ra);
+
+    // 4. Se obtienen los Criterios de Evaluación (CE) vinculados a dichos RA
+    let listaCE = [];
+    if (idsRA.length > 0) {
+      const { data: datosCE, error: errorCE } = await supabase
+        .from('CE')
+        .select('id_ce, nombre, numero, descripcion, id_ra')
+        .in('id_ra', idsRA)
+        .order('numero', { ascending: true });
+
+      if (errorCE) {
+        console.error('Error al consultar los CE vinculados a los RA:', errorCE);
+        return { data: null, error: errorCE.message };
+      }
+      listaCE = datosCE || [];
+    }
+
+    const idsCE = listaCE.map((ce) => ce.id_ce);
+
+    // 5. Se consultan los pesos registrados en ra_curso para este curso académico
+    let listaRaCurso = [];
+    if (cursoId && idsRA.length > 0) {
+      const { data: datosRaCurso, error: errorRaCurso } = await supabase
+        .from('ra_curso')
+        .select('id_ra_curso, id_ra, id_curso, peso')
+        .eq('id_curso', cursoId)
+        .in('id_ra', idsRA);
+
+      if (errorRaCurso) {
+        console.error('Error al consultar ponderaciones en ra_curso:', errorRaCurso);
+      } else {
+        listaRaCurso = datosRaCurso || [];
+      }
+    }
+
+    // 6. Se consultan los pesos registrados en ce_curso para este curso académico
+    let listaCeCurso = [];
+    if (cursoId && idsCE.length > 0) {
+      const { data: datosCeCurso, error: errorCeCurso } = await supabase
+        .from('ce_curso')
+        .select('id_ce_curso, id_ce, id_curso, peso')
+        .eq('id_curso', cursoId)
+        .in('id_ce', idsCE);
+
+      if (errorCeCurso) {
+        console.error('Error al consultar ponderaciones en ce_curso:', errorCeCurso);
+      } else {
+        listaCeCurso = datosCeCurso || [];
+      }
+    }
+
+    // 7. Se obtienen las asignaciones en la tabla trabajan para los CE del módulo
+    let listaTrabajan = [];
+    if (idsCE.length > 0) {
+      const { data: datosTrabajan, error: errorTrabajan } = await supabase
+        .from('trabajan')
+        .select(`
+          id_trabajan,
+          id_ce,
+          id_practica,
+          porcentaje,
+          descripcion,
+          Practicas:id_practica (
+            id_practica,
+            nombre,
+            numero,
+            enunciado,
+            descripcion,
+            id_tipopractica,
+            unidad,
+            id_modulo
+          )
+        `)
+        .in('id_ce', idsCE);
+
+      if (errorTrabajan) {
+        console.error('Error al consultar asignaciones en trabajan:', errorTrabajan);
+      } else {
+        listaTrabajan = datosTrabajan || [];
+      }
+    }
+
+    // 8. Se obtienen los discentes matriculados en el módulo y curso mediante la tabla imparte
+    let discentes = [];
+    let consultaImparte = supabase
+      .from('imparte')
+      .select(`
+        id_imparte,
+        id_curso,
+        id_modulo,
+        id_discente,
+        Discentes:id_discente (
+          id_discente,
+          nombre,
+          apellidos,
+          NIA,
+          correo,
+          localidad,
+          imagen,
+          activo
+        )
+      `)
+      .eq('id_modulo', moduloId);
+
+    if (cursoId) {
+      consultaImparte = consultaImparte.eq('id_curso', cursoId);
+    }
+
+    const { data: datosImparte, error: errorImparte } = await consultaImparte;
+
+    if (errorImparte) {
+      console.error('Error al consultar discentes en imparte para el acta por RA:', errorImparte);
+    } else if (datosImparte && datosImparte.length > 0) {
+      const mapaDiscentes = new Map();
+      datosImparte.forEach((item) => {
+        if (item.Discentes && item.Discentes.id_discente) {
+          mapaDiscentes.set(item.Discentes.id_discente, item.Discentes);
+        }
+      });
+      discentes = Array.from(mapaDiscentes.values());
+    }
+
+    // Si no se encontraron discentes en imparte, se consultan los discentes activos como respaldo
+    if (discentes.length === 0) {
+      const { data: todosDiscentes, error: errorTodosDiscentes } = await supabase
+        .from('Discentes')
+        .select('id_discente, nombre, apellidos, NIA, correo, localidad, imagen, activo')
+        .eq('activo', true)
+        .order('apellidos', { ascending: true });
+
+      if (!errorTodosDiscentes && todosDiscentes) {
+        discentes = todosDiscentes;
+      }
+    }
+
+    // 9. Se obtienen las calificaciones en evaluan para las prácticas vinculadas
+    const idsPracticas = Array.from(
+      new Set(listaTrabajan.map((t) => t.id_practica).filter(Boolean))
+    );
+    const idsDiscentes = discentes.map((d) => d.id_discente);
+
+    let listaEvaluan = [];
+    if (idsPracticas.length > 0 && idsDiscentes.length > 0) {
+      const { data: datosEvaluan, error: errorEvaluan } = await supabase
+        .from('evaluan')
+        .select(`
+          id_evaluan,
+          id_practica,
+          id_evaluacion,
+          id_discente,
+          nota,
+          peso
+        `)
+        .in('id_practica', idsPracticas)
+        .in('id_discente', idsDiscentes);
+
+      if (errorEvaluan) {
+        console.error('Error al consultar calificaciones en evaluan para el acta por RA:', errorEvaluan);
+      } else {
+        listaEvaluan = datosEvaluan || [];
+      }
+    }
+
+    return {
+      data: {
+        modulo,
+        curso,
+        listaRA: listaRA || [],
+        listaCE,
+        listaRaCurso,
+        listaCeCurso,
+        listaTrabajan,
+        discentes,
+        listaEvaluan
+      },
+      error: null
+    };
+  } catch (err) {
+    console.error('Error inesperado en getActaPorRA:', err);
+    return { data: null, error: err.message || 'Error al obtener datos del acta de evaluación por RA.' };
+  }
+};
+
+// Se procesan los datos crudos del acta por RA calculando la nota de cada CE, el estado completo de cada RA, la nota ponderada de cada RA y la nota final
+export const transformarDatosActaPorRA = (datosCrudos, soloCompletos = false) => {
+  if (!datosCrudos) {
+    return { filas: [], listaRA: [], estadisticas: null, modulo: null, curso: null };
+  }
+
+  const {
+    modulo,
+    curso,
+    listaRA = [],
+    listaCE = [],
+    listaRaCurso = [],
+    listaCeCurso = [],
+    listaTrabajan = [],
+    discentes = [],
+    listaEvaluan = []
+  } = datosCrudos;
+
+  // Se construyen mapas de pesos configurados en ra_curso y ce_curso
+  const mapaPesosRA = new Map(listaRaCurso.map((item) => [item.id_ra, Number(item.peso) || 0]));
+  const mapaPesosCE = new Map(listaCeCurso.map((item) => [item.id_ce, Number(item.peso) || 0]));
+
+  // Se calcula el peso por defecto equitativo si no hay ponderaciones explícitas en ra_curso
+  const totalRA = listaRA.length;
+  const pesoEquitativoRA = totalRA > 0 ? Math.floor(100 / totalRA) : 0;
+  const restoRA = totalRA > 0 ? 100 % totalRA : 0;
+
+  const listaRAConPesos = listaRA.map((ra, indice) => {
+    let pesoConfigurado = mapaPesosRA.get(ra.id_ra);
+    if (pesoConfigurado === undefined || pesoConfigurado === null) {
+      pesoConfigurado = indice < restoRA ? pesoEquitativoRA + 1 : pesoEquitativoRA;
+    }
+    const numRA = ra.numero ?? '';
+    const codigoRA = numRA !== '' ? `RA ${numRA}` : 'RA';
+    return {
+      ...ra,
+      codigo: codigoRA,
+      peso: pesoConfigurado,
+      textoCompleto: formatearTextoRA(ra)
+    };
+  });
+
+  // Se indexan las notas de evaluan por discente y práctica: clave `${id_discente}_${id_practica}`
+  const mapaNotasEvaluan = new Map();
+  listaEvaluan.forEach((reg) => {
+    if (reg.id_discente && reg.id_practica && reg.nota !== null && reg.nota !== undefined && reg.nota !== '' && !isNaN(reg.nota)) {
+      const clave = `${reg.id_discente}_${reg.id_practica}`;
+      mapaNotasEvaluan.set(clave, Number(reg.nota));
+    }
+  });
+
+  // Se ordenan los discentes por apellidos y nombre
+  const discentesOrdenados = [...discentes].sort((a, b) => {
+    const apeA = (a.apellidos || '').toLowerCase();
+    const apeB = (b.apellidos || '').toLowerCase();
+    const compApe = apeA.localeCompare(apeB);
+    if (compApe !== 0) return compApe;
+    return (a.nombre || '').toLowerCase().localeCompare((b.nombre || '').toLowerCase());
+  });
+
+  // Se procesa cada discente matriculado
+  const filas = discentesOrdenados.map((discente) => {
+    const notasRA = {};
+    const detalleRA = {};
+    let totalRaCompletos = 0;
+    let sumaPonderadaAnual = 0;
+    let sumaPonderadaCompletos = 0;
+    let sumaPesosCompletos = 0;
+
+    listaRAConPesos.forEach((ra) => {
+      // Criterios de evaluación pertenecientes a este RA
+      const cesDelRA = listaCE.filter((ce) => ce.id_ra === ra.id_ra);
+      const totalCEDelRA = cesDelRA.length;
+      const pesoEquitativoCE = totalCEDelRA > 0 ? Math.floor(100 / totalCEDelRA) : 0;
+      const restoCE = totalCEDelRA > 0 ? 100 % totalCEDelRA : 0;
+
+      const detalleCEs = [];
+      let cesCompletosCount = 0;
+      let sumaPonderadaRA = 0;
+      let sumaPesosCEEvaluados = 0;
+      let sumaPesosCETotal = 0;
+
+      cesDelRA.forEach((ce, indiceCE) => {
+        // Peso del CE desde ce_curso o distribución equitativa
+        let pesoCE = mapaPesosCE.get(ce.id_ce);
+        if (pesoCE === undefined || pesoCE === null) {
+          pesoCE = indiceCE < restoCE ? pesoEquitativoCE + 1 : pesoEquitativoCE;
+        }
+        sumaPesosCETotal += pesoCE;
+
+        // Prácticas asignadas a este CE en la tabla trabajan
+        const asignacionesTrabajan = listaTrabajan.filter((t) => t.id_ce === ce.id_ce);
+        let sumaPonderadaPracticas = 0;
+        let sumaPorcentajeEvaluado = 0;
+        let sumaPorcentajeTotal = 0;
+        const detallePracticas = [];
+
+        asignacionesTrabajan.forEach((asig) => {
+          const porcentaje = Number(asig.porcentaje) || 0;
+          sumaPorcentajeTotal += porcentaje;
+
+          const claveNota = `${discente.id_discente}_${asig.id_practica}`;
+          const tieneNota = mapaNotasEvaluan.has(claveNota);
+          const notaPractica = tieneNota ? mapaNotasEvaluan.get(claveNota) : null;
+          const infoPractica = asig.Practicas || {};
+
+          detallePracticas.push({
+            id_practica: asig.id_practica,
+            nombrePractica: infoPractica.nombre || 'Práctica',
+            numeroPractica: infoPractica.numero || '',
+            porcentaje,
+            nota: notaPractica
+          });
+
+          if (notaPractica !== null) {
+            sumaPonderadaPracticas += (notaPractica * porcentaje);
+            sumaPorcentajeEvaluado += porcentaje;
+          }
+        });
+
+        // Se calcula la nota normalizada del CE
+        let notaCE = null;
+        if (sumaPorcentajeEvaluado > 0) {
+          notaCE = Math.round((sumaPonderadaPracticas / sumaPorcentajeEvaluado) * 100) / 100;
+        }
+
+        // Un CE se considera completo si cuenta con asignaciones y todas las prácticas tienen nota registrada
+        const esCeCompleto = asignacionesTrabajan.length > 0 &&
+          (sumaPorcentajeEvaluado >= sumaPorcentajeTotal || detallePracticas.every((p) => p.nota !== null));
+
+        if (esCeCompleto && notaCE !== null) {
+          cesCompletosCount += 1;
+        }
+
+        detalleCEs.push({
+          id_ce: ce.id_ce,
+          numero: ce.numero,
+          nombre: ce.nombre,
+          descripcion: ce.descripcion || '',
+          textoCompleto: formatearTextoCE(ce),
+          peso: pesoCE,
+          nota: notaCE,
+          completo: esCeCompleto,
+          totalPracticas: asignacionesTrabajan.length,
+          practicasCalificadas: detallePracticas.filter((p) => p.nota !== null).length,
+          porcentajeTotal: sumaPorcentajeTotal,
+          porcentajeEvaluado: sumaPorcentajeEvaluado,
+          practicas: detallePracticas
+        });
+
+        if (notaCE !== null) {
+          sumaPonderadaRA += (notaCE * pesoCE);
+          sumaPesosCEEvaluados += pesoCE;
+        }
+      });
+
+      // Un RA está completo cuando TODOS sus CE han sido cubiertos con una nota en sus prácticas
+      const esRaCompleto = totalCEDelRA > 0 && cesCompletosCount === totalCEDelRA;
+
+      // Nota del RA calculada a partir de los pesos de sus CE
+      let notaRA = null;
+      if (sumaPesosCEEvaluados > 0) {
+        notaRA = Math.round((sumaPonderadaRA / sumaPesosCEEvaluados) * 100) / 100;
+      }
+
+      if (esRaCompleto) {
+        totalRaCompletos += 1;
+      }
+
+      notasRA[ra.id_ra] = notaRA;
+      detalleRA[ra.id_ra] = {
+        id_ra: ra.id_ra,
+        codigo: ra.codigo,
+        nombre: ra.nombre,
+        peso: ra.peso,
+        nota: notaRA,
+        completo: esRaCompleto,
+        totalCE: totalCEDelRA,
+        cesCompletos: cesCompletosCount,
+        criterios: detalleCEs
+      };
+
+      // Acumulaciones para la nota final del módulo
+      if (notaRA !== null) {
+        sumaPonderadaAnual += (notaRA * ra.peso) / 100;
+      }
+
+      if (esRaCompleto && notaRA !== null) {
+        sumaPonderadaCompletos += (notaRA * ra.peso);
+        sumaPesosCompletos += ra.peso;
+      }
+    });
+
+    // 1. Nota Anual Oficial ponderada sobre el 100% del curso escolar
+    const notaAnual = Math.round(sumaPonderadaAnual * 100) / 100;
+
+    // 2. Nota para Evaluación Continua (sólo RA completos, totalizada a 100)
+    let notaEvaluacionContinua = null;
+    if (sumaPesosCompletos > 0) {
+      notaEvaluacionContinua = Math.round((sumaPonderadaCompletos / sumaPesosCompletos) * 100) / 100;
+    }
+
+    const notaFinalActiva = soloCompletos ? notaEvaluacionContinua : notaAnual;
+
+    return {
+      id_discente: discente.id_discente,
+      nombre: discente.nombre || '',
+      apellidos: discente.apellidos || '',
+      nombreCompleto: `${discente.apellidos || ''}, ${discente.nombre || ''}`.replace(/^,\s*/, '').trim(),
+      nombreCompletoDirecto: `${discente.nombre || ''} ${discente.apellidos || ''}`.trim(),
+      NIA: discente.NIA || '',
+      correo: discente.correo || '',
+      imagen: discente.imagen || null,
+      activo: discente.activo !== false,
+      notasRA,
+      detalleRA,
+      totalRaCompletos,
+      totalRA: listaRAConPesos.length,
+      notaAnual,
+      notaEvaluacionContinua,
+      notaFinal: notaFinalActiva,
+      discente
+    };
+  });
+
+  // Estadísticas globales por cada Resultado de Aprendizaje
+  const estadisticasPorRA = {};
+  listaRAConPesos.forEach((ra) => {
+    const notasValidas = filas
+      .map((f) => f.notasRA[ra.id_ra])
+      .filter((n) => n !== null && n !== undefined && !isNaN(n));
+
+    const totalEvaluados = notasValidas.length;
+    const totalCompletos = filas.filter((f) => f.detalleRA[ra.id_ra]?.completo).length;
+
+    if (totalEvaluados === 0) {
+      estadisticasPorRA[ra.id_ra] = {
+        totalEvaluados: 0,
+        totalCompletos: 0,
+        media: null,
+        aprobados: 0,
+        suspensos: 0,
+        tasaAprobados: 0
+      };
+    } else {
+      const suma = notasValidas.reduce((acc, n) => acc + n, 0);
+      const media = Math.round((suma / totalEvaluados) * 100) / 100;
+      const aprobados = notasValidas.filter((n) => n >= 50).length;
+      const suspensos = totalEvaluados - aprobados;
+      const tasaAprobados = Math.round((aprobados / totalEvaluados) * 1000) / 10;
+
+      estadisticasPorRA[ra.id_ra] = {
+        totalEvaluados,
+        totalCompletos,
+        media,
+        aprobados,
+        suspensos,
+        tasaAprobados
+      };
+    }
+  });
+
+  // Estadísticas globales del módulo
+  const notasFinalesValidas = filas
+    .map((f) => f.notaFinal)
+    .filter((n) => n !== null && n !== undefined && !isNaN(n));
+
+  const totalEvaluadosGlobal = notasFinalesValidas.length;
+  const mediaGlobal = totalEvaluadosGlobal > 0
+    ? Math.round((notasFinalesValidas.reduce((acc, n) => acc + n, 0) / totalEvaluadosGlobal) * 100) / 100
+    : null;
+
+  const totalAprobadosGlobal = notasFinalesValidas.filter((n) => n >= 50).length;
+  const tasaAprobadosGlobal = totalEvaluadosGlobal > 0
+    ? Math.round((totalAprobadosGlobal / totalEvaluadosGlobal) * 1000) / 10
+    : 0;
+
+  return {
+    filas,
+    listaRA: listaRAConPesos,
+    modulo,
+    curso,
+    estadisticas: {
+      totalDiscentes: filas.length,
+      totalRA: listaRAConPesos.length,
+      porRA: estadisticasPorRA,
+      mediaGlobal,
+      tasaAprobadosGlobal,
+      totalAprobadosGlobal,
+      soloCompletos
+    }
+  };
+};
+
+// Se genera y descarga el archivo CSV con las calificaciones del acta por Resultados de Aprendizaje
+export const exportarActaRACSV = ({ modulo, curso, listaRA = [], filas = [], soloCompletos = false }) => {
+  try {
+    const encabezados = ['NIA', 'Apellidos', 'Nombre'];
+    listaRA.forEach((ra) => {
+      encabezados.push(`${ra.codigo || `RA ${ra.numero}`} (${ra.peso}%)`);
+    });
+    encabezados.push(soloCompletos ? 'Nota Evaluación Continua' : 'Nota Final Módulo');
+
+    const filasCSV = filas.map((fila) => {
+      const filaDatos = [
+        fila.NIA || '',
+        fila.apellidos || '',
+        fila.nombre || ''
+      ];
+
+      listaRA.forEach((ra) => {
+        const nota = fila.notasRA[ra.id_ra];
+        filaDatos.push(nota !== null && nota !== undefined ? formatNota(nota) : '?');
+      });
+
+      filaDatos.push(fila.notaFinal !== null && fila.notaFinal !== undefined ? formatNota(fila.notaFinal) : '?');
+      return filaDatos;
+    });
+
+    const contenidoCSV = [
+      encabezados.join(';'),
+      ...filasCSV.map((f) =>
+        f
+          .map((campo) => {
+            const str = String(campo).replace(/"/g, '""');
+            return `"${str}"`;
+          })
+          .join(';')
+      )
+    ].join('\r\n');
+
+    // Se añade el BOM UTF-8 (\uFEFF) para compatibilidad con Microsoft Excel
+    const blob = new Blob(['\uFEFF' + contenidoCSV], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    const siglasModulo = (modulo?.siglas || modulo?.nombre || 'Modulo').replace(/[^a-zA-Z0-9]/g, '_');
+    const nombreCurso = (curso?.nombre || 'Curso').replace(/[^a-zA-Z0-9]/g, '_');
+    const sufijoTipo = soloCompletos ? 'Eval_Continua' : 'Anual';
+    const nombreArchivo = `Acta_RA_${siglasModulo}_${nombreCurso}_${sufijoTipo}.csv`;
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', nombreArchivo);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    return { exito: true, error: null };
+  } catch (err) {
+    console.error('Error al exportar acta por RA a CSV:', err);
+    return { exito: false, error: err.message || 'Error al exportar a CSV.' };
+  }
+};
+
+// Se genera y descarga el documento PDF oficial del acta de evaluación por Resultados de Aprendizaje (RA)
+export const exportarActaRAPDF = ({
+  modulo,
+  curso,
+  listaRA = [],
+  filas = [],
+  estadisticas = null,
+  soloCompletos = false
+}) => {
+  try {
+    // Si hay más de 4 RA se selecciona orientación horizontal para mayor legibilidad
+    const esHorizontal = listaRA.length > 4;
+    const doc = new jsPDF({
+      orientation: esHorizontal ? 'landscape' : 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const anchoPagina = esHorizontal ? 297 : 210;
+    const altoPagina = esHorizontal ? 210 : 297;
+    const margenIzquierdo = 14;
+    const margenDerecho = anchoPagina - 14;
+    const anchoUtil = margenDerecho - margenIzquierdo;
+    let posicionY = 14;
+
+    // Encabezado institucional superior
+    doc.setFillColor(30, 41, 59); // Fondo pizarra oscuro
+    doc.rect(0, 0, anchoPagina, 26, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text('ACTA OFICIAL DE EVALUACIÓN POR RESULTADOS DE APRENDIZAJE (RA)', margenIzquierdo, 11);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    const subtitulo = soloCompletos
+      ? 'Evaluación Continua - Calificación temporal computada sólo con RA completos (totalizada a 100)'
+      : 'Ponderación Anual Oficial - Calificación ponderada según los pesos curriculares del curso';
+    doc.text(subtitulo, margenIzquierdo, 17);
+
+    doc.setFontSize(7.5);
+    const fechaEmision = new Date().toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    doc.text(`Fecha de emisión: ${fechaEmision}`, margenDerecho, 17, { align: 'right' });
+
+    posicionY = 32;
+
+    // Tarjeta de metadatos del informe (Curso y Módulo)
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(226, 232, 240);
+    doc.roundedRect(margenIzquierdo, posicionY, anchoUtil, 22, 2, 2, 'FD');
+
+    doc.setTextColor(51, 65, 85);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.text('CURSO ACADÉMICO:', margenIzquierdo + 4, posicionY + 6.5);
+    doc.setFont('helvetica', 'normal');
+    const textoCurso = curso ? `${curso.nombre || ''} (${curso.anyo || curso.centro || ''})` : 'Todos los cursos';
+    doc.text(textoCurso, margenIzquierdo + 38, posicionY + 6.5);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('MÓDULO:', margenIzquierdo + 4, posicionY + 14.5);
+    doc.setFont('helvetica', 'normal');
+    const textoModulo = modulo ? `${modulo.nombre || ''} ${modulo.siglas ? `(${modulo.siglas})` : ''}` : 'Módulo no especificado';
+    doc.text(textoModulo, margenIzquierdo + 38, posicionY + 14.5);
+
+    // Métricas en la cabecera derecha
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL DISCENTES:', margenDerecho - 45, posicionY + 6.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(filas.length), margenDerecho - 8, posicionY + 6.5, { align: 'right' });
+
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL RA:', margenDerecho - 45, posicionY + 14.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(listaRA.length), margenDerecho - 8, posicionY + 14.5, { align: 'right' });
+
+    posicionY += 28;
+
+    // Preparación de columnas y filas para jsPDF AutoTable
+    const encabezadosColumnas = ['#', 'Apellidos y Nombre'];
+    listaRA.forEach((ra) => {
+      encabezadosColumnas.push(`${ra.codigo || `RA ${ra.numero}`}\n(${ra.peso}%)`);
+    });
+    encabezadosColumnas.push(soloCompletos ? 'Nota Eval' : 'Nota Final');
+
+    const cuerpoTabla = filas.map((fila, index) => {
+      const filaCuerpo = [
+        String(index + 1),
+        fila.nombreCompleto || fila.nombreCompletoDirecto || ''
+      ];
+
+      listaRA.forEach((ra) => {
+        const nota = fila.notasRA[ra.id_ra];
+        filaCuerpo.push(nota !== null && nota !== undefined ? formatNota(nota) : '?');
+      });
+
+      filaCuerpo.push(fila.notaFinal !== null && fila.notaFinal !== undefined ? formatNota(fila.notaFinal) : '?');
+      return filaCuerpo;
+    });
+
+    // Fila de pie de tabla con medias del grupo
+    const pieTabla = [];
+    if (estadisticas && estadisticas.porRA) {
+      const filaMedia = ['', 'MEDIA DEL GRUPO'];
+      listaRA.forEach((ra) => {
+        const stat = estadisticas.porRA[ra.id_ra];
+        filaMedia.push(stat?.media !== null && stat?.media !== undefined ? formatNota(stat.media) : '-');
+      });
+      filaMedia.push(estadisticas.mediaGlobal !== null && estadisticas.mediaGlobal !== undefined ? formatNota(estadisticas.mediaGlobal) : '-');
+      pieTabla.push(filaMedia);
+
+      const filaAprobados = ['', 'TASA APROBADOS (%)'];
+      listaRA.forEach((ra) => {
+        const stat = estadisticas.porRA[ra.id_ra];
+        filaAprobados.push(stat?.totalEvaluados > 0 ? `${stat.tasaAprobados}%` : '-');
+      });
+      filaAprobados.push(estadisticas.tasaAprobadosGlobal !== undefined ? `${estadisticas.tasaAprobadosGlobal}%` : '-');
+      pieTabla.push(filaAprobados);
+    }
+
+    // Configuración y dibujo de la tabla con autoTable
+    autoTable(doc, {
+      startY: posicionY,
+      head: [encabezadosColumnas],
+      body: cuerpoTabla,
+      foot: pieTabla.length > 0 ? pieTabla : undefined,
+      theme: 'grid',
+      styles: {
+        fontSize: esHorizontal ? 7.5 : 7,
+        cellPadding: 2,
+        lineColor: [226, 232, 240],
+        lineWidth: 0.2,
+        textColor: [51, 65, 85]
+      },
+      headStyles: {
+        fillColor: [30, 41, 59],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: esHorizontal ? 8 : 7.5,
+        halign: 'center'
+      },
+      footStyles: {
+        fillColor: [226, 232, 240],
+        textColor: [15, 23, 42],
+        fontStyle: 'bold',
+        fontSize: esHorizontal ? 7.5 : 7,
+        halign: 'center'
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 8 },
+        1: { halign: 'left', fontStyle: 'bold' }
+      },
+      didParseCell: (data) => {
+        // Coloreado condicional según el valor numérico de la nota (columnas a partir del índice 2)
+        if (data.section === 'body' && data.column.index >= 2) {
+          const valor = data.cell.raw;
+          if (valor === '?') {
+            data.cell.styles.textColor = [148, 163, 184]; // Gris para nota sin calificar
+            data.cell.styles.fontStyle = 'italic';
+            data.cell.styles.halign = 'center';
+          } else {
+            const num = parseFloat(String(valor).replace(',', '.'));
+            data.cell.styles.halign = 'center';
+            data.cell.styles.fontStyle = 'bold';
+
+            if (!isNaN(num)) {
+              if (num < 50) {
+                data.cell.styles.textColor = [220, 38, 38]; // Rojo para suspenso
+              } else if (num < 70) {
+                data.cell.styles.textColor = [234, 88, 12]; // Naranja / Bien
+              } else if (num < 90) {
+                data.cell.styles.textColor = [22, 163, 74]; // Verde / Notable
+              } else {
+                data.cell.styles.textColor = [37, 99, 235]; // Azul / Sobresaliente
+              }
+            }
+          }
+        }
+      },
+      margin: { left: margenIzquierdo, right: margenIzquierdo }
+    });
+
+    // Paginación en el pie de página en cada hoja generada
+    const totalPaginas = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPaginas; i++) {
+      doc.setPage(i);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        `Página ${i} de ${totalPaginas} - Sistema de Control de Notas`,
+        margenIzquierdo,
+        altoPagina - 8
+      );
+      doc.text(
+        soloCompletos ? 'Acta de Evaluación Continua (sólo RA completos)' : 'Acta Oficial Ponderada por RA',
+        margenDerecho,
+        altoPagina - 8,
+        { align: 'right' }
+      );
+    }
+
+    const siglasModulo = (modulo?.siglas || modulo?.nombre || 'Modulo').replace(/[^a-zA-Z0-9]/g, '_');
+    const nombreCurso = (curso?.nombre || 'Curso').replace(/[^a-zA-Z0-9]/g, '_');
+    const sufijoTipo = soloCompletos ? 'Eval_Continua' : 'Anual';
+    const nombreArchivo = `Acta_RA_${siglasModulo}_${nombreCurso}_${sufijoTipo}.pdf`;
+
+    doc.save(nombreArchivo);
+    return { exito: true, error: null };
+  } catch (err) {
+    console.error('Error al exportar acta de evaluación por RA a PDF:', err);
+    return { exito: false, error: err.message || 'Error al generar el documento PDF.' };
+  }
+};
+
+// Se actualiza o inserta el peso de un Resultado de Aprendizaje para un curso específico en la tabla ra_curso
+export const actualizarPesoRA = async (cursoId, raId, nuevoPeso) => {
+  if (!cursoId || !raId) {
+    return { exito: false, error: 'Identificadores de curso y RA requeridos.' };
+  }
+
+  const pesoNum = parseInt(nuevoPeso, 10);
+  const pesoFinal = isNaN(pesoNum) ? 0 : Math.max(0, Math.min(100, pesoNum));
+
+  try {
+    // Se comprueba si ya existe un registro previo en ra_curso para este curso y RA
+    const { data: existente, error: errConsulta } = await supabase
+      .from('ra_curso')
+      .select('id_ra_curso')
+      .eq('id_curso', cursoId)
+      .eq('id_ra', raId)
+      .maybeSingle();
+
+    if (errConsulta) {
+      console.error('Error al consultar peso existente en ra_curso:', errConsulta);
+    }
+
+    if (existente?.id_ra_curso) {
+      const { error: errUpdate } = await supabase
+        .from('ra_curso')
+        .update({ peso: pesoFinal })
+        .eq('id_ra_curso', existente.id_ra_curso);
+
+      if (errUpdate) throw errUpdate;
+    } else {
+      const { error: errInsert } = await supabase
+        .from('ra_curso')
+        .insert({
+          id_curso: cursoId,
+          id_ra: raId,
+          peso: pesoFinal
+        });
+
+      if (errInsert) throw errInsert;
+    }
+
+    return { exito: true, peso: pesoFinal, error: null };
+  } catch (err) {
+    console.error('Error al actualizar peso en ra_curso:', err);
+    return { exito: false, error: err.message || 'Error al persistir el peso del RA en la base de datos.' };
+  }
+};
+
+
+
 
 
 
