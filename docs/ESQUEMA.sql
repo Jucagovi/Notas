@@ -1,5 +1,6 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
+
 CREATE TABLE public.Ciclos (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   nombre character varying NOT NULL DEFAULT ''::character varying,
@@ -75,9 +76,9 @@ CREATE TABLE public.evaluan (
   id_evaluacion uuid NOT NULL,
   id_discente uuid NOT NULL,
   nota integer,
-  CONSTRAINT evaluan_pkey PRIMARY KEY (id_evaluan),
-CONSTRAINT evaluan_id_evaluacion_fkey FOREIGN KEY (id_evaluacion) REFERENCES public.Evaluaciones (id_evaluacion),
+CONSTRAINT evaluan_pkey PRIMARY KEY (id_evaluan),
   CONSTRAINT evaluan_id_practica_fkey FOREIGN KEY (id_practica) REFERENCES public.Practicas(id_practica),
+CONSTRAINT evaluan_id_evaluacion_fkey FOREIGN KEY (id_evaluacion) REFERENCES public.Evaluaciones (id_evaluacion),
 CONSTRAINT evaluan_id_discente_fkey FOREIGN KEY (id_discente) REFERENCES public.Discentes (id_discente)
 );
 CREATE TABLE public.imparte (
@@ -88,11 +89,10 @@ CREATE TABLE public.imparte (
   id_modulo uuid,
   id_discente uuid,
   CONSTRAINT imparte_pkey PRIMARY KEY (id_imparte),
+CONSTRAINT imparte_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso),
   CONSTRAINT imparte_id_modulo_fkey FOREIGN KEY (id_modulo) REFERENCES public.Modulos(id_modulo),
-CONSTRAINT imparte_id_discente_fkey FOREIGN KEY (id_discente) REFERENCES public.Discentes(id_discente),
-  CONSTRAINT imparte_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos(id_curso)
+CONSTRAINT imparte_id_discente_fkey FOREIGN KEY (id_discente) REFERENCES public.Discentes (id_discente)
 );
-
 CREATE TABLE public.shopping_list (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   item_name text NOT NULL,
@@ -128,23 +128,21 @@ CREATE TABLE public.trabajan (
   id_ce uuid NOT NULL,
   id_practica uuid NOT NULL,
   CONSTRAINT trabajan_pkey PRIMARY KEY (id_trabajan),
-CONSTRAINT trabajan_id_ce_fkey FOREIGN KEY (id_ce) REFERENCES public.CE(id_ce),
+CONSTRAINT trabajan_id_ce_fkey FOREIGN KEY (id_ce) REFERENCES public.CE (id_ce),
   CONSTRAINT trabajan_id_practica_fkey FOREIGN KEY (id_practica) REFERENCES public.Practicas(id_practica)
 );
-
 CREATE TABLE public.ra_curso (
-    id_ra_curso uuid NOT NULL DEFAULT gen_random_uuid (),
-    created_at timestamp
-    with
-        time zone NOT NULL DEFAULT now(),
-        peso smallint NOT NULL,
-        id_ra uuid NOT NULL,
-        id_curso uuid NOT NULL,
-        CONSTRAINT ra_curso_pkey PRIMARY KEY (id_ra_curso),
-        CONSTRAINT ra_curso_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso),
-        CONSTRAINT ra_curso_id_ra_fkey FOREIGN KEY (id_ra) REFERENCES public.RA (id_ra)
+id_ra_curso uuid NOT NULL DEFAULT gen_random_uuid (),
+created_at timestamp
+with
+    time zone NOT NULL DEFAULT now(),
+    peso smallint NOT NULL,
+    id_ra uuid NOT NULL,
+    id_curso uuid NOT NULL,
+    CONSTRAINT ra_curso_pkey PRIMARY KEY (id_ra_curso),
+CONSTRAINT ra_curso_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso),
+CONSTRAINT ra_curso_id_ra_fkey FOREIGN KEY (id_ra) REFERENCES public.RA (id_ra)
 );
-
 CREATE TABLE public.ce_curso (
   id_ce_curso uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
@@ -153,4 +151,11 @@ CREATE TABLE public.ce_curso (
   id_curso uuid NOT NULL,
   CONSTRAINT ce_curso_id_ce_fkey FOREIGN KEY (id_ce) REFERENCES public.CE(id_ce),
   CONSTRAINT ce_curso_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos(id_curso)
+);
+CREATE TABLE public.ra_evaluacion (
+    id_ra_evaluacion uuid NOT NULL DEFAULT gen_random_uuid (),
+    id_ra uuid NOT NULL,
+    id_evaluacion uuid NOT NULL,
+    CONSTRAINT ra_evaluacion_id_evaluacion_fkey FOREIGN KEY (id_evaluacion) REFERENCES public.Evaluaciones (id_evaluacion),
+    CONSTRAINT ra_evaluacion_id_ra_fkey FOREIGN KEY (id_ra) REFERENCES public.RA (id_ra)
 );

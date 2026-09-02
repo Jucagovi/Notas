@@ -25,9 +25,9 @@ const InformesPagina = () => {
     },
     {
       id: 'evaluacion-modulo',
-      titulo: 'Acta Oficial de Evaluación (Boletín)',
+      titulo: 'Acta por trimestres',
       descripcion:
-        'Genera el acta oficial de un módulo, calculando la nota final ponderada de cada periodo de evaluación para todos los discentes matriculados, con exportación a CSV y PDF.',
+        'Genera el acta oficial de un módulo, calculando la nota trimestral normalizada por Resultados de Aprendizaje (RA) para todos los discentes matriculados, con exportación a CSV y PDF.',
       icono: 'pi pi-file-edit',
       colorIcono: 'text-indigo-500',
       fondoIcono: 'rgba(99, 102, 241, 0.15)',

@@ -257,11 +257,16 @@ const InformeEvaluacionTabla = ({
       <DataTable
         value={filas}
         loading={cargando}
+        paginator
+        paginatorPosition="top"
+        rows={10}
+        rowsPerPageOptions={[10, 15, 20, 50, 100]}
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} discentes"
         responsiveLayout="scroll"
         stripedRows
         showGridlines
         scrollable
-        scrollHeight="650px"
         footerColumnGroup={renderPieDeTabla()}
         emptyMessage="No se encontraron discentes matriculados en este módulo."
         className="p-datatable-sm"

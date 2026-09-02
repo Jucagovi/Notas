@@ -28,19 +28,19 @@ const ELEMENTOS_CLASES = [
 
 // Elementos del submenú Evaluación
 const ELEMENTOS_EVALUACION = [
-  { label: "Asignación prácticas", icon: "pi pi-file-edit", to: "/practicas" },
+  { label: "Asignación RA", icon: "pi pi-file-edit", to: "/practicas" },
   { label: "Asignación pesos", icon: "pi pi-percentage", to: "/pesos" },
   { label: "Pesos RA y CE", icon: "pi pi-sliders-h", to: "/pesos-ra" },
   { label: "Asignación CE", icon: "pi pi-check-square", to: "/criterios" },
   { label: "Acta evaluación RA", icon: "pi pi-table", to: "/informes/acta-evaluacion-ra" },
-  { label: "Evaluación módulo", icon: "pi pi-file-edit", to: "/informes/evaluacion-modulo" },
+  { label: "Acta por trimestres", icon: "pi pi-file-edit", to: "/informes/evaluacion-modulo" },
 ];
 
 // Elementos del submenú Informes
 const ELEMENTOS_INFORMES = [
   { label: "Listado de informes", icon: "pi pi-list", to: "/informes" },
   { label: "Acta evaluación RA", icon: "pi pi-table", to: "/informes/acta-evaluacion-ra" },
-  { label: "Evaluación módulo", icon: "pi pi-file-edit", to: "/informes/evaluacion-modulo" },
+  { label: "Acta por trimestres", icon: "pi pi-file-edit", to: "/informes/evaluacion-modulo" },
   { label: "Competencia individual", icon: "pi pi-compass", to: "/informes/competencia" },
   { label: "Auditoría Cobertura CE", icon: "pi pi-verified", to: "/informes/cobertura-ce" },
   { label: "Calificaciones pendientes", icon: "pi pi-clock", to: "/informes/calificaciones-pendientes" },

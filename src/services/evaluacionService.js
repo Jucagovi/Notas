@@ -708,3 +708,276 @@ export const desvincularMultiplesPracticasDeEvaluacion = async ({ idsPracticas =
     return { exito: false, error: err.message || 'Error al desvincular prácticas por lotes.' };
   }
 };
+
+// Se obtienen los Resultados de Aprendizaje (RA) asignados a una evaluación específica desde ra_evaluacion
+export const obtenerRAEvaluacion = async (idEvaluacion) => {
+  if (!idEvaluacion) return { data: [], error: null };
+  try {
+    const { data, error } = await supabase
+      .from('ra_evaluacion')
+      .select(`
+        id_ra_evaluacion,
+        id_ra,
+        id_evaluacion,
+        RA:id_ra (
+          id_ra,
+          nombre,
+          numero,
+          descripcion,
+          id_modulo
+        )
+      `)
+      .eq('id_evaluacion', idEvaluacion);
+
+    if (error) {
+      console.error('Error al consultar RA asignados en ra_evaluacion:', error);
+      return { data: [], error: error.message };
+    }
+
+    // Se ordenan los RA por número
+    const listaOrdenada = (data || []).sort((a, b) => {
+      const numA = a.RA?.numero ?? 0;
+      const numB = b.RA?.numero ?? 0;
+      return numA - numB;
+    });
+
+    return { data: listaOrdenada, error: null };
+  } catch (err) {
+    console.error('Error inesperado en obtenerRAEvaluacion:', err);
+    return { data: [], error: err.message || 'Error al obtener RA de la evaluación.' };
+  }
+};
+
+// Se obtienen todas las asignaciones de RA a evaluaciones de un módulo
+export const obtenerTodasAsignacionesRAEvaluacion = async (idModulo) => {
+  if (!idModulo) return { data: [], error: null };
+  try {
+    // Se obtienen primero las evaluaciones del módulo
+    const { data: evaluaciones, error: errorEv } = await supabase
+      .from('Evaluaciones')
+      .select('id_evaluacion')
+      .eq('id_modulo', idModulo);
+
+    if (errorEv) throw errorEv;
+
+    const idsEvaluaciones = (evaluaciones || []).map((e) => e.id_evaluacion);
+    if (idsEvaluaciones.length === 0) return { data: [], error: null };
+
+    const { data, error } = await supabase
+      .from('ra_evaluacion')
+      .select(`
+        id_ra_evaluacion,
+        id_ra,
+        id_evaluacion,
+        RA:id_ra (
+          id_ra,
+          nombre,
+          numero,
+          descripcion,
+          id_modulo
+        )
+      `)
+      .in('id_evaluacion', idsEvaluaciones);
+
+    if (error) throw error;
+
+    return { data: data || [], error: null };
+  } catch (err) {
+    console.error('Error inesperado en obtenerTodasAsignacionesRAEvaluacion:', err);
+    return { data: [], error: err.message || 'Error al obtener asignaciones de RA.' };
+  }
+};
+
+// Se vincula un Resultado de Aprendizaje a una evaluación en la tabla ra_evaluacion
+export const vincularRAAEvaluacion = async ({ idRA, idEvaluacion }) => {
+  if (!idRA || !idEvaluacion) {
+    return { exito: false, error: 'Faltan parámetros requeridos para vincular el RA a la evaluación.' };
+  }
+  try {
+    // Se comprueba si ya existe la asignación para evitar duplicados
+    const { data: existente, error: errorBusqueda } = await supabase
+      .from('ra_evaluacion')
+      .select('id_ra_evaluacion')
+      .eq('id_ra', idRA)
+      .eq('id_evaluacion', idEvaluacion)
+      .maybeSingle();
+
+    if (errorBusqueda && errorBusqueda.code !== 'PGRST116') {
+      console.error('Error al comprobar asignación existente en ra_evaluacion:', errorBusqueda);
+    }
+
+    if (existente && existente.id_ra_evaluacion) {
+      return { exito: true, data: existente, mensaje: 'El RA ya se encuentra vinculado a esta evaluación.' };
+    }
+
+    const { data, error: errorInsert } = await supabase
+      .from('ra_evaluacion')
+      .insert({
+        id_ra: idRA,
+        id_evaluacion: idEvaluacion
+      })
+      .select()
+      .single();
+
+    if (errorInsert) {
+      console.error('Error al insertar en ra_evaluacion:', errorInsert);
+      return { exito: false, error: errorInsert.message };
+    }
+
+    return { exito: true, data, mensaje: 'Resultado de Aprendizaje vinculado a la evaluación.' };
+  } catch (err) {
+    console.error('Error inesperado en vincularRAAEvaluacion:', err);
+    return { exito: false, error: err.message || 'Error al vincular RA a la evaluación.' };
+  }
+};
+
+// Se desvincula un Resultado de Aprendizaje de una evaluación en la tabla ra_evaluacion
+export const desvincularRADeEvaluacion = async ({ idRA, idEvaluacion }) => {
+  if (!idRA || !idEvaluacion) {
+    return { exito: false, error: 'Faltan parámetros requeridos para desvincular el RA.' };
+  }
+  try {
+    const { error } = await supabase
+      .from('ra_evaluacion')
+      .delete()
+      .eq('id_ra', idRA)
+      .eq('id_evaluacion', idEvaluacion);
+
+    if (error) {
+      console.error('Error al eliminar de ra_evaluacion:', error);
+      return { exito: false, error: error.message };
+    }
+
+    return { exito: true, error: null };
+  } catch (err) {
+    console.error('Error inesperado en desvincularRADeEvaluacion:', err);
+    return { exito: false, error: err.message || 'Error al desvincular el RA.' };
+  }
+};
+
+// Se vinculan múltiples Resultados de Aprendizaje a una evaluación
+export const vincularMultiplesRAAEvaluacion = async ({ idsRA = [], idEvaluacion }) => {
+  if (!idsRA || idsRA.length === 0 || !idEvaluacion) {
+    return { exito: false, error: 'Faltan parámetros requeridos para vincular los RA.' };
+  }
+  try {
+    // Se obtienen las asignaciones existentes para evitar duplicados
+    const { data: existentes, error: errorExistentes } = await supabase
+      .from('ra_evaluacion')
+      .select('id_ra')
+      .eq('id_evaluacion', idEvaluacion)
+      .in('id_ra', idsRA);
+
+    if (errorExistentes) {
+      console.error('Error al consultar asignaciones existentes:', errorExistentes);
+    }
+
+    const asignadosSet = new Set((existentes || []).map((e) => String(e.id_ra).toLowerCase()));
+    const faltantes = idsRA.filter((id) => !asignadosSet.has(String(id).toLowerCase()));
+
+    if (faltantes.length === 0) {
+      return { exito: true, mensaje: 'Todos los RA seleccionados ya estaban vinculados.' };
+    }
+
+    const registrosAInsertar = faltantes.map((id_ra) => ({
+      id_ra,
+      id_evaluacion: idEvaluacion
+    }));
+
+    const { data: insertados, error: errorInsercion } = await supabase
+      .from('ra_evaluacion')
+      .insert(registrosAInsertar)
+      .select();
+
+    if (errorInsercion) {
+      console.error('Error al insertar registros en ra_evaluacion:', errorInsercion);
+      return { exito: false, error: errorInsercion.message };
+    }
+
+    return {
+      exito: true,
+      registrosCreados: insertados?.length || 0,
+      mensaje: `Se han vinculado ${faltantes.length} RA a la evaluación.`
+    };
+  } catch (err) {
+    console.error('Error inesperado en vincularMultiplesRAAEvaluacion:', err);
+    return { exito: false, error: err.message || 'Error al vincular RA por lotes.' };
+  }
+};
+
+// Se desvinculan múltiples Resultados de Aprendizaje de una evaluación
+export const desvincularMultiplesRADeEvaluacion = async ({ idsRA = [], idEvaluacion }) => {
+  if (!idsRA || idsRA.length === 0 || !idEvaluacion) {
+    return { exito: false, error: 'Faltan parámetros requeridos para desvincular los RA.' };
+  }
+  try {
+    const { error } = await supabase
+      .from('ra_evaluacion')
+      .delete()
+      .eq('id_evaluacion', idEvaluacion)
+      .in('id_ra', idsRA);
+
+    if (error) {
+      console.error('Error al eliminar registros en ra_evaluacion:', error);
+      return { exito: false, error: error.message };
+    }
+
+    return { exito: true, error: null };
+  } catch (err) {
+    console.error('Error inesperado en desvincularMultiplesRADeEvaluacion:', err);
+    return { exito: false, error: err.message || 'Error al desvincular RA por lotes.' };
+  }
+};
+
+// Se sincroniza el conjunto completo de RA asignados a una evaluación reemplazando el estado actual
+export const guardarAsignacionRAEvaluacion = async ({ idEvaluacion, idsRA = [] }) => {
+  if (!idEvaluacion) {
+    return { exito: false, error: 'Identificador de evaluación no proporcionado.' };
+  }
+  try {
+    // Se obtienen las asignaciones actuales de la evaluación
+    const { data: actuales, error: errorConsulta } = await supabase
+      .from('ra_evaluacion')
+      .select('id_ra_evaluacion, id_ra')
+      .eq('id_evaluacion', idEvaluacion);
+
+    if (errorConsulta) throw errorConsulta;
+
+    const idsActuales = (actuales || []).map((a) => a.id_ra);
+    const setNuevos = new Set((idsRA || []).map((id) => String(id).toLowerCase()));
+    const setActuales = new Set(idsActuales.map((id) => String(id).toLowerCase()));
+
+    // RA que deben agregarse
+    const aAgregar = (idsRA || []).filter((id) => !setActuales.has(String(id).toLowerCase()));
+    // RA que deben eliminarse
+    const aEliminar = idsActuales.filter((id) => !setNuevos.has(String(id).toLowerCase()));
+
+    if (aEliminar.length > 0) {
+      const { error: errorBorrar } = await supabase
+        .from('ra_evaluacion')
+        .delete()
+        .eq('id_evaluacion', idEvaluacion)
+        .in('id_ra', aEliminar);
+
+      if (errorBorrar) throw errorBorrar;
+    }
+
+    if (aAgregar.length > 0) {
+      const filasAInsertar = aAgregar.map((id_ra) => ({
+        id_ra,
+        id_evaluacion: idEvaluacion
+      }));
+
+      const { error: errorInsertar } = await supabase
+        .from('ra_evaluacion')
+        .insert(filasAInsertar);
+
+      if (errorInsertar) throw errorInsertar;
+    }
+
+    return { exito: true, error: null, mensaje: 'Asignación de RA actualizada correctamente.' };
+  } catch (err) {
+    console.error('Error inesperado en guardarAsignacionRAEvaluacion:', err);
+    return { exito: false, error: err.message || 'Error al sincronizar asignaciones de RA.' };
+  }
+};

@@ -4,11 +4,12 @@ import { supabase } from './supabaseClient.js';
 export const EVALUACIONES_REGLAMENTARIAS = [
   { nombre: 'Primera', descripcion: 'Primera Evaluación Ordinaria' },
   { nombre: 'Segunda', descripcion: 'Segunda Evaluación Ordinaria' },
-  { nombre: 'Final', descripcion: 'Evaluación Ordinaria Final' },
+  { nombre: 'Tercera', descripcion: 'Tercera Evaluación Ordinaria' },
+  { nombre: 'Final Ordinaria', descripcion: 'Evaluación Ordinaria Final' },
   { nombre: 'Extraordinaria', descripcion: 'Evaluación Extraordinaria' }
 ];
 
-// Se generan las 4 evaluaciones reglamentarias en la base de datos para un curso y módulo específicos
+// Se generan las 5 evaluaciones reglamentarias en la base de datos para un curso y módulo específicos
 export const generarEvaluaciones = async (cursoId, moduloId) => {
   try {
     // Se verifica si ya existen evaluaciones registradas para esta combinación de curso y módulo

@@ -641,20 +641,20 @@ const CrearClaseAsistente = ({ alFinalizarExito = () => {} }) => {
                   <span>Paso 4: Generación Automática de Evaluaciones</span>
                 </div>
                 <div className="step-subtitle">
-                  El sistema dará de alta silenciosamente los 4 periodos reglamentarios vinculados al curso y módulo.
+                  El sistema dará de alta silenciosamente los 5 periodos reglamentarios vinculados al curso y módulo.
                 </div>
               </div>
 
               <Message
                 severity="info"
-                text="Se crearán automáticamente 4 registros en la tabla Evaluaciones para estructurar el seguimiento académico del curso."
+                text="Se crearán automáticamente 5 registros en la tabla Evaluaciones para estructurar el seguimiento académico del curso."
                 className="w-full"
               />
 
-              {/* Cuadrícula de 4 tarjetas de evaluaciones */}
+              {/* Cuadrícula de 5 tarjetas de evaluaciones */}
               <div className="grid">
                 {evaluacionesReglamentarias.map((ev, index) => (
-                  <div key={ev.nombre} className="col-12 sm:col-6 md:col-3">
+                  <div key={ev.nombre} className="col-12 sm:col-6 md:col-4 lg:col">
                     <div className="asistente-eval-card">
                       <div className="asistente-eval-badge">
                         {index + 1}

@@ -41,9 +41,9 @@ const InformeEvaluacion = () => {
     <div className="page-container p-2">
       {/* 1. Cabecera principal de la página */}
       <div className="flex flex-column gap-1">
-        <h1 className="page-title m-0">Acta de Evaluación Oficial</h1>
+        <h1 className="page-title m-0">Acta por trimestres</h1>
         <p className="text-muted m-0 text-sm">
-          Cálculo de la nota final ponderada de cada evaluación para todos los discentes matriculados en el módulo.
+          Cálculo de la nota trimestral normalizada por Resultados de Aprendizaje (RA) para todos los discentes matriculados en el módulo.
         </p>
       </div>
 

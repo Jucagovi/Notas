@@ -1388,35 +1388,163 @@ export const getDatosActa = async (moduloId, cursoId = null) => {
       console.error('Error al consultar prácticas para el acta:', errorPracticas);
     }
 
-    // 6. Se obtienen los registros de calificaciones de la tabla evaluan
-    let registrosEvaluan = [];
-    if (idsEvaluaciones.length > 0) {
-      const { data: datosEvaluan, error: errorEvaluan } = await supabase
-        .from('evaluan')
+    const idsPracticasModulo = (practicas || []).map((p) => p.id_practica);
+
+    // 6. Se obtienen los Resultados de Aprendizaje (RA) del módulo
+    const { data: listaRA, error: errorRA } = await supabase
+      .from('RA')
+      .select('id_ra, nombre, numero, descripcion, id_modulo')
+      .eq('id_modulo', moduloId)
+      .order('numero', { ascending: true });
+
+    if (errorRA) {
+      console.error('Error al consultar RA para el acta:', errorRA);
+    }
+
+    const idsRA = (listaRA || []).map((ra) => ra.id_ra);
+
+    // 7. Se obtienen los Criterios de Evaluación (CE) del módulo
+    let listaCE = [];
+    if (idsRA.length > 0) {
+      const { data: datosCE, error: errorCE } = await supabase
+        .from('CE')
+        .select('id_ce, nombre, numero, descripcion, id_ra')
+        .in('id_ra', idsRA)
+        .order('numero', { ascending: true });
+
+      if (errorCE) {
+        console.error('Error al consultar CE para el acta:', errorCE);
+      } else {
+        listaCE = datosCE || [];
+      }
+    }
+
+    const idsCE = listaCE.map((ce) => ce.id_ce);
+
+    // 8. Se consultan los pesos registrados en ra_curso para este curso académico
+    let listaRaCurso = [];
+    if (cursoId && idsRA.length > 0) {
+      const { data: datosRaCurso, error: errorRaCurso } = await supabase
+        .from('ra_curso')
+        .select('id_ra_curso, id_ra, id_curso, peso')
+        .eq('id_curso', cursoId)
+        .in('id_ra', idsRA);
+
+      if (errorRaCurso) {
+        console.error('Error al consultar ra_curso para el acta:', errorRaCurso);
+      } else {
+        listaRaCurso = datosRaCurso || [];
+      }
+    }
+
+    // 9. Se consultan los pesos registrados en ce_curso para este curso académico
+    let listaCeCurso = [];
+    if (cursoId && idsCE.length > 0) {
+      const { data: datosCeCurso, error: errorCeCurso } = await supabase
+        .from('ce_curso')
+        .select('id_ce_curso, id_ce, id_curso, peso')
+        .eq('id_curso', cursoId)
+        .in('id_ce', idsCE);
+
+      if (errorCeCurso) {
+        console.error('Error al consultar ce_curso para el acta:', errorCeCurso);
+      } else {
+        listaCeCurso = datosCeCurso || [];
+      }
+    }
+
+    // 10. Se obtienen las asignaciones en la tabla trabajan para los CE del módulo
+    let listaTrabajan = [];
+    if (idsCE.length > 0) {
+      const { data: datosTrabajan, error: errorTrabajan } = await supabase
+        .from('trabajan')
         .select(`
-          id_evaluan,
+          id_trabajan,
+          id_ce,
           id_practica,
-          id_evaluacion,
-          id_discente,
-          nota,
-          peso,
-          Discentes:id_discente (
-            id_discente,
+          porcentaje,
+          descripcion,
+          Practicas:id_practica (
+            id_practica,
             nombre,
-            apellidos,
-            NIA,
-            correo,
-            imagen,
-            activo
+            numero,
+            enunciado,
+            descripcion,
+            id_tipopractica,
+            unidad,
+            id_modulo
+          )
+        `)
+        .in('id_ce', idsCE);
+
+      if (errorTrabajan) {
+        console.error('Error al consultar asignaciones en trabajan para el acta:', errorTrabajan);
+      } else {
+        listaTrabajan = datosTrabajan || [];
+      }
+    }
+
+    // 11. Se obtienen las asignaciones de RA a evaluaciones de la tabla ra_evaluacion
+    let listaRaEvaluacion = [];
+    if (idsEvaluaciones.length > 0) {
+      const { data: datosRaEvaluacion, error: errorRaEvaluacion } = await supabase
+        .from('ra_evaluacion')
+        .select(`
+          id_ra_evaluacion,
+          id_ra,
+          id_evaluacion,
+          RA:id_ra (
+            id_ra,
+            nombre,
+            numero,
+            descripcion,
+            id_modulo
           )
         `)
         .in('id_evaluacion', idsEvaluaciones);
 
-      if (errorEvaluan) {
-        console.error('Error al consultar calificaciones en evaluan para el acta:', errorEvaluan);
-        return { data: null, error: errorEvaluan.message };
+      if (errorRaEvaluacion) {
+        console.error('Error al consultar asignaciones en ra_evaluacion para el acta:', errorRaEvaluacion);
+      } else {
+        listaRaEvaluacion = datosRaEvaluacion || [];
       }
+    }
 
+    // 12. Se obtienen los registros de calificaciones de la tabla evaluan
+    let registrosEvaluan = [];
+    const idsDiscentesMatriculados = discentes.map((d) => d.id_discente);
+
+    let consultaEvaluan = supabase.from('evaluan').select(`
+      id_evaluan,
+      id_practica,
+      id_evaluacion,
+      id_discente,
+      nota,
+      peso,
+      Discentes:id_discente (
+        id_discente,
+        nombre,
+        apellidos,
+        NIA,
+        correo,
+        imagen,
+        activo
+      )
+    `);
+
+    if (idsEvaluaciones.length > 0 && idsPracticasModulo.length > 0) {
+      consultaEvaluan = consultaEvaluan.or(`id_evaluacion.in.(${idsEvaluaciones.join(',')}),id_practica.in.(${idsPracticasModulo.join(',')})`);
+    } else if (idsEvaluaciones.length > 0) {
+      consultaEvaluan = consultaEvaluan.in('id_evaluacion', idsEvaluaciones);
+    } else if (idsPracticasModulo.length > 0) {
+      consultaEvaluan = consultaEvaluan.in('id_practica', idsPracticasModulo);
+    }
+
+    const { data: datosEvaluan, error: errorEvaluan } = await consultaEvaluan;
+
+    if (errorEvaluan) {
+      console.error('Error al consultar calificaciones en evaluan para el acta:', errorEvaluan);
+    } else {
       registrosEvaluan = datosEvaluan || [];
     }
 
@@ -1445,7 +1573,13 @@ export const getDatosActa = async (moduloId, cursoId = null) => {
         discentes: listaFinalDiscentes,
         evaluaciones: evaluacionesOrdenadas,
         practicas: practicas || [],
-        evaluan: registrosEvaluan
+        evaluan: registrosEvaluan,
+        listaRA: listaRA || [],
+        listaCE: listaCE || [],
+        listaRaCurso,
+        listaCeCurso,
+        listaTrabajan,
+        listaRaEvaluacion
       },
       error: null
     };
@@ -1455,39 +1589,226 @@ export const getDatosActa = async (moduloId, cursoId = null) => {
   }
 };
 
-// Se transforma la estructura de datos crudos en un array plano para el componente DataTable del acta
+// Se transforma la estructura de datos crudos en un array plano para el componente DataTable del acta con normalización por RA
 export const transformarDatosActa = (datosCrudos) => {
   if (!datosCrudos) {
     return { filas: [], evaluaciones: [], estadisticas: null };
   }
 
-  const { modulo, curso, discentes = [], evaluaciones = [], evaluan = [] } = datosCrudos;
+  const {
+    modulo,
+    curso,
+    discentes = [],
+    evaluaciones = [],
+    evaluan = [],
+    listaRA = [],
+    listaCE = [],
+    listaRaCurso = [],
+    listaCeCurso = [],
+    listaTrabajan = [],
+    listaRaEvaluacion = []
+  } = datosCrudos;
 
-  // Se indexan las calificaciones de evaluan por id_discente e id_evaluacion
-  const mapaCalificaciones = new Map();
+  // Se construyen mapas de pesos para RA y CE
+  const mapaPesosRA = new Map(listaRaCurso.map((item) => [item.id_ra, Number(item.peso) || 0]));
+  const mapaPesosCE = new Map(listaCeCurso.map((item) => [item.id_ce, Number(item.peso) || 0]));
 
-  evaluan.forEach((reg) => {
-    if (reg.id_discente && reg.id_evaluacion) {
-      const clave = `${reg.id_discente}_${reg.id_evaluacion}`;
-      if (!mapaCalificaciones.has(clave)) {
-        mapaCalificaciones.set(clave, []);
+  // Pesos equitativos por defecto si no existen en la BD
+  const totalRA = listaRA.length;
+  const pesoEquitativoRA = totalRA > 0 ? Math.floor(100 / totalRA) : 0;
+  const restoRA = totalRA > 0 ? 100 % totalRA : 0;
+
+  const listaRAConPesos = listaRA.map((ra, indice) => {
+    let pesoConfigurado = mapaPesosRA.get(ra.id_ra);
+    if (pesoConfigurado === undefined || pesoConfigurado === null) {
+      pesoConfigurado = indice < restoRA ? pesoEquitativoRA + 1 : pesoEquitativoRA;
+    }
+    const numRA = ra.numero ?? '';
+    const codigoRA = numRA !== '' ? `RA ${numRA}` : 'RA';
+    return {
+      ...ra,
+      codigo: codigoRA,
+      peso: pesoConfigurado,
+      textoCompleto: formatearTextoRA(ra)
+    };
+  });
+
+  // Mapa de RA asignados a cada evaluación desde ra_evaluacion
+  const mapaRaPorEvaluacion = new Map();
+  listaRaEvaluacion.forEach((re) => {
+    if (re.id_evaluacion && re.id_ra) {
+      if (!mapaRaPorEvaluacion.has(re.id_evaluacion)) {
+        mapaRaPorEvaluacion.set(re.id_evaluacion, []);
       }
-      mapaCalificaciones.get(clave).push(reg);
+      mapaRaPorEvaluacion.get(re.id_evaluacion).push(re.id_ra);
     }
   });
 
-  // Se construye cada fila correspondiente a un discente matriculado
+  // Se indexan las calificaciones de evaluan por clave `${id_discente}_${id_practica}` y `${id_discente}_${id_evaluacion}`
+  const mapaNotasEvaluanPorPractica = new Map();
+  const mapaCalificacionesPorEvaluacion = new Map();
+
+  evaluan.forEach((reg) => {
+    if (reg.id_discente && reg.id_practica && reg.nota !== null && reg.nota !== undefined && reg.nota !== '' && !isNaN(reg.nota)) {
+      const clave = `${reg.id_discente}_${reg.id_practica}`;
+      mapaNotasEvaluanPorPractica.set(clave, Number(reg.nota));
+    }
+
+    if (reg.id_discente && reg.id_evaluacion) {
+      const claveEv = `${reg.id_discente}_${reg.id_evaluacion}`;
+      if (!mapaCalificacionesPorEvaluacion.has(claveEv)) {
+        mapaCalificacionesPorEvaluacion.set(claveEv, []);
+      }
+      mapaCalificacionesPorEvaluacion.get(claveEv).push(reg);
+    }
+  });
+
+  // Se procesa cada discente matriculado
   const filas = discentes.map((discente) => {
+    // 1. Se calcula la nota de cada RA del módulo para este discente
+    const notasPorRA = {};
+    const detallePorRA = {};
+
+    listaRAConPesos.forEach((ra) => {
+      const cesDelRA = listaCE.filter((ce) => ce.id_ra === ra.id_ra);
+      const totalCEDelRA = cesDelRA.length;
+      const pesoEquitativoCE = totalCEDelRA > 0 ? Math.floor(100 / totalCEDelRA) : 0;
+      const restoCE = totalCEDelRA > 0 ? 100 % totalCEDelRA : 0;
+
+      let sumaPonderadaRA = 0;
+      let sumaPesosCEEvaluados = 0;
+
+      cesDelRA.forEach((ce, indiceCE) => {
+        let pesoCE = mapaPesosCE.get(ce.id_ce);
+        if (pesoCE === undefined || pesoCE === null) {
+          pesoCE = indiceCE < restoCE ? pesoEquitativoCE + 1 : pesoEquitativoCE;
+        }
+
+        const asignacionesTrabajan = listaTrabajan.filter((t) => t.id_ce === ce.id_ce);
+        let sumaPonderadaPracticas = 0;
+        let sumaPorcentajeEvaluado = 0;
+
+        asignacionesTrabajan.forEach((asig) => {
+          const porcentaje = Number(asig.porcentaje) || 0;
+          const claveNota = `${discente.id_discente}_${asig.id_practica}`;
+          if (mapaNotasEvaluanPorPractica.has(claveNota)) {
+            const notaPractica = mapaNotasEvaluanPorPractica.get(claveNota);
+            sumaPonderadaPracticas += (notaPractica * porcentaje);
+            sumaPorcentajeEvaluado += porcentaje;
+          }
+        });
+
+        let notaCE = null;
+        if (sumaPorcentajeEvaluado > 0) {
+          notaCE = Math.round((sumaPonderadaPracticas / sumaPorcentajeEvaluado) * 100) / 100;
+          sumaPonderadaRA += (notaCE * pesoCE);
+          sumaPesosCEEvaluados += pesoCE;
+        }
+      });
+
+      let notaRA = null;
+      if (sumaPesosCEEvaluados > 0) {
+        notaRA = Math.round((sumaPonderadaRA / sumaPesosCEEvaluados) * 100) / 100;
+      }
+
+      notasPorRA[ra.id_ra] = notaRA;
+      detallePorRA[ra.id_ra] = {
+        id_ra: ra.id_ra,
+        codigo: ra.codigo,
+        nombre: ra.nombre,
+        peso: ra.peso,
+        nota: notaRA
+      };
+    });
+
+    // 2. Se calcula la nota de cada periodo evaluativo aplicando la normalización por RA
     const notas = {};
     const notasDetalle = {};
     let sumaNotasValidas = 0;
     let evaluacionesCalificadas = 0;
 
     evaluaciones.forEach((ev) => {
-      const clave = `${discente.id_discente}_${ev.id_evaluacion}`;
-      const registros = mapaCalificaciones.get(clave) || [];
+      const nombreEvNorm = (ev.nombre || '').toLowerCase();
+      const esEvaluacionFinal = nombreEvNorm.includes('final') || nombreEvNorm.includes('ordinaria final');
 
-      // Se comprueba si existen calificaciones numéricas registradas
+      // Caso 1: Evaluación Final (suma ponderada global de todos los RA del módulo al 100%)
+      if (esEvaluacionFinal) {
+        let sumaPonderadaGlobal = 0;
+        let sumaPesosEvaluados = 0;
+        let raConNota = 0;
+
+        listaRAConPesos.forEach((ra) => {
+          const notaRA = notasPorRA[ra.id_ra];
+          if (notaRA !== null && notaRA !== undefined) {
+            sumaPonderadaGlobal += (notaRA * ra.peso) / 100;
+            sumaPesosEvaluados += ra.peso;
+            raConNota += 1;
+          }
+        });
+
+        const notaFinal = raConNota > 0 ? Math.round(sumaPonderadaGlobal * 100) / 100 : null;
+
+        notas[ev.id_evaluacion] = notaFinal;
+        notasDetalle[ev.id_evaluacion] = {
+          nota: notaFinal,
+          tipo: 'final',
+          totalRA: listaRAConPesos.length,
+          raCalificados: raConNota,
+          sumaPesos: 100,
+          esNormalizada: false
+        };
+
+        if (notaFinal !== null) {
+          sumaNotasValidas += notaFinal;
+          evaluacionesCalificadas += 1;
+        }
+        return;
+      }
+
+      // Caso 2: Periodo de Evaluación Trimestral con RA asignados en ra_evaluacion
+      const idsRAAsignados = mapaRaPorEvaluacion.get(ev.id_evaluacion) || [];
+
+      if (idsRAAsignados.length > 0) {
+        const rasAsignados = listaRAConPesos.filter((ra) => idsRAAsignados.includes(ra.id_ra));
+        let sumaPonderadaTrimestre = 0;
+        let sumaPesosTrimestre = 0;
+        let raCalificadosCount = 0;
+
+        rasAsignados.forEach((ra) => {
+          sumaPesosTrimestre += ra.peso;
+          const notaRA = notasPorRA[ra.id_ra];
+          if (notaRA !== null && notaRA !== undefined) {
+            sumaPonderadaTrimestre += (notaRA * ra.peso);
+            raCalificadosCount += 1;
+          }
+        });
+
+        let notaTrimestralNormalizada = null;
+        if (sumaPesosTrimestre > 0 && raCalificadosCount > 0) {
+          // Fórmula matemática de normalización: (Suma de Nota_RA * Peso_RA) / Suma_Pesos_RA_Trimestre
+          notaTrimestralNormalizada = Math.round((sumaPonderadaTrimestre / sumaPesosTrimestre) * 100) / 100;
+        }
+
+        notas[ev.id_evaluacion] = notaTrimestralNormalizada;
+        notasDetalle[ev.id_evaluacion] = {
+          nota: notaTrimestralNormalizada,
+          tipo: 'trimestral_ra',
+          totalRAAsignados: rasAsignados.length,
+          raCalificados: raCalificadosCount,
+          sumaPesosTrimestre,
+          esNormalizada: true
+        };
+
+        if (notaTrimestralNormalizada !== null) {
+          sumaNotasValidas += notaTrimestralNormalizada;
+          evaluacionesCalificadas += 1;
+        }
+        return;
+      }
+
+      // Caso 3: Evaluación sin asignación en ra_evaluacion (cálculo de compatibilidad por prácticas)
+      const claveEv = `${discente.id_discente}_${ev.id_evaluacion}`;
+      const registros = mapaCalificacionesPorEvaluacion.get(claveEv) || [];
       const registrosCalificados = registros.filter(
         (r) => r.nota !== null && r.nota !== undefined && r.nota !== '' && !isNaN(r.nota)
       );
@@ -1496,31 +1817,31 @@ export const transformarDatosActa = (datosCrudos) => {
         notas[ev.id_evaluacion] = null;
         notasDetalle[ev.id_evaluacion] = {
           nota: null,
+          tipo: 'practicas_fallback',
           totalPracticas: registros.length,
           practicasCalificadas: 0,
-          ponderacionCorrecta: false
+          esNormalizada: false
         };
       } else {
-        // Se calcula la suma ponderada: multiplicar cada nota por su peso y dividirlo entre 100
         let sumaPonderada = 0;
         let sumaPesos = 0;
 
         registros.forEach((reg) => {
           const peso = Number(reg.peso) || 0;
-          const notaVal = reg.nota !== null && reg.nota !== undefined && reg.nota !== '' ? Number(reg.nota) : 0;
+          const notaVal = Number(reg.nota) || 0;
           sumaPonderada += (notaVal * peso) / 100;
           sumaPesos += peso;
         });
 
         const notaFinalPonderada = Math.round(sumaPonderada * 100) / 100;
-
         notas[ev.id_evaluacion] = notaFinalPonderada;
         notasDetalle[ev.id_evaluacion] = {
           nota: notaFinalPonderada,
+          tipo: 'practicas_fallback',
           totalPracticas: registros.length,
           practicasCalificadas: registrosCalificados.length,
           sumaPesos,
-          ponderacionCorrecta: sumaPesos === 100
+          esNormalizada: false
         };
 
         sumaNotasValidas += notaFinalPonderada;
@@ -1544,6 +1865,7 @@ export const transformarDatosActa = (datosCrudos) => {
       activo: discente.activo !== false,
       notas,
       notasDetalle,
+      notasPorRA,
       media: mediaDiscente,
       evaluacionesCalificadas,
       discente
@@ -1599,6 +1921,7 @@ export const transformarDatosActa = (datosCrudos) => {
     evaluaciones,
     modulo,
     curso,
+    listaRA: listaRAConPesos,
     estadisticas: {
       totalDiscentes: filas.length,
       totalEvaluaciones: evaluaciones.length,
@@ -1608,6 +1931,64 @@ export const transformarDatosActa = (datosCrudos) => {
       totalAprobadosGlobal
     }
   };
+};
+
+// Se obtienen las notas trimestrales normalizadas de una o varias evaluaciones mediante el algoritmo de normalización de RA
+export const getNotasTrimestrales = async (cursoId, moduloId, evaluacionId = null) => {
+  if (!moduloId) {
+    return { data: null, error: 'Identificador de módulo no proporcionado.' };
+  }
+  try {
+    const respuestaCrudos = await getDatosActa(moduloId, cursoId);
+    if (respuestaCrudos.error) {
+      return respuestaCrudos;
+    }
+
+    const transformado = transformarDatosActa(respuestaCrudos.data);
+
+    if (evaluacionId) {
+      const ev = (transformado.evaluaciones || []).find(
+        (e) => String(e.id_evaluacion).toLowerCase() === String(evaluacionId).toLowerCase()
+      );
+
+      const filasFiltradas = transformado.filas.map((f) => ({
+        id_discente: f.id_discente,
+        nombre: f.nombre,
+        apellidos: f.apellidos,
+        nombreCompleto: f.nombreCompleto,
+        NIA: f.NIA,
+        correo: f.correo,
+        imagen: f.imagen,
+        activo: f.activo,
+        nota: f.notas[evaluacionId] ?? null,
+        detalle: f.notasDetalle[evaluacionId] ?? null,
+        notasPorRA: f.notasPorRA,
+        discente: f.discente
+      }));
+
+      const estadisticaEv = transformado.estadisticas?.porEvaluacion?.[evaluacionId] || null;
+
+      return {
+        data: {
+          modulo: transformado.modulo,
+          curso: transformado.curso,
+          evaluacion: ev,
+          filas: filasFiltradas,
+          estadisticas: estadisticaEv,
+          listaRA: transformado.listaRA
+        },
+        error: null
+      };
+    }
+
+    return {
+      data: transformado,
+      error: null
+    };
+  } catch (err) {
+    console.error('Error inesperado en getNotasTrimestrales:', err);
+    return { data: null, error: err.message || 'Error al calcular notas trimestrales normalizadas.' };
+  }
 };
 
 // Se genera y descarga el archivo CSV con las calificaciones del acta de evaluación

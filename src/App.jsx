@@ -7,7 +7,7 @@ import IniciarSesionPagina from './pages/IniciarSesionPagina.jsx';
 import DiscentesPagina from './pages/DiscentesPagina.jsx';
 import ClasesPagina from './pages/ClasesPagina.jsx';
 import EvaluacionesPagina from './pages/EvaluacionesPagina.jsx';
-import PracticasPagina from './pages/PracticasPagina.jsx';
+import AsignacionPagina from './pages/AsignacionPagina.jsx';
 import CalificarPagina from './pages/CalificarPagina.jsx';
 import InformesPagina from './pages/InformesPagina.jsx';
 import InformeCoberturaCE from './pages/informes/InformeCoberturaCE.jsx';
@@ -70,7 +70,10 @@ const App = () => {
                 <Route path="evaluaciones/criterios" element={<Navigate to="/criterios" replace />} />
                 <Route path="asignacion-ce" element={<Navigate to="/criterios" replace />} />
                 <Route path="calificar" element={<CalificarPagina />} />
-                <Route path="practicas" element={<PracticasPagina />} />
+                <Route path="practicas" element={<AsignacionPagina />} />
+                <Route path="asignacion" element={<AsignacionPagina />} />
+                <Route path="asignacion-ra" element={<AsignacionPagina />} />
+                <Route path="evaluacion/asignacion" element={<Navigate to="/asignacion" replace />} />
                 <Route path="pesos" element={<PesosPagina />} />
                 <Route path="evaluacion/pesos" element={<Navigate to="/pesos" replace />} />
                 <Route path="pesos-ra" element={<PesosRAPagina />} />
