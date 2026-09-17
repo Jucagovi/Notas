@@ -13,6 +13,7 @@ import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
 import { Checkbox } from "primereact/checkbox";
 import { Tag } from "primereact/tag";
+import { Tooltip } from "primereact/tooltip";
 import { Divider } from "primereact/divider";
 import useToast from "../../hooks/useToast.js";
 import { plantillaOpcionModulo, plantillaValorModulo } from "../../utils/plantillasDropdown.jsx";
@@ -411,6 +412,25 @@ const TablaMantenimiento = ({
     </div>
   );
 
+  // Se formatea y trunca el texto de la celda evitando saltos de línea y ofreciendo un tooltip interactivo
+  const renderizarCeldaTruncada = (texto, ancho) => {
+    if (texto === null || texto === undefined || texto === "") {
+      return "-";
+    }
+    const textoStr = String(texto);
+    return (
+      <div
+        className='celda-mantenimiento-tooltip white-space-nowrap overflow-hidden text-overflow-ellipsis cursor-default'
+        style={{ maxWidth: ancho || "320px" }}
+        data-pr-tooltip={textoStr}
+        data-pr-position='top'
+        title={textoStr}
+      >
+        {textoStr}
+      </div>
+    );
+  };
+
   return (
     <div className='page-container'>
       <ConfirmDialog />
@@ -436,6 +456,11 @@ const TablaMantenimiento = ({
 
       {/* Contenedor principal con Card idéntico a las páginas de la aplicación */}
       <div className='page-content'>
+        <Tooltip
+          target='.celda-mantenimiento-tooltip'
+          position='top'
+          showDelay={200}
+        />
         <Card className='shadow-1 border-round surface-card'>
           <DataTable
             ref={tablaRef}
@@ -451,6 +476,7 @@ const TablaMantenimiento = ({
             emptyMessage='No existen datos para esta tabla.'
             stripedRows
             responsiveLayout='scroll'
+            tableStyle={{ minWidth: "100%" }}
             className='p-datatable-sm'
           >
             {columnas
@@ -465,6 +491,8 @@ const TablaMantenimiento = ({
                       body={col.renderizar}
                       sortable={col.ordenar !== false}
                       style={{ width: col.ancho || "auto" }}
+                      headerClassName='white-space-nowrap'
+                      bodyClassName='white-space-nowrap'
                     />
                   );
                 }
@@ -477,6 +505,8 @@ const TablaMantenimiento = ({
                       header={col.encabezado}
                       sortable={col.ordenar !== false}
                       style={{ width: col.ancho || "110px" }}
+                      headerClassName='white-space-nowrap'
+                      bodyClassName='white-space-nowrap'
                       body={(rowData) => (
                         <Tag
                           severity={rowData[col.campo] ? "success" : "danger"}
@@ -499,16 +529,25 @@ const TablaMantenimiento = ({
                       header={col.encabezado}
                       sortable={col.ordenar !== false}
                       style={{ width: col.ancho || "140px" }}
+                      headerClassName='white-space-nowrap'
+                      bodyClassName='white-space-nowrap'
                       body={(rowData) => {
                         const fecha = rowData[col.campo];
                         if (!fecha) return "-";
                         try {
                           const parsed = new Date(fecha);
-                          return isNaN(parsed.getTime())
+                          const textoFecha = isNaN(parsed.getTime())
                             ? fecha
                             : parsed.toLocaleDateString("es-ES");
+                          return renderizarCeldaTruncada(
+                            textoFecha,
+                            col.ancho || "140px",
+                          );
                         } catch {
-                          return fecha;
+                          return renderizarCeldaTruncada(
+                            fecha,
+                            col.ancho || "140px",
+                          );
                         }
                       }}
                     />
@@ -523,12 +562,15 @@ const TablaMantenimiento = ({
                       header={col.encabezado}
                       sortable={col.ordenar !== false}
                       style={{ width: col.ancho || "auto" }}
+                      headerClassName='white-space-nowrap'
+                      bodyClassName='white-space-nowrap'
                       body={(rowData) => {
                         const val = rowData[col.campo];
                         const encontrada = col.opciones.find(
                           (opt) => opt.value === val,
                         );
-                        return encontrada ? encontrada.label : val || "-";
+                        const texto = encontrada ? encontrada.label : val;
+                        return renderizarCeldaTruncada(texto, col.ancho);
                       }}
                     />
                   );
@@ -541,6 +583,11 @@ const TablaMantenimiento = ({
                     header={col.encabezado}
                     sortable={col.ordenar !== false}
                     style={{ width: col.ancho || "auto" }}
+                    headerClassName='white-space-nowrap'
+                    bodyClassName='white-space-nowrap'
+                    body={(rowData) =>
+                      renderizarCeldaTruncada(rowData[col.campo], col.ancho)
+                    }
                   />
                 );
               })}
@@ -550,6 +597,8 @@ const TablaMantenimiento = ({
               body={plantillaAcciones}
               exportable={false}
               style={{ width: "110px", textAlign: "center" }}
+              headerClassName='white-space-nowrap'
+              bodyClassName='white-space-nowrap'
             />
           </DataTable>
         </Card>

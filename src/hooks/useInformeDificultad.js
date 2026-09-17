@@ -3,11 +3,11 @@ import { useLocation } from 'react-router-dom';
 import useCursosContexto from './useCursosContexto.js';
 import useToast from './useToast.js';
 import {
-  obtenerModulosPorCurso,
-  obtenerPracticasPorModulo
+  obtenerModulosPorCurso
 } from '../services/evaluacionService.js';
 import {
   getDistribucionNotas,
+  getPracticasPorCursoYModulo,
   exportarInformeDificultadPDF
 } from '../services/informesService.js';
 import { getColorNota } from '../utils/coloresNota.js';
@@ -138,6 +138,7 @@ const useInformeDificultad = () => {
   const handleCambiarModulo = useCallback((nuevoModuloId) => {
     setModuloSeleccionadoId(nuevoModuloId || null);
     setPracticaSeleccionadaId(null);
+    setPracticasDisponibles([]);
     setNotasBrutas([]);
     setError(null);
   }, []);
@@ -179,35 +180,58 @@ const useInformeDificultad = () => {
     cargarModulosDelCurso();
   }, [cursoSeleccionadoId]);
 
-  // Se obtienen las prácticas asociadas cuando se selecciona un módulo profesional
+  // Se obtienen las prácticas asociadas a las evaluaciones del curso y módulo seleccionados
   useEffect(() => {
-    const cargarPracticasDelModulo = async () => {
-      if (!moduloSeleccionadoId) {
-        setPracticasDisponibles([]);
+    let activo = true;
+
+    const cargarPracticasDelCurso = async () => {
+      if (!cursoSeleccionadoId || !moduloSeleccionadoId) {
+        if (activo) {
+          setPracticasDisponibles([]);
+          setPracticaSeleccionadaId(null);
+        }
         return;
       }
 
       setCargandoPracticas(true);
       try {
-        const { data: practicas, error: errPracticas } = await obtenerPracticasPorModulo(moduloSeleccionadoId);
+        const { data: practicas, error: errPracticas } = await getPracticasPorCursoYModulo(
+          cursoSeleccionadoId,
+          moduloSeleccionadoId
+        );
+
         if (errPracticas) {
-          console.error('Error al consultar prácticas por módulo:', errPracticas);
-          setPracticasDisponibles([]);
-        } else {
-          setPracticasDisponibles(practicas || []);
+          console.error('Error al consultar prácticas por curso y módulo:', errPracticas);
+          if (activo) setPracticasDisponibles([]);
+        } else if (activo) {
+          const listaPracticas = practicas || [];
+          setPracticasDisponibles(listaPracticas);
+
+          // Si la práctica seleccionada no pertenece al listado de este curso, se reinicia a null
+          setPracticaSeleccionadaId((idPrevio) => {
+            if (!idPrevio) return null;
+            const existe = listaPracticas.some(
+              (p) => String(p.id_practica).toLowerCase() === String(idPrevio).toLowerCase()
+            );
+            return existe ? idPrevio : null;
+          });
         }
       } catch (err) {
-        console.error('Error inesperado al cargar prácticas del módulo:', err);
-        setPracticasDisponibles([]);
+        console.error('Error inesperado al cargar prácticas del curso y módulo:', err);
+        if (activo) setPracticasDisponibles([]);
       } finally {
-        setCargandoPracticas(false);
+        if (activo) setCargandoPracticas(false);
       }
     };
 
-    cargarPracticasDelModulo();
-  }, [moduloSeleccionadoId]);
+    cargarPracticasDelCurso();
 
-  // Se obtienen las calificaciones no nulas de la práctica desde la base de datos
+    return () => {
+      activo = false;
+    };
+  }, [cursoSeleccionadoId, moduloSeleccionadoId]);
+
+  // Se obtienen las calificaciones no nulas de la práctica para el curso seleccionado
   const cargarDistribucionNotas = useCallback(async () => {
     if (!practicaSeleccionadaId) {
       setNotasBrutas([]);
@@ -217,7 +241,7 @@ const useInformeDificultad = () => {
     setCargando(true);
     setError(null);
     try {
-      const respuesta = await getDistribucionNotas(practicaSeleccionadaId);
+      const respuesta = await getDistribucionNotas(practicaSeleccionadaId, cursoSeleccionadoId);
       if (respuesta.error) {
         throw new Error(respuesta.error);
       }
@@ -231,7 +255,7 @@ const useInformeDificultad = () => {
     } finally {
       setCargando(false);
     }
-  }, [practicaSeleccionadaId, mostrarError]);
+  }, [practicaSeleccionadaId, cursoSeleccionadoId, mostrarError]);
 
   useEffect(() => {
     if (practicaSeleccionadaId) {
@@ -239,7 +263,7 @@ const useInformeDificultad = () => {
     } else {
       setNotasBrutas([]);
     }
-  }, [practicaSeleccionadaId, cargarDistribucionNotas]);
+  }, [practicaSeleccionadaId, cursoSeleccionadoId, cargarDistribucionNotas]);
 
   // Se calculan las estadísticas pedagógicas principales (media, tasa de aprobados y diagnóstico)
   const estadisticas = useMemo(() => {

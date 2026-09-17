@@ -14,7 +14,7 @@ const useCECurso = (cargarAlMontar = true) => {
     setDatos
   } = useDatos('ce_curso');
 
-  // Se obtienen todas las vinculaciones de pesos de CE por curso registradas
+  // Se obtienen todas las ponderaciones de criterios por curso registradas
   const recargar = useCallback(async () => {
     return await obtenerDatos('*');
   }, [obtenerDatos]);
@@ -26,17 +26,17 @@ const useCECurso = (cargarAlMontar = true) => {
     }
   }, [cargarAlMontar, recargar]);
 
-  // Se inserta una nueva vinculación de peso de CE por curso
-  const crear = useCallback(async (nuevoRegistro) => {
-    return await insertar(nuevoRegistro);
+  // Se inserta una nueva ponderación de criterio por curso
+  const crear = useCallback(async (nuevaPonderacion) => {
+    return await insertar(nuevaPonderacion);
   }, [insertar]);
 
-  // Se actualizan los datos de una vinculación existente
+  // Se actualizan los datos de una ponderación existente
   const modificar = useCallback(async (idCeCurso, datosActualizados) => {
     return await actualizar('id_ce_curso', idCeCurso, datosActualizados);
   }, [actualizar]);
 
-  // Se elimina una vinculación por su identificador
+  // Se elimina una ponderación por su identificador único
   const borrar = useCallback(async (idCeCurso) => {
     return await eliminar('id_ce_curso', idCeCurso);
   }, [eliminar]);

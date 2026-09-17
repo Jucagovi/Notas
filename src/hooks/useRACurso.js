@@ -14,7 +14,7 @@ const useRACurso = (cargarAlMontar = true) => {
     setDatos
   } = useDatos('ra_curso');
 
-  // Se obtienen todas las vinculaciones de pesos de RA por curso registradas
+  // Se obtienen todas las ponderaciones de resultados de aprendizaje por curso
   const recargar = useCallback(async () => {
     return await obtenerDatos('*');
   }, [obtenerDatos]);
@@ -26,17 +26,17 @@ const useRACurso = (cargarAlMontar = true) => {
     }
   }, [cargarAlMontar, recargar]);
 
-  // Se inserta una nueva vinculación de peso de RA por curso
-  const crear = useCallback(async (nuevoRegistro) => {
-    return await insertar(nuevoRegistro);
+  // Se inserta una nueva ponderación de RA por curso
+  const crear = useCallback(async (nuevaPonderacion) => {
+    return await insertar(nuevaPonderacion);
   }, [insertar]);
 
-  // Se actualizan los datos de una vinculación existente
+  // Se actualizan los datos de una ponderación existente
   const modificar = useCallback(async (idRaCurso, datosActualizados) => {
     return await actualizar('id_ra_curso', idRaCurso, datosActualizados);
   }, [actualizar]);
 
-  // Se elimina una vinculación por su identificador
+  // Se elimina una ponderación por su identificador único
   const borrar = useCallback(async (idRaCurso) => {
     return await eliminar('id_ra_curso', idRaCurso);
   }, [eliminar]);

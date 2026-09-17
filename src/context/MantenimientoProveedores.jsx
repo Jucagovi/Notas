@@ -7,8 +7,13 @@ import EvaluacionesContexto from './EvaluacionesContexto.jsx';
 import PracticasContexto from './PracticasContexto.jsx';
 import RAContexto from './RAContexto.jsx';
 import CEContexto from './CEContexto.jsx';
+import ImparteContexto from './ImparteContexto.jsx';
+import EvaluanContexto from './EvaluanContexto.jsx';
+import TrabajanContexto from './TrabajanContexto.jsx';
+import CECursoContexto from './CECursoContexto.jsx';
+import RACursoContexto from './RACursoContexto.jsx';
 
-// Proveedor compuesto que agrupa todos los proveedores de contexto de mantenimiento de tablas
+// Proveedor compuesto que agrupa todos los proveedores de contexto de mantenimiento de tablas del sistema
 const MantenimientoProveedores = ({ children }) => {
   return (
     <CiclosContexto>
@@ -19,7 +24,17 @@ const MantenimientoProveedores = ({ children }) => {
               <PracticasContexto>
                 <RAContexto>
                   <CEContexto>
-                    {children}
+                    <ImparteContexto>
+                      <EvaluanContexto>
+                        <TrabajanContexto>
+                          <CECursoContexto>
+                            <RACursoContexto>
+                              {children}
+                            </RACursoContexto>
+                          </CECursoContexto>
+                        </TrabajanContexto>
+                      </EvaluanContexto>
+                    </ImparteContexto>
                   </CEContexto>
                 </RAContexto>
               </PracticasContexto>

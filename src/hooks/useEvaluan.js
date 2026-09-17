@@ -14,7 +14,7 @@ const useEvaluan = (cargarAlMontar = true) => {
     setDatos
   } = useDatos('evaluan');
 
-  // Se obtienen todas las calificaciones y asignaciones registradas en evaluan
+  // Se obtienen todas las calificaciones registradas en evaluan
   const recargar = useCallback(async () => {
     return await obtenerDatos('*');
   }, [obtenerDatos]);
@@ -26,17 +26,17 @@ const useEvaluan = (cargarAlMontar = true) => {
     }
   }, [cargarAlMontar, recargar]);
 
-  // Se inserta una nueva calificación o vinculación en evaluan
-  const crear = useCallback(async (nuevoRegistro) => {
-    return await insertar(nuevoRegistro);
+  // Se inserta una nueva calificación en la tabla evaluan
+  const crear = useCallback(async (nuevaCalificacion) => {
+    return await insertar(nuevaCalificacion);
   }, [insertar]);
 
-  // Se actualiza un registro existente en evaluan
+  // Se actualizan los datos de una calificación existente
   const modificar = useCallback(async (idEvaluan, datosActualizados) => {
     return await actualizar('id_evaluan', idEvaluan, datosActualizados);
   }, [actualizar]);
 
-  // Se elimina un registro de evaluan por su identificador
+  // Se elimina una calificación por su identificador único
   const borrar = useCallback(async (idEvaluan) => {
     return await eliminar('id_evaluan', idEvaluan);
   }, [eliminar]);

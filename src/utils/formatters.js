@@ -36,8 +36,78 @@ export const formatearTamanoArchivo = (bytes) => {
   return `${valorConComa} ${unidades[i]}`;
 };
 
+// Se formatea un Criterio de Evaluación (CE) mostrando su identificador y descripción pedagógica sin duplicaciones
+export const formatearTextoCE = (c) => {
+  if (!c) return "-";
+  const numStr = c.numero ? `CE ${c.numero}` : "";
+  let nombre = (c.nombre || numStr || "").trim();
+  const desc = (c.descripcion || "").trim();
+
+  // Si no hay descripción disponible, se devuelve el nombre o código
+  if (!desc) {
+    return nombre || numStr || "Criterio sin nombre";
+  }
+
+  // Si no hay nombre disponible, se devuelve la descripción
+  if (!nombre) {
+    return desc;
+  }
+
+  // Si el nombre ya incluye la descripción, se devuelve el nombre para evitar duplicar texto
+  if (
+    nombre.toLowerCase() === desc.toLowerCase() ||
+    nombre.toLowerCase().includes(desc.toLowerCase())
+  ) {
+    return nombre;
+  }
+
+  // Si la descripción ya incluye el nombre al inicio, se devuelve la descripción
+  if (desc.toLowerCase().includes(nombre.toLowerCase())) {
+    return desc;
+  }
+
+  // Si ambos campos son diferentes, se combinan con guion
+  return `${nombre} - ${desc}`;
+};
+
+// Se formatea un Resultado de Aprendizaje (RA) mostrando su identificador y descripción pedagógica sin duplicaciones
+export const formatearTextoRA = (r) => {
+  if (!r) return "-";
+  const numStr = r.numero ? `RA ${r.numero}` : "";
+  let nombre = (r.nombre || numStr || "").trim();
+  const desc = (r.descripcion || "").trim();
+
+  // Si no hay descripción disponible, se devuelve el nombre o código
+  if (!desc) {
+    return nombre || numStr || "RA sin nombre";
+  }
+
+  // Si no hay nombre disponible, se devuelve la descripción
+  if (!nombre) {
+    return desc;
+  }
+
+  // Si el nombre ya incluye la descripción, se devuelve el nombre para evitar duplicar texto
+  if (
+    nombre.toLowerCase() === desc.toLowerCase() ||
+    nombre.toLowerCase().includes(desc.toLowerCase())
+  ) {
+    return nombre;
+  }
+
+  // Si la descripción ya incluye el nombre al inicio, se devuelve la descripción
+  if (desc.toLowerCase().includes(nombre.toLowerCase())) {
+    return desc;
+  }
+
+  // Si ambos campos son diferentes, se combinan con guion
+  return `${nombre} - ${desc}`;
+};
+
 export default {
   formatNota,
   formatearTamanoArchivo,
+  formatearTextoCE,
+  formatearTextoRA,
 };
 

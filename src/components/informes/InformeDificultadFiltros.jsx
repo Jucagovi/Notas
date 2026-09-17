@@ -167,7 +167,7 @@ const InformeDificultadFiltros = ({
           />
         </div>
 
-        {/* 3. Desplegable de Práctica */}
+        {/* 3. Desplegable de Práctica (filtrada por el curso y módulo seleccionados) */}
         <div className="col-12 md:col-4">
           <label htmlFor="select-practica-dificultad" className="block text-xs font-bold text-muted uppercase mb-1">
             3. Práctica
@@ -180,15 +180,24 @@ const InformeDificultadFiltros = ({
             optionLabel="nombre"
             onChange={(e) => setPracticaSeleccionadaId(e.value)}
             placeholder={
-              !moduloSeleccionadoId
+              !cursoSeleccionadoId
+                ? 'Primero seleccione un curso'
+                : !moduloSeleccionadoId
                 ? 'Primero seleccione un módulo'
                 : cargandoPracticas
                 ? 'Cargando prácticas...'
                 : practicasDisponibles.length === 0
-                ? 'No hay prácticas en este módulo'
+                ? 'No hay prácticas en este curso'
                 : 'Seleccione una Práctica...'
             }
-            disabled={!moduloSeleccionadoId || cargandoPracticas || practicasDisponibles.length === 0}
+            emptyMessage={
+              !cursoSeleccionadoId
+                ? 'Seleccione primero un curso académico.'
+                : !moduloSeleccionadoId
+                ? 'Seleccione primero un módulo profesional.'
+                : 'No hay prácticas asignadas a evaluaciones en este curso.'
+            }
+            disabled={!cursoSeleccionadoId || !moduloSeleccionadoId || cargandoPracticas || practicasDisponibles.length === 0}
             itemTemplate={plantillaOpcionPractica}
             valueTemplate={plantillaValorPractica}
             className="w-full p-inputtext-sm"

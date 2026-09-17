@@ -104,6 +104,32 @@ const ELEMENTOS_HERRAMIENTAS = [
     icon: "pi pi-calendar-plus",
     to: "/herramientas/mantenimiento/evaluaciones",
   },
+  // Elementos de la sección de tablas de relación (tablas sensibles)
+  {
+    label: "Imparte",
+    icon: "pi pi-id-card",
+    to: "/herramientas/relaciones/imparte",
+  },
+  {
+    label: "Evalúan",
+    icon: "pi pi-calculator",
+    to: "/herramientas/relaciones/evaluan",
+  },
+  {
+    label: "Trabajan",
+    icon: "pi pi-sliders-h",
+    to: "/herramientas/relaciones/trabajan",
+  },
+  {
+    label: "CE por Curso",
+    icon: "pi pi-percentage",
+    to: "/herramientas/relaciones/ce-curso",
+  },
+  {
+    label: "RA por Curso",
+    icon: "pi pi-chart-pie",
+    to: "/herramientas/relaciones/ra-curso",
+  },
 ];
 
 // Elementos principales de la barra de navegación lateral
@@ -290,6 +316,30 @@ const Layout = () => {
                       </div>
                       {item.subItems
                         .filter((sub) => sub.to.includes("/mantenimiento/"))
+                        .map((sub) => {
+                          const subUrl = new URL(sub.to, "http://localhost");
+                          const coincideRuta =
+                            location.pathname === subUrl.pathname;
+                          const subActivo = coincideRuta && !location.search;
+
+                          return (
+                            <NavLink
+                              key={sub.to}
+                              to={sub.to}
+                              className={`nav-subitem ${subActivo ? "nav-subitem-active" : ""}`}
+                              onClick={onItemClick}
+                            >
+                              <i className={`${sub.icon} nav-subicon`} />
+                              <span>{sub.label}</span>
+                            </NavLink>
+                          );
+                        })}
+                      <div className='text-xs uppercase font-bold text-muted px-2 pt-3 pb-1 flex align-items-center justify-content-between'>
+                        <span>Tablas de Relación</span>
+                        <i className='pi pi-shield text-xs text-orange-500' title='Tablas sensibles del sistema' />
+                      </div>
+                      {item.subItems
+                        .filter((sub) => sub.to.includes("/relaciones/"))
                         .map((sub) => {
                           const subUrl = new URL(sub.to, "http://localhost");
                           const coincideRuta =

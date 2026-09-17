@@ -14,7 +14,7 @@ const useTrabajan = (cargarAlMontar = true) => {
     setDatos
   } = useDatos('trabajan');
 
-  // Se obtienen todas las asignaciones registradas en la tabla trabajan
+  // Se obtienen todas las vinculaciones de prácticas y criterios de evaluación
   const recargar = useCallback(async () => {
     return await obtenerDatos('*');
   }, [obtenerDatos]);
@@ -26,17 +26,17 @@ const useTrabajan = (cargarAlMontar = true) => {
     }
   }, [cargarAlMontar, recargar]);
 
-  // Se inserta una nueva asignación de práctica a criterio de evaluación
-  const crear = useCallback(async (nuevaAsignacion) => {
-    return await insertar(nuevaAsignacion);
+  // Se inserta una nueva vinculación de práctica y criterio
+  const crear = useCallback(async (nuevaVinculacion) => {
+    return await insertar(nuevaVinculacion);
   }, [insertar]);
 
-  // Se actualizan los datos de una asignación existente
+  // Se actualizan los datos de una vinculación existente
   const modificar = useCallback(async (idTrabajan, datosActualizados) => {
     return await actualizar('id_trabajan', idTrabajan, datosActualizados);
   }, [actualizar]);
 
-  // Se elimina una asignación por su identificador
+  // Se elimina una vinculación por su identificador único
   const borrar = useCallback(async (idTrabajan) => {
     return await eliminar('id_trabajan', idTrabajan);
   }, [eliminar]);

@@ -8,10 +8,10 @@ const RAPagina = () => {
   const { datos, cargando, crear, modificar, eliminar, recargar } = useRAContexto();
   const { datos: modulos } = useModulosContexto();
 
-  // Opciones de módulos para desplegable
+  // Opciones de módulos para desplegable (únicamente nombre, sin siglas)
   const opcionesModulos = useMemo(() => {
     return (modulos || []).map((m) => ({
-      label: `${m.siglas ? `[${m.siglas}] ` : ''}${m.nombre}`,
+      label: m.nombre || 'Módulo sin nombre',
       value: m.id_modulo
     }));
   }, [modulos]);
@@ -32,6 +32,7 @@ const RAPagina = () => {
       encabezado: 'Resultado de Aprendizaje',
       tipo: 'texto',
       requerido: true,
+      ancho: '260px',
       placeholder: 'Ej. Desarrolla aplicaciones web cliente interactivas'
     },
     {
@@ -48,6 +49,7 @@ const RAPagina = () => {
       encabezado: 'Descripción',
       tipo: 'textarea',
       requerido: false,
+      ancho: '320px',
       placeholder: 'Detalle o desglose del resultado de aprendizaje'
     },
     {

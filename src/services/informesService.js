@@ -3,7 +3,11 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatNota } from '../utils/formatters.js';
 import { getColorNota } from '../utils/coloresNota.js';
-import { ordenarEvaluaciones } from './evaluacionService.js';
+import {
+  ordenarEvaluaciones,
+  obtenerOrdenEvaluacion,
+  obtenerModulosPorCurso
+} from './evaluacionService.js';
 
 // Se obtienen los datos de cobertura curricular de un módulo profesional y sus asignaciones en la tabla trabajan
 export const obtenerDatosCoberturaCurricular = async (idModulo, idCurso = null) => {
@@ -65,40 +69,10 @@ export const obtenerDatosCoberturaCurricular = async (idModulo, idCurso = null) 
 
     const idsCE = (listaCE || []).map((ce) => ce.id_ce);
 
-    // 4. Se consultan las vinculaciones en la tabla trabajan para los CE obtenidos junto con los datos de sus prácticas
-    let listaTrabajan = [];
-    if (idsCE.length > 0) {
-      const { data: datosTrabajan, error: errorTrabajan } = await supabase
-        .from('trabajan')
-        .select(`
-          id_trabajan,
-          id_ce,
-          id_practica,
-          porcentaje,
-          descripcion,
-          Practicas:id_practica (
-            id_practica,
-            nombre,
-            numero,
-            enunciado,
-            descripcion,
-            id_tipopractica,
-            unidad,
-            id_modulo
-          )
-        `)
-        .in('id_ce', idsCE);
-
-      if (errorTrabajan) {
-        console.error('Error al consultar asignaciones en trabajan:', errorTrabajan);
-        return { data: null, error: errorTrabajan.message };
-      }
-
-      listaTrabajan = datosTrabajan || [];
-    }
-
-    // 5. Si se especifica un curso, se consultan las evaluaciones registradas para contextualizar las prácticas
+    // 4. Si se especifica un curso, se consultan las evaluaciones y las prácticas vinculadas en dicho curso
     let evaluacionesCurso = [];
+    let idsPracticasCurso = [];
+
     if (idCurso) {
       const { data: datosEvaluaciones, error: errorEvaluaciones } = await supabase
         .from('Evaluaciones')
@@ -118,6 +92,65 @@ export const obtenerDatosCoberturaCurricular = async (idModulo, idCurso = null) 
         console.error('Error al consultar evaluaciones del curso:', errorEvaluaciones);
       } else {
         evaluacionesCurso = datosEvaluaciones || [];
+      }
+
+      // Se obtienen los identificadores de prácticas vinculadas a las evaluaciones de este curso en evaluan
+      const idsEvaluaciones = evaluacionesCurso.map((ev) => ev.id_evaluacion);
+      if (idsEvaluaciones.length > 0) {
+        const { data: practicasEvaluan, error: errorEvaluan } = await supabase
+          .from('evaluan')
+          .select('id_practica')
+          .in('id_evaluacion', idsEvaluaciones);
+
+        if (errorEvaluan) {
+          console.error('Error al consultar prácticas del curso en evaluan:', errorEvaluan);
+        } else if (practicasEvaluan) {
+          idsPracticasCurso = [...new Set(practicasEvaluan.map((p) => p.id_practica).filter(Boolean))];
+        }
+      }
+    }
+
+    // 5. Se consultan las vinculaciones en la tabla trabajan para los CE obtenidos
+    // Si se especificó un curso, sólo se consideran las prácticas asociadas a las evaluaciones de dicho curso
+    let listaTrabajan = [];
+    if (idsCE.length > 0) {
+      // Si hay curso pero no tiene prácticas asignadas a evaluaciones, la cobertura es vacía
+      if (idCurso && idsPracticasCurso.length === 0) {
+        listaTrabajan = [];
+      } else {
+        let consultaTrabajan = supabase
+          .from('trabajan')
+          .select(`
+            id_trabajan,
+            id_ce,
+            id_practica,
+            porcentaje,
+            descripcion,
+            Practicas:id_practica (
+              id_practica,
+              nombre,
+              numero,
+              enunciado,
+              descripcion,
+              id_tipopractica,
+              unidad,
+              id_modulo
+            )
+          `)
+          .in('id_ce', idsCE);
+
+        if (idCurso && idsPracticasCurso.length > 0) {
+          consultaTrabajan = consultaTrabajan.in('id_practica', idsPracticasCurso);
+        }
+
+        const { data: datosTrabajan, error: errorTrabajan } = await consultaTrabajan;
+
+        if (errorTrabajan) {
+          console.error('Error al consultar asignaciones en trabajan:', errorTrabajan);
+          return { data: null, error: errorTrabajan.message };
+        }
+
+        listaTrabajan = datosTrabajan || [];
       }
     }
 
@@ -725,7 +758,322 @@ export const getPendientesPorEvaluacion = async (evaluacionId) => {
   }
 };
 
-// Se genera y descarga un informe en formato PDF con las calificaciones pendientes de una evaluación
+// Se obtienen las calificaciones pendientes agrupadas por módulo y evaluación para un curso académico completo
+export const getPendientesPorCurso = async (cursoId) => {
+  if (!cursoId) {
+    return { data: null, error: 'Identificador de curso no proporcionado.' };
+  }
+
+  try {
+    // 1. Se consultan concurrentemente los datos del curso, sus módulos, sus evaluaciones y las matrículas en imparte
+    const [resCurso, resModulos, resEvaluaciones, resImparte] = await Promise.all([
+      supabase
+        .from('Cursos')
+        .select('id_curso, nombre, anyo, centro, descripcion')
+        .eq('id_curso', cursoId)
+        .single(),
+      obtenerModulosPorCurso(cursoId),
+      supabase
+        .from('Evaluaciones')
+        .select(`
+          id_evaluacion,
+          nombre,
+          fecha_ini,
+          fecha_fin,
+          descripcion,
+          id_curso,
+          id_modulo,
+          Modulos:id_modulo (
+            id_modulo,
+            nombre,
+            siglas
+          )
+        `)
+        .eq('id_curso', cursoId),
+      supabase
+        .from('imparte')
+        .select(`
+          id_imparte,
+          id_curso,
+          id_modulo,
+          id_discente,
+          Discentes:id_discente (
+            id_discente,
+            nombre,
+            apellidos,
+            NIA,
+            correo,
+            localidad,
+            imagen,
+            activo
+          )
+        `)
+        .eq('id_curso', cursoId)
+    ]);
+
+    if (resCurso.error) {
+      console.error(`Error al consultar el curso ${cursoId}:`, resCurso.error);
+      return { data: null, error: resCurso.error.message };
+    }
+
+    const curso = resCurso.data;
+    const modulosCurso = resModulos.data || [];
+    const evaluacionesCurso = resEvaluaciones.data || [];
+    const registrosImparte = resImparte.data || [];
+
+    // 2. Se obtienen los identificadores de evaluación del curso para consultar evaluan
+    const idsEvaluaciones = evaluacionesCurso.map((e) => e.id_evaluacion);
+    let registrosEvaluan = [];
+
+    if (idsEvaluaciones.length > 0) {
+      const { data: datosEvaluan, error: errorEvaluan } = await supabase
+        .from('evaluan')
+        .select(`
+          id_evaluan,
+          id_practica,
+          id_evaluacion,
+          id_discente,
+          nota,
+          peso,
+          Practicas:id_practica (
+            id_practica,
+            nombre,
+            numero,
+            enunciado,
+            descripcion,
+            id_tipopractica,
+            unidad,
+            id_modulo
+          ),
+          Discentes:id_discente (
+            id_discente,
+            nombre,
+            apellidos,
+            NIA,
+            correo,
+            localidad,
+            imagen,
+            activo
+          )
+        `)
+        .in('id_evaluacion', idsEvaluaciones);
+
+      if (errorEvaluan) {
+        console.error('Error al consultar calificaciones en evaluan para el curso:', errorEvaluan);
+      } else {
+        registrosEvaluan = datosEvaluan || [];
+      }
+    }
+
+    // 3. Se mapean los discentes matriculados por módulo a través de imparte
+    const discentesPorModulo = new Map();
+    registrosImparte.forEach((item) => {
+      if (item.id_modulo && item.Discentes) {
+        if (!discentesPorModulo.has(item.id_modulo)) {
+          discentesPorModulo.set(item.id_modulo, new Map());
+        }
+        discentesPorModulo.get(item.id_modulo).set(item.id_discente, item.Discentes);
+      }
+    });
+
+    // Mecanismo de respaldo: si no hay discentes en imparte para ningún módulo, se consultan los discentes activos
+    let todosDiscentesActivos = null;
+    if (registrosImparte.length === 0) {
+      const { data: discentesActivos, error: errorDiscentes } = await supabase
+        .from('Discentes')
+        .select('id_discente, nombre, apellidos, NIA, correo, localidad, imagen, activo')
+        .eq('activo', true)
+        .order('apellidos', { ascending: true });
+
+      if (!errorDiscentes && discentesActivos) {
+        todosDiscentesActivos = discentesActivos;
+      }
+    }
+
+    // 4. Se indexan las evaluaciones registradas en evaluan y sus prácticas
+    const evaluanPorEvaluacion = new Map();
+    const practicasPorEvaluacion = new Map();
+
+    registrosEvaluan.forEach((reg) => {
+      // Indexación de calificaciones
+      if (reg.id_evaluacion && reg.id_practica && reg.id_discente) {
+        if (!evaluanPorEvaluacion.has(reg.id_evaluacion)) {
+          evaluanPorEvaluacion.set(reg.id_evaluacion, new Map());
+        }
+        const clave = `${reg.id_practica}_${reg.id_discente}`;
+        evaluanPorEvaluacion.get(reg.id_evaluacion).set(clave, reg);
+      }
+
+      // Indexación de prácticas únicas por evaluación
+      if (reg.id_evaluacion && reg.id_practica && reg.Practicas) {
+        if (!practicasPorEvaluacion.has(reg.id_evaluacion)) {
+          practicasPorEvaluacion.set(reg.id_evaluacion, new Map());
+        }
+        if (!practicasPorEvaluacion.get(reg.id_evaluacion).has(reg.id_practica)) {
+          practicasPorEvaluacion.get(reg.id_evaluacion).set(reg.id_practica, reg.Practicas);
+        }
+      }
+
+      // Se registran también discentes que figuren en evaluan si no estuvieran en imparte
+      if (reg.id_evaluacion && reg.id_discente && reg.Discentes) {
+        const ev = evaluacionesCurso.find((e) => e.id_evaluacion === reg.id_evaluacion);
+        if (ev && ev.id_modulo) {
+          if (!discentesPorModulo.has(ev.id_modulo)) {
+            discentesPorModulo.set(ev.id_modulo, new Map());
+          }
+          if (!discentesPorModulo.get(ev.id_modulo).has(reg.id_discente)) {
+            discentesPorModulo.get(ev.id_modulo).set(reg.id_discente, reg.Discentes);
+          }
+        }
+      }
+    });
+
+    // 5. Se procesa cada módulo para generar sus evaluaciones y calificaciones pendientes
+    let totalPendientesCurso = 0;
+
+    // Se ordenan los módulos alfabéticamente por siglas o nombre
+    const modulosOrdenados = [...modulosCurso].sort((a, b) => {
+      const nomA = a.siglas || a.nombre || '';
+      const nomB = b.siglas || b.nombre || '';
+      return nomA.localeCompare(nomB);
+    });
+
+    const resultadoModulos = modulosOrdenados.map((modulo) => {
+      // Se extraen y ordenan cronológicamente las evaluaciones del módulo
+      const evsModulo = evaluacionesCurso.filter((e) => e.id_modulo === modulo.id_modulo);
+      const evsModuloOrdenadas = ordenarEvaluaciones(evsModulo);
+
+      // Discentes matriculados en este módulo o respaldo general
+      const mapaDiscentes = discentesPorModulo.get(modulo.id_modulo) || new Map();
+      let listaDiscentesModulo = Array.from(mapaDiscentes.values());
+
+      if (listaDiscentesModulo.length === 0 && todosDiscentesActivos) {
+        listaDiscentesModulo = todosDiscentesActivos;
+      }
+
+      const pendientesModulo = [];
+      const desgloseEvaluaciones = [];
+
+      evsModuloOrdenadas.forEach((evaluacion) => {
+        const mapaPracticas = practicasPorEvaluacion.get(evaluacion.id_evaluacion) || new Map();
+        const listaPracticas = Array.from(mapaPracticas.values()).sort((a, b) => {
+          const pA = a || {};
+          const pB = b || {};
+          if (pA.numero && pB.numero) {
+            return pA.numero.toString().localeCompare(pB.numero.toString(), undefined, { numeric: true });
+          }
+          if (pA.numero) return -1;
+          if (pB.numero) return 1;
+          return (pA.nombre || '').localeCompare(pB.nombre || '');
+        });
+
+        const mapaNotasEval = evaluanPorEvaluacion.get(evaluacion.id_evaluacion) || new Map();
+        const pendientesEvaluacion = [];
+
+        listaDiscentesModulo.forEach((discente) => {
+          listaPracticas.forEach((practica) => {
+            const clave = `${practica.id_practica}_${discente.id_discente}`;
+            const regNota = mapaNotasEval.get(clave);
+
+            // Se considera pendiente cuando el registro no existe o la nota es nula
+            const esPendiente =
+              !regNota ||
+              regNota.nota === null ||
+              regNota.nota === undefined ||
+              regNota.nota === '';
+
+            if (esPendiente) {
+              const filaPendiente = {
+                id_fila: `${evaluacion.id_evaluacion}_${practica.id_practica}_${discente.id_discente}`,
+                id_evaluan: regNota?.id_evaluan || null,
+                id_evaluacion: evaluacion.id_evaluacion,
+                nombreEvaluacion: evaluacion.nombre || 'Evaluación',
+                ordenEvaluacion: obtenerOrdenEvaluacion(evaluacion.nombre),
+                evaluacion,
+                id_curso: cursoId,
+                nombreCurso: curso.nombre || '',
+                id_modulo: modulo.id_modulo,
+                nombreModulo: modulo.nombre || '',
+                siglasModulo: modulo.siglas || '',
+                modulo,
+                id_practica: practica.id_practica,
+                numeroPractica: practica.numero || '',
+                codigoPractica: practica.numero ? `P${practica.numero}` : '',
+                nombrePractica: practica.nombre || 'Sin título',
+                textoPractica: practica.numero
+                  ? `Práctica ${practica.numero}: ${practica.nombre || 'Sin título'}`
+                  : practica.nombre || 'Práctica sin título',
+                practica,
+                id_discente: discente.id_discente,
+                nombreDiscente: discente.nombre || '',
+                apellidosDiscente: discente.apellidos || '',
+                nombreCompletoDiscente: `${discente.nombre || ''} ${discente.apellidos || ''}`.trim(),
+                discenteNia: discente.NIA || '',
+                discenteCorreo: discente.correo || '',
+                discenteImagen: discente.imagen || null,
+                discente,
+                peso: regNota?.peso || 100
+              };
+
+              pendientesEvaluacion.push(filaPendiente);
+              pendientesModulo.push(filaPendiente);
+            }
+          });
+        });
+
+        desgloseEvaluaciones.push({
+          evaluacion,
+          totalPracticas: listaPracticas.length,
+          totalPendientes: pendientesEvaluacion.length,
+          pendientes: pendientesEvaluacion
+        });
+      });
+
+      // Se ordenan los registros pendientes del módulo por orden de evaluación, apellidos y práctica
+      pendientesModulo.sort((a, b) => {
+        if (a.ordenEvaluacion !== b.ordenEvaluacion) {
+          return a.ordenEvaluacion - b.ordenEvaluacion;
+        }
+        const compApellidos = (a.apellidosDiscente || '').localeCompare(b.apellidosDiscente || '');
+        if (compApellidos !== 0) return compApellidos;
+        const compNombre = (a.nombreDiscente || '').localeCompare(b.nombreDiscente || '');
+        if (compNombre !== 0) return compNombre;
+        return (a.nombrePractica || '').localeCompare(b.nombrePractica || '');
+      });
+
+      totalPendientesCurso += pendientesModulo.length;
+
+      return {
+        id_modulo: modulo.id_modulo,
+        nombre: modulo.nombre,
+        siglas: modulo.siglas,
+        descripcion: modulo.descripcion,
+        evaluaciones: evsModuloOrdenadas,
+        desgloseEvaluaciones,
+        pendientes: pendientesModulo,
+        totalPendientes: pendientesModulo.length,
+        totalDiscentes: listaDiscentesModulo.length
+      };
+    });
+
+    return {
+      data: {
+        curso,
+        modulos: resultadoModulos,
+        totalPendientesCurso
+      },
+      error: null
+    };
+  } catch (err) {
+    console.error('Error inesperado en getPendientesPorCurso:', err);
+    return {
+      data: null,
+      error: err.message || 'Error al obtener las calificaciones pendientes del curso.'
+    };
+  }
+};
+
+// Se genera y descarga un informe en formato PDF con las calificaciones pendientes de una evaluación o módulo
 export const exportarInformePendientesPDF = ({
   evaluacion,
   curso,
@@ -791,7 +1139,7 @@ export const exportarInformePendientesPDF = ({
     doc.setFont('helvetica', 'bold');
     doc.text('EVALUACIÓN:', margenIzquierdo + 4, posicionY + 21.5);
     doc.setFont('helvetica', 'normal');
-    const textoEvaluacion = evaluacion?.nombre || 'Evaluación general';
+    const textoEvaluacion = evaluacion?.nombre || 'Todas las evaluaciones del módulo';
     doc.text(textoEvaluacion, margenIzquierdo + 42, posicionY + 21.5);
 
     posicionY += 32;
@@ -811,7 +1159,7 @@ export const exportarInformePendientesPDF = ({
     const kpis = [
       { titulo: 'Total Pendientes', valor: totalPendientes, color: totalPendientes > 0 ? [234, 88, 12] : [22, 163, 74] },
       { titulo: 'Estado de Actas', valor: totalPendientes === 0 ? 'COMPLETAS' : 'INCOMPLETAS', color: totalPendientes === 0 ? [22, 163, 74] : [220, 38, 38] },
-      { titulo: 'Evaluación', valor: textoEvaluacion, color: [51, 65, 85] }
+      { titulo: 'Convocatoria', valor: evaluacion?.nombre || 'Módulo Completo', color: [51, 65, 85] }
     ];
 
     kpis.forEach((kpi, idx) => {
@@ -842,7 +1190,10 @@ export const exportarInformePendientesPDF = ({
       doc.setTextColor(22, 163, 74);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
-      doc.text('¡Todo al día! No hay calificaciones pendientes para esta evaluación.', margenIzquierdo + anchoUtil / 2, posicionY + 11.5, { align: 'center' });
+      const msgExito = evaluacion
+        ? '¡Todo al día! No hay calificaciones pendientes para esta evaluación.'
+        : '¡Todo al día! No hay calificaciones pendientes para este módulo.';
+      doc.text(msgExito, margenIzquierdo + anchoUtil / 2, posicionY + 11.5, { align: 'center' });
     } else {
       // Tabla detallada de calificaciones pendientes
       doc.setFont('helvetica', 'bold');
@@ -926,7 +1277,8 @@ export const exportarInformePendientesPDF = ({
       );
     }
 
-    const nombreArchivo = `Calificaciones_Pendientes_${(evaluacion?.nombre || 'Evaluacion').replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+    const baseNombre = evaluacion?.nombre || modulo?.siglas || modulo?.nombre || 'Modulo';
+    const nombreArchivo = `Calificaciones_Pendientes_${baseNombre.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
     doc.save(nombreArchivo);
     return { exito: true, error: null };
   } catch (err) {
@@ -996,18 +1348,113 @@ export const obtenerResumenCalificacionesPendientes = async () => {
   }
 };
 
+// Se obtienen las prácticas asignadas a las evaluaciones de un curso y módulo específicos
+export const getPracticasPorCursoYModulo = async (cursoId, moduloId) => {
+  if (!cursoId || !moduloId) {
+    return { data: [], error: null };
+  }
+
+  try {
+    // 1. Se obtienen las evaluaciones asociadas al curso y módulo seleccionados
+    const { data: evaluaciones, error: errorEv } = await supabase
+      .from('Evaluaciones')
+      .select('id_evaluacion')
+      .eq('id_curso', cursoId)
+      .eq('id_modulo', moduloId);
+
+    if (errorEv) {
+      console.error(`Error al consultar evaluaciones del curso ${cursoId} y módulo ${moduloId}:`, errorEv);
+      return { data: [], error: errorEv.message };
+    }
+
+    if (!evaluaciones || evaluaciones.length === 0) {
+      return { data: [], error: null };
+    }
+
+    const idsEvaluaciones = evaluaciones.map((ev) => ev.id_evaluacion);
+
+    // 2. Se consultan las prácticas vinculadas en evaluan para esas evaluaciones
+    const { data: datosEvaluan, error: errorEvaluan } = await supabase
+      .from('evaluan')
+      .select(`
+        id_practica,
+        Practicas:id_practica (
+          id_practica,
+          nombre,
+          numero,
+          enunciado,
+          descripcion,
+          id_tipopractica,
+          unidad,
+          id_modulo
+        )
+      `)
+      .in('id_evaluacion', idsEvaluaciones);
+
+    if (errorEvaluan) {
+      console.error('Error al consultar prácticas asignadas en evaluan para el curso y módulo:', errorEvaluan);
+      return { data: [], error: errorEvaluan.message };
+    }
+
+    // 3. Se unifican los registros por id_practica para eliminar duplicados
+    const mapaPracticas = new Map();
+    (datosEvaluan || []).forEach((item) => {
+      if (item.id_practica && item.Practicas && !mapaPracticas.has(item.id_practica)) {
+        mapaPracticas.set(item.id_practica, item.Practicas);
+      }
+    });
+
+    // 4. Se ordenan las prácticas por numeración o nombre de forma natural
+    const listaOrdenada = Array.from(mapaPracticas.values()).sort((a, b) => {
+      if (a.numero && b.numero) {
+        return a.numero.toString().localeCompare(b.numero.toString(), undefined, { numeric: true });
+      }
+      if (a.numero) return -1;
+      if (b.numero) return 1;
+      return (a.nombre || '').localeCompare(b.nombre || '');
+    });
+
+    return { data: listaOrdenada, error: null };
+  } catch (err) {
+    console.error('Error inesperado en getPracticasPorCursoYModulo:', err);
+    return { data: [], error: err.message || 'Error al obtener las prácticas del curso y módulo.' };
+  }
+};
+
 // Se obtienen las calificaciones numéricas válidas de una práctica para el análisis de distribución y dificultad
-export const getDistribucionNotas = async (practicaId) => {
+export const getDistribucionNotas = async (practicaId, cursoId = null) => {
   if (!practicaId) {
     return { data: [], error: 'Identificador de práctica no proporcionado.' };
   }
 
   try {
-    const { data, error } = await supabase
+    let consultaEvaluan = supabase
       .from('evaluan')
-      .select('nota')
+      .select('nota, id_evaluacion')
       .eq('id_practica', practicaId)
       .not('nota', 'is', null);
+
+    // Si se especifica un curso, se filtra por las evaluaciones asociadas a dicho curso
+    if (cursoId) {
+      const { data: evaluaciones, error: errorEv } = await supabase
+        .from('Evaluaciones')
+        .select('id_evaluacion')
+        .eq('id_curso', cursoId);
+
+      if (errorEv) {
+        console.error(`Error al consultar evaluaciones del curso ${cursoId}:`, errorEv);
+        return { data: [], error: errorEv.message };
+      }
+
+      const idsEvaluaciones = (evaluaciones || []).map((ev) => ev.id_evaluacion);
+      if (idsEvaluaciones.length === 0) {
+        return { data: [], error: null };
+      }
+
+      consultaEvaluan = consultaEvaluan.in('id_evaluacion', idsEvaluaciones);
+    }
+
+    const { data, error } = await consultaEvaluan;
 
     if (error) {
       console.error(`Error al consultar la distribución de notas para la práctica ${practicaId}:`, error);
@@ -1335,8 +1782,8 @@ export const getDatosActa = async (moduloId, cursoId = null) => {
       discentes = Array.from(mapaDiscentes.values());
     }
 
-    // Si no se encontraron discentes en imparte, se consultan los discentes activos como respaldo
-    if (discentes.length === 0) {
+    // Si no se encontraron discentes en imparte y no se especificó cursoId, se consultan los discentes activos como respaldo
+    if (!cursoId && discentes.length === 0) {
       const { data: todosDiscentes, error: errorTodosDiscentes } = await supabase
         .from('Discentes')
         .select('id_discente, nombre, apellidos, NIA, correo, localidad, imagen, activo')
@@ -1514,49 +1961,85 @@ export const getDatosActa = async (moduloId, cursoId = null) => {
     let registrosEvaluan = [];
     const idsDiscentesMatriculados = discentes.map((d) => d.id_discente);
 
-    let consultaEvaluan = supabase.from('evaluan').select(`
-      id_evaluan,
-      id_practica,
-      id_evaluacion,
-      id_discente,
-      nota,
-      peso,
-      Discentes:id_discente (
-        id_discente,
-        nombre,
-        apellidos,
-        NIA,
-        correo,
-        imagen,
-        activo
-      )
-    `);
+    if (cursoId) {
+      // Si se especificó cursoId, sólo se consultan las calificaciones correspondientes a las evaluaciones y discentes del curso
+      if (idsEvaluaciones.length > 0 && idsDiscentesMatriculados.length > 0) {
+        const { data: datosEvaluan, error: errorEvaluan } = await supabase
+          .from('evaluan')
+          .select(`
+            id_evaluan,
+            id_practica,
+            id_evaluacion,
+            id_discente,
+            nota,
+            peso,
+            Discentes:id_discente (
+              id_discente,
+              nombre,
+              apellidos,
+              NIA,
+              correo,
+              imagen,
+              activo
+            )
+          `)
+          .in('id_evaluacion', idsEvaluaciones)
+          .in('id_discente', idsDiscentesMatriculados);
 
-    if (idsEvaluaciones.length > 0 && idsPracticasModulo.length > 0) {
-      consultaEvaluan = consultaEvaluan.or(`id_evaluacion.in.(${idsEvaluaciones.join(',')}),id_practica.in.(${idsPracticasModulo.join(',')})`);
-    } else if (idsEvaluaciones.length > 0) {
-      consultaEvaluan = consultaEvaluan.in('id_evaluacion', idsEvaluaciones);
-    } else if (idsPracticasModulo.length > 0) {
-      consultaEvaluan = consultaEvaluan.in('id_practica', idsPracticasModulo);
-    }
-
-    const { data: datosEvaluan, error: errorEvaluan } = await consultaEvaluan;
-
-    if (errorEvaluan) {
-      console.error('Error al consultar calificaciones en evaluan para el acta:', errorEvaluan);
+        if (errorEvaluan) {
+          console.error('Error al consultar calificaciones en evaluan para el acta del curso:', errorEvaluan);
+        } else {
+          registrosEvaluan = datosEvaluan || [];
+        }
+      }
     } else {
-      registrosEvaluan = datosEvaluan || [];
+      let consultaEvaluan = supabase.from('evaluan').select(`
+        id_evaluan,
+        id_practica,
+        id_evaluacion,
+        id_discente,
+        nota,
+        peso,
+        Discentes:id_discente (
+          id_discente,
+          nombre,
+          apellidos,
+          NIA,
+          correo,
+          imagen,
+          activo
+        )
+      `);
+
+      if (idsEvaluaciones.length > 0 && idsPracticasModulo.length > 0) {
+        consultaEvaluan = consultaEvaluan.or(`id_evaluacion.in.(${idsEvaluaciones.join(',')}),id_practica.in.(${idsPracticasModulo.join(',')})`);
+      } else if (idsEvaluaciones.length > 0) {
+        consultaEvaluan = consultaEvaluan.in('id_evaluacion', idsEvaluaciones);
+      } else if (idsPracticasModulo.length > 0) {
+        consultaEvaluan = consultaEvaluan.in('id_practica', idsPracticasModulo);
+      }
+
+      const { data: datosEvaluan, error: errorEvaluan } = await consultaEvaluan;
+
+      if (errorEvaluan) {
+        console.error('Error al consultar calificaciones en evaluan para el acta:', errorEvaluan);
+      } else {
+        registrosEvaluan = datosEvaluan || [];
+      }
     }
 
-    // Se incorporan discentes que tengan registros en evaluan aunque no figuren en imparte
+    // Se construye el mapa con los discentes matriculados en el curso y módulo
     const mapaTodosDiscentes = new Map();
     discentes.forEach((d) => mapaTodosDiscentes.set(d.id_discente, d));
 
-    registrosEvaluan.forEach((reg) => {
-      if (reg.id_discente && reg.Discentes && !mapaTodosDiscentes.has(reg.id_discente)) {
-        mapaTodosDiscentes.set(reg.id_discente, reg.Discentes);
-      }
-    });
+    // Si no se proporcionó cursoId, se permite incorporar discentes que tengan registros en evaluan
+    if (!cursoId) {
+      registrosEvaluan.forEach((reg) => {
+        if (reg.id_discente && reg.Discentes && !mapaTodosDiscentes.has(reg.id_discente)) {
+          mapaTodosDiscentes.set(reg.id_discente, reg.Discentes);
+        }
+      });
+    }
 
     const listaFinalDiscentes = Array.from(mapaTodosDiscentes.values()).sort((a, b) => {
       const apeA = (a.apellidos || '').toLowerCase();

@@ -2,16 +2,17 @@ import React, { useMemo } from 'react';
 import useCEContexto from '../../hooks/useCEContexto.js';
 import useRAContexto from '../../hooks/useRAContexto.js';
 import TablaMantenimiento from '../../components/mantenimiento/TablaMantenimiento.jsx';
+import { formatearTextoRA } from '../../utils/formatters.js';
 
 // Componente de página para el mantenimiento de la tabla CE (Criterios de Evaluación)
 const CEPagina = () => {
   const { datos, cargando, crear, modificar, eliminar, recargar } = useCEContexto();
   const { datos: listaRA } = useRAContexto();
 
-  // Opciones de RA para desplegable
+  // Opciones de resultados de aprendizaje mostrando identificador y descripción pedagógica
   const opcionesRA = useMemo(() => {
     return (listaRA || []).map((ra) => ({
-      label: `RA${ra.numero || ''}: ${ra.nombre}`,
+      label: formatearTextoRA(ra),
       value: ra.id_ra
     }));
   }, [listaRA]);
@@ -32,6 +33,7 @@ const CEPagina = () => {
       encabezado: 'Criterio de Evaluación',
       tipo: 'texto',
       requerido: true,
+      ancho: '260px',
       placeholder: 'Ej. Se han identificado las etiquetas y estructuras'
     },
     {
@@ -41,13 +43,14 @@ const CEPagina = () => {
       opciones: opcionesRA,
       requerido: false,
       placeholder: 'Seleccionar RA asociado',
-      ancho: '250px'
+      ancho: '360px'
     },
     {
       campo: 'descripcion',
       encabezado: 'Descripción',
       tipo: 'textarea',
       requerido: false,
+      ancho: '320px',
       placeholder: 'Ponderación o especificación del criterio'
     },
     {

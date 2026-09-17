@@ -3,14 +3,41 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
+import { Badge } from 'primereact/badge';
 import { Tooltip } from 'primereact/tooltip';
 
-// Componente para la visualización tabular interactiva de las calificaciones pendientes
+// Componente para la visualización tabular de calificaciones pendientes agrupadas por evaluación
 const InformePendientesTabla = ({
   filas = [],
   cargando = false,
   alCalificar = () => {}
 }) => {
+  // Plantilla para la cabecera de subgrupo por evaluación
+  const plantillaCabeceraEvaluacion = (data) => {
+    const totalGrupo = filas.filter((f) => f.id_evaluacion === data.id_evaluacion).length;
+
+    return (
+      <div className="flex align-items-center justify-content-between w-full py-2 px-3 surface-ground border-round">
+        <div className="flex align-items-center gap-2">
+          <i className="pi pi-clock text-primary font-bold" />
+          <span className="font-bold text-color text-sm">
+            {data.nombreEvaluacion || 'Evaluación'}
+          </span>
+          {data.evaluacion?.fecha_ini && (
+            <span className="text-xs text-muted ml-2">
+              ({new Date(data.evaluacion.fecha_ini).toLocaleDateString('es-ES')}
+              {data.evaluacion.fecha_fin ? ` - ${new Date(data.evaluacion.fecha_fin).toLocaleDateString('es-ES')}` : ''})
+            </span>
+          )}
+        </div>
+        <Badge
+          value={`${totalGrupo} pendiente${totalGrupo === 1 ? '' : 's'}`}
+          severity="warning"
+        />
+      </div>
+    );
+  };
+
   // Plantilla visual para la columna del Discente con Avatar y NIA
   const plantillaDiscente = (fila) => {
     const iniciales = (fila.nombreDiscente?.[0] || 'D') + (fila.apellidosDiscente?.[0] || '');
@@ -39,7 +66,7 @@ const InformePendientesTabla = ({
     );
   };
 
-  // Plantilla visual para la columna de Práctica con texto integrado, truncado y tooltip
+  // Plantilla visual para la columna de Práctica con texto integrado y tooltip
   const plantillaPractica = (fila) => {
     const prefijo = fila.numeroPractica ? `P${fila.numeroPractica} - ` : '';
     const nombreCompleto = `${prefijo}${fila.nombrePractica || 'Práctica sin título'}`;
@@ -84,6 +111,24 @@ const InformePendientesTabla = ({
     );
   };
 
+  // Función de ordenación que mantiene siempre agrupadas las filas por evaluación
+  const ordenarPersonalizado = (event) => {
+    const { data, field, order } = event;
+    return [...data].sort((a, b) => {
+      const evA = a.ordenEvaluacion ?? 99;
+      const evB = b.ordenEvaluacion ?? 99;
+      if (evA !== evB) {
+        return evA - evB;
+      }
+      const valA = a[field] ?? '';
+      const valB = b[field] ?? '';
+      if (typeof valA === 'number' && typeof valB === 'number') {
+        return (valA - valB) * order;
+      }
+      return String(valA).localeCompare(String(valB), undefined, { numeric: true }) * order;
+    });
+  };
+
   return (
     <div className="surface-card p-3 border-round shadow-1">
       {/* Tooltip flotante para mostrar el nombre completo de prácticas truncadas */}
@@ -92,39 +137,45 @@ const InformePendientesTabla = ({
       <DataTable
         value={filas}
         loading={cargando}
-        paginator
-        rows={10}
-        rowsPerPageOptions={[5, 10, 25, 50]}
+        rowGroupMode="subheader"
+        groupRowsBy="id_evaluacion"
+        rowGroupHeaderTemplate={plantillaCabeceraEvaluacion}
+        customSort
+        sortFunction={ordenarPersonalizado}
+        paginator={filas.length > 10}
+        rows={15}
+        rowsPerPageOptions={[10, 15, 25, 50]}
         tableStyle={{ minWidth: '35rem' }}
         stripedRows
         responsiveLayout="scroll"
         className="p-datatable-sm"
         emptyMessage="No se encontraron calificaciones pendientes para los filtros seleccionados."
       >
-        {/* Columna Discente (ordenación por nombre completo o apellidos) */}
+        {/* Columna Discente */}
         <Column
           field="nombreCompletoDiscente"
           header="Discente"
           body={plantillaDiscente}
           sortable
-          style={{ width: '35%' }}
+          style={{ width: '40%' }}
         />
 
-        {/* Columna Práctica sin calificar (ordenación por número o título con tooltip) */}
+        {/* Columna Práctica sin calificar */}
         <Column
           field="nombrePractica"
           header="Práctica"
           body={plantillaPractica}
           sortable
-          style={{ width: '50%' }}
+          style={{ width: '45%' }}
         />
 
         {/* Columna Acción con botón Calificar */}
         <Column
           header="Acción"
           body={plantillaAccion}
-          style={{ width: '15%', textAlign: 'center' }}
-          headerStyle={{ textAlign: 'center' }}
+          bodyClassName="text-center"
+          headerClassName="text-center"
+          style={{ width: '15%' }}
         />
       </DataTable>
     </div>

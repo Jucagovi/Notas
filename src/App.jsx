@@ -36,6 +36,13 @@ import PracticasMantenimientoPagina from './pages/mantenimiento/PracticasPagina.
 import RAMantenimientoPagina from './pages/mantenimiento/RAPagina.jsx';
 import CEMantenimientoPagina from './pages/mantenimiento/CEPagina.jsx';
 
+// Páginas de mantenimiento de tablas de relación (sensibles)
+import ImparteMantenimientoPagina from './pages/mantenimiento/ImpartePagina.jsx';
+import EvaluanMantenimientoPagina from './pages/mantenimiento/EvaluanPagina.jsx';
+import TrabajanMantenimientoPagina from './pages/mantenimiento/TrabajanPagina.jsx';
+import CECursoMantenimientoPagina from './pages/mantenimiento/CECursoPagina.jsx';
+import RACursoMantenimientoPagina from './pages/mantenimiento/RACursoPagina.jsx';
+
 // Proveedores de contexto global, sesión y mantenimiento de tablas
 import ToastContexto from './context/ToastContexto.jsx';
 import SesionContexto from './context/SesionContexto.jsx';
@@ -136,6 +143,21 @@ const App = () => {
                   <Route path="mantenimiento/ra" element={<RAMantenimientoPagina />} />
                   <Route path="mantenimiento/ce" element={<CEMantenimientoPagina />} />
                   <Route path="mantenimiento" element={<Navigate to="/herramientas" replace />} />
+
+                  {/* Subrutas para mantenimiento de tablas de relación (sensibles) */}
+                  <Route path="relaciones/imparte" element={<ImparteMantenimientoPagina />} />
+                  <Route path="relaciones/evaluan" element={<EvaluanMantenimientoPagina />} />
+                  <Route path="relaciones/trabajan" element={<TrabajanMantenimientoPagina />} />
+                  <Route path="relaciones/ce-curso" element={<CECursoMantenimientoPagina />} />
+                  <Route path="relaciones/ra-curso" element={<RACursoMantenimientoPagina />} />
+                  <Route path="relaciones" element={<Navigate to="/herramientas" replace />} />
+
+                  {/* Redirecciones de conveniencia bajo mantenimiento */}
+                  <Route path="mantenimiento/imparte" element={<Navigate to="/herramientas/relaciones/imparte" replace />} />
+                  <Route path="mantenimiento/evaluan" element={<Navigate to="/herramientas/relaciones/evaluan" replace />} />
+                  <Route path="mantenimiento/trabajan" element={<Navigate to="/herramientas/relaciones/trabajan" replace />} />
+                  <Route path="mantenimiento/ce-curso" element={<Navigate to="/herramientas/relaciones/ce-curso" replace />} />
+                  <Route path="mantenimiento/ra-curso" element={<Navigate to="/herramientas/relaciones/ra-curso" replace />} />
                 </Route>
 
                 <Route path="copias-seguridad" element={<Navigate to="/herramientas/copias-seguridad" replace />} />
@@ -145,6 +167,11 @@ const App = () => {
                 <Route path="clonado-curso" element={<Navigate to="/herramientas/clonado-curso" replace />} />
                 <Route path="clonar-curso" element={<Navigate to="/herramientas/clonado-curso" replace />} />
                 <Route path="clonado" element={<Navigate to="/herramientas/clonado-curso" replace />} />
+                <Route path="relaciones/imparte" element={<Navigate to="/herramientas/relaciones/imparte" replace />} />
+                <Route path="relaciones/evaluan" element={<Navigate to="/herramientas/relaciones/evaluan" replace />} />
+                <Route path="relaciones/trabajan" element={<Navigate to="/herramientas/relaciones/trabajan" replace />} />
+                <Route path="relaciones/ce-curso" element={<Navigate to="/herramientas/relaciones/ce-curso" replace />} />
+                <Route path="relaciones/ra-curso" element={<Navigate to="/herramientas/relaciones/ra-curso" replace />} />
                 <Route path="acercaDe" element={<AcercaDePagina />} />
               </Route>
             </Route>

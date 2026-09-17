@@ -104,6 +104,50 @@ const TABLAS_MANTENIMIENTO = [
   }
 ];
 
+// Lista descriptiva de tablas de relación y asignación (tablas sensibles)
+const TABLAS_RELACIONES = [
+  {
+    id: 'imparte',
+    titulo: 'Imparte (Matrículas)',
+    descripcion: 'Asignaciones docentes y matrículas de discentes por curso y módulo formativo',
+    icono: 'pi pi-id-card',
+    color: '#0284c7',
+    ruta: '/herramientas/relaciones/imparte'
+  },
+  {
+    id: 'evaluan',
+    titulo: 'Evalúan (Calificaciones)',
+    descripcion: 'Registro y ponderación de notas en convocatorias evaluativas por discente y práctica',
+    icono: 'pi pi-calculator',
+    color: '#ea580c',
+    ruta: '/herramientas/relaciones/evaluan'
+  },
+  {
+    id: 'trabajan',
+    titulo: 'Trabajan (Prácticas y CE)',
+    descripcion: 'Vinculación y porcentaje de cobertura curricular de criterios en prácticas',
+    icono: 'pi pi-sliders-h',
+    color: '#7c3aed',
+    ruta: '/herramientas/relaciones/trabajan'
+  },
+  {
+    id: 'ce_curso',
+    titulo: 'CE por Curso',
+    descripcion: 'Ponderación y peso específico de criterios de evaluación por curso académico',
+    icono: 'pi pi-percentage',
+    color: '#059669',
+    ruta: '/herramientas/relaciones/ce-curso'
+  },
+  {
+    id: 'ra_curso',
+    titulo: 'RA por Curso',
+    descripcion: 'Ponderación y peso específico de resultados de aprendizaje por curso académico',
+    icono: 'pi pi-chart-pie',
+    color: '#d97706',
+    ruta: '/herramientas/relaciones/ra-curso'
+  }
+];
+
 // Componente principal de la sección de Herramientas, Utilidades y Mantenimiento de Tablas
 const HerramientasPagina = () => {
   const navigate = useNavigate();
@@ -220,6 +264,64 @@ const HerramientasPagina = () => {
                 <div className="flex justify-content-end">
                   <Button
                     label="Gestionar Tabla"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    size="small"
+                    text
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(tabla.ruta);
+                    }}
+                  />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Sección de mantenimiento de tablas de relación (tablas sensibles) */}
+        <div>
+          <div className="mb-3 flex flex-column sm:flex-row sm:align-items-center justify-content-between gap-2">
+            <div>
+              <div className="flex align-items-center gap-2">
+                <h3 className="text-xl font-semibold m-0">Tablas de Relación (Datos Sensibles)</h3>
+                <Tag severity="warning" value="Especial Cuidado" icon="pi pi-shield" className="text-xs" />
+              </div>
+              <p className="text-muted m-0 text-sm mt-1">
+                Gestión directa de tablas intermedias y asignaciones relacionales del sistema: matrículas, calificaciones y ponderaciones curriculares.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid-cards">
+            {TABLAS_RELACIONES.map((tabla) => (
+              <Card
+                key={tabla.id}
+                className="cursor-pointer transition-transform hover:shadow-3 hover:-translate-y-1 border-1 surface-border"
+                onClick={() => navigate(tabla.ruta)}
+              >
+                <div className="flex align-items-center gap-3 mb-3">
+                  <div
+                    className="flex align-items-center justify-content-center border-round"
+                    style={{
+                      width: '46px',
+                      height: '46px',
+                      backgroundColor: `${tabla.color}15`,
+                      color: tabla.color
+                    }}
+                  >
+                    <i className={`${tabla.icono} text-xl`} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="m-0 font-bold text-lg">{tabla.titulo}</h4>
+                  </div>
+                </div>
+                <p className="text-muted text-sm m-0 mb-3" style={{ minHeight: '40px' }}>
+                  {tabla.descripcion}
+                </p>
+                <div className="flex justify-content-end">
+                  <Button
+                    label="Gestionar Relación"
                     icon="pi pi-arrow-right"
                     iconPos="right"
                     size="small"
