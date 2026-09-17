@@ -1287,10 +1287,10 @@ export const exportarInformePendientesPDF = ({
   }
 };
 
-// Se obtiene un resumen estadístico global de calificaciones pendientes para el panel principal
-export const obtenerResumenCalificacionesPendientes = async () => {
+// Se obtiene un resumen estadístico de calificaciones pendientes para el panel principal con soporte de filtro por curso
+export const obtenerResumenCalificacionesPendientes = async (idCurso = null) => {
   try {
-    const { data: evaluaciones, error: errorEv } = await supabase
+    let consultaEvaluaciones = supabase
       .from('Evaluaciones')
       .select(`
         id_evaluacion,
@@ -1301,24 +1301,18 @@ export const obtenerResumenCalificacionesPendientes = async () => {
         Modulos:id_modulo ( id_modulo, nombre, siglas )
       `);
 
+    if (idCurso) {
+      consultaEvaluaciones = consultaEvaluaciones.eq('id_curso', idCurso);
+    }
+
+    const { data: evaluaciones, error: errorEv } = await consultaEvaluaciones;
+
     if (errorEv) {
       console.error('Error al consultar evaluaciones para resumen de pendientes:', errorEv);
       return { totalPendientes: 0, evaluacionesAfectadas: 0, desglose: [] };
     }
 
-    const { data: registrosEvaluan, error: errorEval } = await supabase
-      .from('evaluan')
-      .select('id_evaluacion, id_practica, id_discente, nota')
-      .is('nota', null);
-
-    if (errorEval) {
-      console.error('Error al consultar registros nulos en evaluan:', errorEval);
-      return { totalPendientes: 0, evaluacionesAfectadas: 0, desglose: [] };
-    }
-
-    const totalPendientes = (registrosEvaluan || []).length;
     const mapaEvaluaciones = new Map();
-
     (evaluaciones || []).forEach((ev) => {
       mapaEvaluaciones.set(ev.id_evaluacion, {
         id_evaluacion: ev.id_evaluacion,
@@ -1329,6 +1323,28 @@ export const obtenerResumenCalificacionesPendientes = async () => {
       });
     });
 
+    // Si no existen evaluaciones en el ámbito consultado, se retorna resumen vacío
+    if (mapaEvaluaciones.size === 0) {
+      return { totalPendientes: 0, evaluacionesAfectadas: 0, desglose: [] };
+    }
+
+    let consultaEvaluan = supabase
+      .from('evaluan')
+      .select('id_evaluacion, id_practica, id_discente, nota')
+      .is('nota', null);
+
+    if (idCurso) {
+      const idsEvaluaciones = Array.from(mapaEvaluaciones.keys());
+      consultaEvaluan = consultaEvaluan.in('id_evaluacion', idsEvaluaciones);
+    }
+
+    const { data: registrosEvaluan, error: errorEval } = await consultaEvaluan;
+
+    if (errorEval) {
+      console.error('Error al consultar registros nulos en evaluan:', errorEval);
+      return { totalPendientes: 0, evaluacionesAfectadas: 0, desglose: [] };
+    }
+
     (registrosEvaluan || []).forEach((reg) => {
       if (reg.id_evaluacion && mapaEvaluaciones.has(reg.id_evaluacion)) {
         mapaEvaluaciones.get(reg.id_evaluacion).pendientes += 1;
@@ -1336,6 +1352,7 @@ export const obtenerResumenCalificacionesPendientes = async () => {
     });
 
     const desglose = Array.from(mapaEvaluaciones.values()).filter((e) => e.pendientes > 0);
+    const totalPendientes = desglose.reduce((acumulado, actual) => acumulado + actual.pendientes, 0);
 
     return {
       totalPendientes,

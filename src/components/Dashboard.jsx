@@ -11,6 +11,7 @@ import { Skeleton } from "primereact/skeleton";
 import { Message } from "primereact/message";
 import { ProgressBar } from "primereact/progressbar";
 import { Divider } from "primereact/divider";
+import { Dropdown } from "primereact/dropdown";
 import useDashboard from "../hooks/useDashboard.js";
 import { getColorNota } from "../utils/coloresNota.js";
 import { formatNota } from "../utils/formatters.js";
@@ -18,8 +19,16 @@ import InformePendientesTarjetaDashboard from "./informes/InformePendientesTarje
 
 // Componente principal de la pantalla de Dashboard
 const Dashboard = () => {
-  const { estadisticas, cargando, error, recargarEstadisticas } =
-    useDashboard();
+  const {
+    estadisticas,
+    cursos,
+    cursoSeleccionadoId,
+    setCursoSeleccionadoId,
+    cursoSeleccionado,
+    cargando,
+    error,
+    recargarEstadisticas,
+  } = useDashboard();
 
   // Estado reactivo para adaptar la paleta de colores de los gráficos al tema Nano claro/oscuro
   const [temaGraficos, setTemaGraficos] = useState(() => ({
@@ -70,7 +79,37 @@ const Dashboard = () => {
     return () => observador.disconnect();
   }, []);
 
-  // Módulos con calificaciones reales calculadas
+  // Plantilla visual para las opciones en el desplegable de selección de curso
+  const plantillaOpcionCurso = (opcion) => {
+    if (!opcion) return null;
+    return (
+      <div className='flex flex-column py-1'>
+        <span className='font-semibold text-color'>{opcion.nombre}</span>
+        <span className='text-xs text-muted'>
+          {opcion.anyo ? `Año: ${opcion.anyo}` : ""}
+          {opcion.centro ? ` | ${opcion.centro}` : ""}
+        </span>
+      </div>
+    );
+  };
+
+  // Plantilla visual para el valor seleccionado en el desplegable de curso
+  const plantillaValorCurso = (opcion, props) => {
+    if (opcion) {
+      return (
+        <div className='flex align-items-center gap-2'>
+          <i className='pi pi-calendar text-primary' />
+          <span className='font-medium text-color'>{opcion.nombre}</span>
+          {opcion.anyo && (
+            <span className='text-xs text-muted'>({opcion.anyo})</span>
+          )}
+        </div>
+      );
+    }
+    return <span>{props.placeholder}</span>;
+  };
+
+  // Módulos con calificaciones reales calculadas para el curso seleccionado
   const modulosConCalificaciones = useMemo(() => {
     return (estadisticas.mediasPorModulo || []).filter(
       (m) => m.media !== null && m.totalCalificaciones > 0
@@ -300,12 +339,15 @@ const Dashboard = () => {
   if (cargando) {
     return (
       <div className='page-container p-3'>
-        <div className='flex justify-content-between align-items-center mb-3'>
+        <div className='flex flex-column sm:flex-row justify-content-between align-items-start sm:align-items-center gap-3 mb-3'>
           <div>
             <Skeleton width='220px' height='2.2rem' className='mb-2' />
             <Skeleton width='340px' height='1.2rem' />
           </div>
-          <Skeleton width='120px' height='2.5rem' />
+          <div className='flex align-items-center gap-2'>
+            <Skeleton width='200px' height='2.5rem' />
+            <Skeleton width='110px' height='2.5rem' />
+          </div>
         </div>
         <Divider />
 
@@ -345,16 +387,60 @@ const Dashboard = () => {
 
   return (
     <div className='page-container p-2'>
-      {/* 1. Cabecera principal con título y acciones */}
-      <div className='flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-2'>
+      {/* 1. Cabecera principal con título, selector de curso académico y botón de actualización */}
+      <div className='flex flex-column lg:flex-row lg:justify-content-between lg:align-items-center gap-3 mb-2'>
         <div>
           <h1 className='page-title m-0'>Panel de control</h1>
           <p className='text-muted m-0 mt-1'>
-            Resumen estadístico del rendimiento académico, métricas globales y
-            alertas de seguimiento.
+            {cursoSeleccionado ? (
+              <>
+                Estadísticas del curso académico{" "}
+                <strong className='text-color'>
+                  {cursoSeleccionado.nombre}
+                </strong>
+                {cursoSeleccionado.anyo
+                  ? ` (${cursoSeleccionado.anyo})`
+                  : ""}
+                {cursoSeleccionado.centro
+                  ? ` — ${cursoSeleccionado.centro}`
+                  : ""}
+                .
+              </>
+            ) : (
+              "Resumen estadístico del rendimiento académico, métricas globales y alertas de seguimiento."
+            )}
           </p>
         </div>
-        <div className='flex align-items-center gap-2'>
+
+        <div className='flex flex-wrap align-items-center gap-2'>
+          {/* Selector de curso académico con Dropdown de PrimeReact */}
+          <div className='flex align-items-center gap-2'>
+            <label
+              htmlFor='filtro-curso-dashboard'
+              className='text-xs font-bold text-muted uppercase'
+            >
+              Curso:
+            </label>
+            <Dropdown
+              id='filtro-curso-dashboard'
+              value={cursoSeleccionadoId}
+              options={cursos}
+              optionValue='id_curso'
+              optionLabel='nombre'
+              onChange={(e) => setCursoSeleccionadoId(e.value)}
+              placeholder='Seleccione curso...'
+              className='w-full sm:w-18rem p-inputtext-sm'
+              itemTemplate={plantillaOpcionCurso}
+              valueTemplate={plantillaValorCurso}
+              showClear={cursos.length > 1}
+              disabled={cargando || cursos.length === 0}
+              filter={cursos.length > 4}
+              filterBy='nombre,anyo,centro'
+              filterPlaceholder='Buscar curso...'
+              aria-label='Filtrar estadísticas por curso académico'
+            />
+          </div>
+
           <Button
             type='button'
             icon='pi pi-refresh'
@@ -378,7 +464,7 @@ const Dashboard = () => {
 
       <Divider />
 
-      {/* 2. Grid superior con 4 Tarjetas KPI: Total Discentes, Módulos Activos, Nota Media Global y Tasa de Aprobados */}
+      {/* 2. Grid superior con 4 Tarjetas KPI calculadas para el curso seleccionado */}
       <div className='grid'>
         {/* Tarjeta 1: Total Alumnos */}
         <div className='col-12 sm:col-6 lg:col-3'>
@@ -394,12 +480,20 @@ const Dashboard = () => {
                 <div className='text-xs text-muted mt-2'>
                   {estadisticas.totalAlumnos > 0 ? (
                     <>
-                      <span className='text-green-500 font-bold'>100% </span>
-                      <span>matriculados y activos</span>
+                      <span className='text-green-500 font-bold'>
+                        {cursoSeleccionado ? "Matriculados " : "100% "}
+                      </span>
+                      <span>
+                        {cursoSeleccionado
+                          ? "en este curso académico"
+                          : "matriculados y activos"}
+                      </span>
                     </>
                   ) : (
                     <span className='text-orange-500 font-medium'>
-                      Sin discentes registrados
+                      {cursoSeleccionado
+                        ? "Sin discentes matriculados en este curso"
+                        : "Sin discentes registrados"}
                     </span>
                   )}
                 </div>
@@ -431,10 +525,16 @@ const Dashboard = () => {
                 </div>
                 <div className='text-xs text-muted mt-2'>
                   {estadisticas.totalModulos > 0 ? (
-                    <span>Módulos profesionales registrados</span>
+                    <span>
+                      {cursoSeleccionado
+                        ? "Módulos asignados a este curso"
+                        : "Módulos profesionales registrados"}
+                    </span>
                   ) : (
                     <span className='text-orange-500 font-medium'>
-                      Sin módulos registrados
+                      {cursoSeleccionado
+                        ? "Sin módulos asignados a este curso"
+                        : "Sin módulos registrados"}
                     </span>
                   )}
                 </div>
@@ -453,13 +553,15 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Tarjeta 3: Nota Media Global */}
+        {/* Tarjeta 3: Nota Media Global / del Curso */}
         <div className='col-12 sm:col-6 lg:col-3'>
           <Card className='h-full shadow-1 border-round surface-card'>
             <div className='flex justify-content-between align-items-start'>
               <div>
                 <span className='block font-semibold mb-2 text-sm text-muted'>
-                  NOTA MEDIA GLOBAL
+                  {cursoSeleccionado
+                    ? "NOTA MEDIA DEL CURSO"
+                    : "NOTA MEDIA GLOBAL"}
                 </span>
                 {estadisticas.notaMediaGlobal !== null ? (
                   <>
@@ -536,6 +638,7 @@ const Dashboard = () => {
                         estadisticas.distribucion.sobresalientes}{" "}
                       de {estadisticas.totalCalificaciones} calificaciones
                       superadas
+                      {cursoSeleccionado ? " en este curso" : ""}
                     </div>
                   </>
                 ) : (
@@ -559,7 +662,7 @@ const Dashboard = () => {
                 style={{
                   width: "2.8rem",
                   height: "2.8rem",
-                  backgroundColor: "rgba(16, 185, 129, 0.15)",
+                  backgroundColor: "rgba(168, 185, 129, 0.15)",
                 }}
               >
                 <i className='pi pi-check-circle text-xl text-green-500 font-bold'></i>
@@ -574,7 +677,11 @@ const Dashboard = () => {
         {/* Gráfico de Barras: Nota media por asignatura */}
         <div className='col-12 lg:col-7'>
           <Card
-            title='Nota media por asignatura'
+            title={
+              cursoSeleccionado
+                ? `Nota media por asignatura (${cursoSeleccionado.nombre})`
+                : "Nota media por asignatura"
+            }
             className='h-full shadow-1 border-round surface-card'
           >
             {hayDatosBarras ? (
@@ -594,7 +701,11 @@ const Dashboard = () => {
                 <i className='pi pi-chart-bar text-4xl text-400 mb-3' />
                 <Message
                   severity='info'
-                  text='No hay calificaciones registradas por asignatura.'
+                  text={
+                    cursoSeleccionado
+                      ? `No hay calificaciones registradas por asignatura en el curso ${cursoSeleccionado.nombre}.`
+                      : "No hay calificaciones registradas por asignatura."
+                  }
                   className='w-full max-w-28rem mb-2'
                 />
                 <span className='text-xs text-muted max-w-28rem'>
@@ -610,7 +721,11 @@ const Dashboard = () => {
         {/* Gráfico Doughnut: Distribución de calificaciones */}
         <div className='col-12 lg:col-5'>
           <Card
-            title='Distribución de calificaciones'
+            title={
+              cursoSeleccionado
+                ? `Distribución de calificaciones (${cursoSeleccionado.nombre})`
+                : "Distribución de calificaciones"
+            }
             className='h-full shadow-1 border-round surface-card'
           >
             {hayDatosDoughnut ? (
@@ -630,7 +745,11 @@ const Dashboard = () => {
                 <i className='pi pi-chart-pie text-4xl text-400 mb-3' />
                 <Message
                   severity='info'
-                  text='No hay datos de distribución de calificaciones.'
+                  text={
+                    cursoSeleccionado
+                      ? `No hay datos de distribución de calificaciones para el curso ${cursoSeleccionado.nombre}.`
+                      : "No hay datos de distribución de calificaciones."
+                  }
                   className='w-full max-w-28rem mb-2'
                 />
                 <span className='text-xs text-muted max-w-28rem'>
@@ -643,12 +762,15 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 4. Tarjeta de resumen de Calificaciones Pendientes */}
+      {/* 4. Tarjeta de resumen de Calificaciones Pendientes filtrada por curso */}
       <div className='mt-4'>
-        <InformePendientesTarjetaDashboard />
+        <InformePendientesTarjetaDashboard
+          idCurso={cursoSeleccionadoId}
+          nombreCurso={cursoSeleccionado?.nombre}
+        />
       </div>
 
-      {/* 5. Sección inferior con DataTable: Alumnos en Riesgo */}
+      {/* 5. Sección inferior con DataTable: Alumnos en Riesgo en el curso */}
       <div className='mt-2'>
         <Card
           title={
@@ -665,7 +787,11 @@ const Dashboard = () => {
               />
             </div>
           }
-          subTitle='Discentes con nota media global inferior a 50 o más de una asignatura suspensa.'
+          subTitle={
+            cursoSeleccionado
+              ? `Discentes con nota media inferior a 50 o más de una asignatura suspensa en el curso ${cursoSeleccionado.nombre}.`
+              : "Discentes con nota media global inferior a 50 o más de una asignatura suspensa."
+          }
           className='shadow-1 border-round surface-card'
         >
           <DataTable
@@ -673,8 +799,12 @@ const Dashboard = () => {
             responsiveLayout='scroll'
             emptyMessage={
               estadisticas.totalCalificaciones === 0
-                ? "No hay calificaciones registradas en el sistema para evaluar situaciones de riesgo."
-                : "No se han detectado alumnos en situación de riesgo académico."
+                ? cursoSeleccionado
+                  ? `No hay calificaciones registradas en el curso ${cursoSeleccionado.nombre} para evaluar situaciones de riesgo.`
+                  : "No hay calificaciones registradas en el sistema para evaluar situaciones de riesgo."
+                : cursoSeleccionado
+                  ? `No se han detectado alumnos en situación de riesgo académico en el curso ${cursoSeleccionado.nombre}.`
+                  : "No se han detectado alumnos en situación de riesgo académico."
             }
             className='p-datatable-sm'
             stripedRows

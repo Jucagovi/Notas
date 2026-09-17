@@ -13,7 +13,9 @@ const DiscentesPagina = () => {
   const {
     listaDiscentes,
     discenteSeleccionadoId,
+    cursos,
     cursoSeleccionadoId,
+    cursoSeleccionado,
     historial,
     cargandoLista,
     cargandoHistorial,
@@ -64,6 +66,10 @@ const DiscentesPagina = () => {
         <DiscentesLista
           discentes={listaDiscentes}
           cargando={cargandoLista}
+          cursos={cursos}
+          cursoSeleccionadoId={cursoSeleccionadoId}
+          cursoSeleccionado={cursoSeleccionado}
+          alCambiarCurso={cambiarCurso}
           alSeleccionarDiscente={seleccionarDiscente}
           alCambiarEstado={cambiarEstadoDiscente}
           alRecargar={recargarLista}
@@ -151,6 +157,8 @@ const DiscentesPagina = () => {
           {/* 2. Navegación por módulos (TabView), métricas del módulo, gráficos específicos y evaluaciones con edición en celda */}
           <DiscenteModulosTabs
             modulos={historial.modulos}
+            discente={historial.discente}
+            cursoId={cursoSeleccionadoId}
             alGuardarNota={guardarNota}
             guardandoNotaId={guardandoNotaId}
           />

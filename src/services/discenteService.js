@@ -1,20 +1,77 @@
 import { supabase } from "./supabaseClient.js";
 import { ordenarEvaluaciones } from "./evaluacionService.js";
 
-// Se obtienen todos los discentes registrados con información complementaria para el listado principal
-export const obtenerListaDiscentes = async (filtroTexto = "") => {
+// Se obtienen los discentes registrados con soporte opcional de filtro por curso escolar y búsqueda textual
+export const obtenerListaDiscentes = async (filtroTexto = "", idCurso = null) => {
   try {
-    const { data: discentes, error } = await supabase
-      .from("Discentes")
-      .select("*")
-      .order("apellidos", { ascending: true });
+    let discentes = [];
 
-    if (error) {
-      console.error(
-        "Error al consultar listado de discentes en Supabase:",
-        error,
-      );
-      throw error;
+    if (idCurso) {
+      // 1. Se consultan las matrículas registradas en la tabla imparte para el curso seleccionado
+      const { data: datosImparte, error: errorImparte } = await supabase
+        .from("imparte")
+        .select("id_discente")
+        .eq("id_curso", idCurso);
+
+      if (errorImparte) {
+        console.error("Error al consultar matrículas en imparte:", errorImparte);
+      }
+
+      // 2. Se consultan también los discentes con calificaciones en evaluaciones del curso
+      const { data: datosEvaluaciones, error: errorEvaluaciones } = await supabase
+        .from("Evaluaciones")
+        .select("id_evaluacion")
+        .eq("id_curso", idCurso);
+
+      let idsDiscentesEvaluan = [];
+      if (!errorEvaluaciones && datosEvaluaciones && datosEvaluaciones.length > 0) {
+        const idsEvals = datosEvaluaciones.map((e) => e.id_evaluacion);
+        const { data: datosEvaluan, error: errorEvaluan } = await supabase
+          .from("evaluan")
+          .select("id_discente")
+          .in("id_evaluacion", idsEvals);
+
+        if (!errorEvaluan && datosEvaluan) {
+          idsDiscentesEvaluan = datosEvaluan.map((e) => e.id_discente).filter(Boolean);
+        }
+      }
+
+      // Se consolidan los identificadores únicos de discentes pertenecientes al curso
+      const conjuntoIdsDiscentes = new Set([
+        ...(datosImparte || []).map((i) => i.id_discente).filter(Boolean),
+        ...idsDiscentesEvaluan,
+      ]);
+
+      // Si no existen alumnos matriculados en este curso, se devuelve una lista vacía
+      if (conjuntoIdsDiscentes.size === 0) {
+        return { data: [], error: null, esMock: false };
+      }
+
+      const { data: discentesBD, error: errorDiscentes } = await supabase
+        .from("Discentes")
+        .select("*")
+        .in("id_discente", Array.from(conjuntoIdsDiscentes))
+        .order("apellidos", { ascending: true });
+
+      if (errorDiscentes) {
+        console.error("Error al consultar discentes por curso en Supabase:", errorDiscentes);
+        throw errorDiscentes;
+      }
+
+      discentes = discentesBD || [];
+    } else {
+      // Si no se especifica curso, se consultan todos los discentes del sistema
+      const { data: discentesBD, error } = await supabase
+        .from("Discentes")
+        .select("*")
+        .order("apellidos", { ascending: true });
+
+      if (error) {
+        console.error("Error al consultar listado general de discentes en Supabase:", error);
+        throw error;
+      }
+
+      discentes = discentesBD || [];
     }
 
     if (discentes && discentes.length > 0) {
@@ -79,13 +136,12 @@ export const obtenerDiscentePorId = async (discenteId) => {
   }
 };
 
-// Se obtienen los cursos escolares disponibles en el sistema
+// Se obtienen los cursos escolares disponibles ordenados de más reciente a más antiguo
 export const obtenerTodosLosCursos = async () => {
   try {
     const { data, error } = await supabase
       .from("Cursos")
-      .select("*")
-      .order("anyo", { ascending: false });
+      .select("*");
 
     if (error) {
       console.error("Error al consultar cursos en Supabase:", error);
@@ -93,10 +149,19 @@ export const obtenerTodosLosCursos = async () => {
     }
 
     if (data && data.length > 0) {
-      return { data, error: null };
+      const cursosOrdenados = [...data].sort((a, b) => {
+        const fechaA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const fechaB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        if (fechaB !== fechaA) return fechaB - fechaA;
+        return (b.anyo || "").localeCompare(a.anyo || "", undefined, {
+          numeric: true,
+        });
+      });
+
+      return { data: cursosOrdenados, error: null };
     }
 
-    // Datos simulados de cursos escolares si no existen en la base de datos
+    // Datos de respaldo si no existen cursos registrados en la base de datos
     const cursosMock = [
       {
         id_curso: "curso-2024-2025",

@@ -9,11 +9,17 @@ import { ProgressBar } from "primereact/progressbar";
 import { InputNumber } from "primereact/inputnumber";
 import { Message } from "primereact/message";
 import DiscenteGraficos from "./DiscenteGraficos.jsx";
+import DiscenteModuloRadar from "./DiscenteModuloRadar.jsx";
 import { getColorNota } from "../../utils/coloresNota.js";
 import { formatNota } from "../../utils/formatters.js";
 
 // Componente para la navegación por pestañas de los módulos matriculados, estadísticas por materia, gráficas y desglose de evaluaciones
-const DiscenteModulosTabs = ({ modulos = [], alGuardarNota = () => {} }) => {
+const DiscenteModulosTabs = ({
+  modulos = [],
+  discente = null,
+  cursoId = null,
+  alGuardarNota = () => {},
+}) => {
   const [indiceActivo, setIndiceActivo] = useState(0);
 
   // Asegurar que el índice activo esté dentro del rango válido de pestañas
@@ -485,7 +491,15 @@ const DiscenteModulosTabs = ({ modulos = [], alGuardarNota = () => {} }) => {
                   distribucion={stats.distribucion}
                 />
 
-                {/* 4. DataTable de Prácticas agrupado por Evaluaciones con edición en celda */}
+                {/* 4. Gráfico de mapa de competencias en radar del módulo con acceso al informe individual completo */}
+                <DiscenteModuloRadar
+                  discente={discente}
+                  modulo={mod}
+                  cursoId={cursoId}
+                  todasPracticas={mod.todasPracticas}
+                />
+
+                {/* 5. DataTable de prácticas agrupado por evaluaciones con edición en celda. */}
                 <DataTable
                   value={mod.todasPracticas}
                   editMode='cell'

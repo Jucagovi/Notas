@@ -7,11 +7,16 @@ import { InputSwitch } from 'primereact/inputswitch';
 import { Button } from 'primereact/button';
 import { Avatar } from 'primereact/avatar';
 import { Skeleton } from 'primereact/skeleton';
+import { Dropdown } from 'primereact/dropdown';
 
-// Componente para el listado principal de discentes con buscador, conmutador de estado en línea y acceso a su ficha interactiva
+// Componente para el listado principal de discentes con selector de curso, buscador, conmutador de estado en línea y acceso a su ficha interactiva
 const DiscentesLista = ({
   discentes = [],
   cargando = false,
+  cursos = [],
+  cursoSeleccionadoId = null,
+  cursoSeleccionado = null,
+  alCambiarCurso = () => {},
   alSeleccionarDiscente = () => {},
   alCambiarEstado = () => {},
   alRecargar = () => {}
@@ -20,7 +25,34 @@ const DiscentesLista = ({
   // Filtro por estado por defecto en 'activos' (solo discentes activos)
   const [filtroEstado, setFiltroEstado] = useState('activos'); // 'activos' | 'todos' | 'inactivos'
 
-  // Conteo reactivo de discentes por estado de actividad
+  // Plantilla visual para las opciones en el desplegable de selección de curso
+  const plantillaOpcionCurso = (opcion) => {
+    if (!opcion) return null;
+    return (
+      <div className="flex flex-column py-1">
+        <span className="font-semibold text-color">{opcion.nombre}</span>
+        <span className="text-xs text-muted">
+          {opcion.anyo ? `Año: ${opcion.anyo}` : ''} {opcion.centro ? `| ${opcion.centro}` : ''}
+        </span>
+      </div>
+    );
+  };
+
+  // Plantilla visual para el valor seleccionado en el desplegable de curso
+  const plantillaValorCurso = (opcion, props) => {
+    if (opcion) {
+      return (
+        <div className="flex align-items-center gap-2">
+          <i className="pi pi-calendar text-primary" />
+          <span className="font-medium text-color">{opcion.nombre}</span>
+          {opcion.anyo && <span className="text-xs text-muted">({opcion.anyo})</span>}
+        </div>
+      );
+    }
+    return <span>{props.placeholder}</span>;
+  };
+
+  // Conteo reactivo de discentes por estado de actividad dentro del conjunto actual
   const totalActivos = useMemo(
     () => (discentes || []).filter((d) => d.activo !== false).length,
     [discentes]
@@ -155,9 +187,15 @@ const DiscentesLista = ({
   if (cargando && discentes.length === 0) {
     return (
       <Card className="shadow-1">
-        <div className="flex justify-content-between align-items-center mb-4">
-          <Skeleton width="200px" height="2rem" />
-          <Skeleton width="100px" height="2.5rem" />
+        <div className="flex flex-column sm:flex-row justify-content-between align-items-start sm:align-items-center gap-3 mb-4">
+          <div>
+            <Skeleton width="200px" height="2rem" className="mb-2" />
+            <Skeleton width="320px" height="1.2rem" />
+          </div>
+          <div className="flex align-items-center gap-2">
+            <Skeleton width="180px" height="2.5rem" />
+            <Skeleton width="100px" height="2.5rem" />
+          </div>
         </div>
         <Skeleton width="100%" height="350px" borderRadius="8px" />
       </Card>
@@ -166,18 +204,48 @@ const DiscentesLista = ({
 
   return (
     <Card className="shadow-1">
-      {/* Cabecera del listado con buscador y filtros rápidos */}
-      <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center gap-3 mb-3 pb-3 border-bottom-1 surface-border">
+      {/* Cabecera del listado con buscador, selector de curso y acciones rápidas */}
+      <div className="flex flex-column lg:flex-row lg:justify-content-between lg:align-items-center gap-3 mb-3 pb-3 border-bottom-1 surface-border">
         <div>
           <h2 className="text-xl font-bold m-0 text-color">
             Listado de discentes
           </h2>
           <p className="text-muted text-xs m-0 mt-1">
-            Seleccione un estudiante del listado para consultar su ficha completa, progreso por módulos y gráficos evolutivos.
+            {cursoSeleccionado
+              ? `Discentes matriculados en el curso ${cursoSeleccionado.nombre}${cursoSeleccionado.anyo ? ` (${cursoSeleccionado.anyo})` : ''}. Seleccione un estudiante para consultar su informe integral.`
+              : 'Seleccione un estudiante del listado para consultar su ficha completa, progreso por módulos y gráficos evolutivos.'}
           </p>
         </div>
 
-        <div className="flex align-items-center gap-2">
+        <div className="flex flex-wrap align-items-center gap-2">
+          {/* Selector de curso escolar con Dropdown de PrimeReact */}
+          <div className="flex align-items-center gap-2">
+            <label
+              htmlFor="filtro-curso-discentes"
+              className="text-xs font-bold text-muted uppercase"
+            >
+              Curso:
+            </label>
+            <Dropdown
+              id="filtro-curso-discentes"
+              value={cursoSeleccionadoId}
+              options={cursos}
+              optionValue="id_curso"
+              optionLabel="nombre"
+              onChange={(e) => alCambiarCurso(e.value)}
+              placeholder="Seleccione curso..."
+              className="w-full sm:w-18rem p-inputtext-sm"
+              itemTemplate={plantillaOpcionCurso}
+              valueTemplate={plantillaValorCurso}
+              showClear={cursos.length > 1}
+              disabled={cargando || cursos.length === 0}
+              filter={cursos.length > 4}
+              filterBy="nombre,anyo,centro"
+              filterPlaceholder="Buscar curso..."
+              aria-label="Filtrar discentes por curso académico"
+            />
+          </div>
+
           <Button
             type="button"
             icon="pi pi-refresh"
@@ -241,7 +309,11 @@ const DiscentesLista = ({
         rowsPerPageOptions={[5, 10, 20, 50]}
         selectionMode="single"
         onRowClick={(e) => alSeleccionarDiscente(e.data.id_discente)}
-        emptyMessage="No se encontraron discentes registrados con los criterios especificados."
+        emptyMessage={
+          cursoSeleccionado
+            ? `No se encontraron discentes matriculados en el curso ${cursoSeleccionado.nombre} con los criterios especificados.`
+            : 'No se encontraron discentes registrados con los criterios especificados.'
+        }
         className="p-datatable-sm cursor-pointer"
         responsiveLayout="scroll"
         stripedRows

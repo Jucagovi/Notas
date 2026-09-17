@@ -353,11 +353,27 @@ Ahora vamos a la sección de matenimiento (revisa el caso de uso en la carpeta @
 
 Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks o Servicios necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
 
+## 15 (cambio de panel de control)
 
+¡Hola! Vamos a revisar nuestra aplicación para cambiar algunas cosas que no funcionan como deben. El proyecto ya está inicializado con Vite, PrimeReact y React-Router.
 
+Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
 
+Quiero que revises el panel de control de la aplicación para revisarla. Las estadísticas que salen son correctas, pero hay cosas que hay que calcularlas sólo del año en curso (el más reciente por defecto). Eso sí, quiero que existe una forma de cambiar las estadísticas por curso con un <DropDown> con los cursos.
 
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks o Servicios necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
 
+## 16 (filtrado discentes por curso)
+
+Por favor, si no lo has hecho ya, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestro trabajo es aplicar el filtro por curso en el apartado `Discentes` de la aplicación. De momento sólo existe un filtro en función del estado del discente, pero quiero que aparezcan los listados asociados a los cursos (como en el caso anterior). Aparecerá un <DropDown> junto al botón de `Actualizar` que permitirá elegir el curso y sólo se mostrarán los discented matriculados en ese curso (manteniendo los filtros de activo o inactivos por si alguno se da de baja durante el curso). Además, quiero que revises el informe que se muestra de cada alumno para que consulte sus datos referidos al año seleccionado.
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks o Servicios necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 17 (informe discente)
+
+En el informe detallado del discente en el apartado `Discentes`, quiero que añadas el gráfico de `Mapa de competencias (Radar)` del informe `Competencias individual` justo encima del listado de sus prácticas para tener un vistazo rápido a las competencias adquiridas. Cuando se pulse sobre un botón con el texto `Ver informe de competecias completo` que se mostrará debajo a la derecha de forma discreta, conducirá al informe completo de `Competencias individual` de ese discente.
 
 ## Para el proyecto nuevo
 

@@ -73,11 +73,32 @@ const DiscenteDetalleCabecera = ({
     return formatearFechaNacimientoYEdad(discente.fecha_nac);
   }, [discente.fecha_nac]);
 
-  // Opciones formateadas para el selector desplegable de Cursos escolares
-  const opcionesCursos = (cursosDisponibles || []).map((c) => ({
-    label: `${c.anyo ? `[${c.anyo}] ` : ""}${c.nombre || "Curso escolar"}${c.centro ? ` - ${c.centro}` : ""}`,
-    value: c.id_curso,
-  }));
+  // Plantilla visual para las opciones en el desplegable de selección de curso
+  const plantillaOpcionCurso = (opcion) => {
+    if (!opcion) return null;
+    return (
+      <div className="flex flex-column py-1">
+        <span className="font-semibold text-color">{opcion.nombre}</span>
+        <span className="text-xs text-muted">
+          {opcion.anyo ? `Año: ${opcion.anyo}` : ""} {opcion.centro ? `| ${opcion.centro}` : ""}
+        </span>
+      </div>
+    );
+  };
+
+  // Plantilla visual para el valor seleccionado en el desplegable de curso
+  const plantillaValorCurso = (opcion, props) => {
+    if (opcion) {
+      return (
+        <div className="flex align-items-center gap-2">
+          <i className="pi pi-calendar text-primary" />
+          <span className="font-medium text-color">{opcion.nombre}</span>
+          {opcion.anyo && <span className="text-xs text-muted">({opcion.anyo})</span>}
+        </div>
+      );
+    }
+    return <span>{props.placeholder}</span>;
+  };
 
   const porcentajeCompletado =
     estadisticas.totalPracticas > 0
@@ -216,10 +237,18 @@ const DiscenteDetalleCabecera = ({
             <Dropdown
               id='selector-curso-escolar'
               value={cursoSeleccionadoId}
-              options={opcionesCursos}
+              options={cursosDisponibles}
+              optionValue='id_curso'
+              optionLabel='nombre'
               onChange={(e) => alCambiarCurso(e.value)}
               placeholder='Seleccione un curso escolar'
               className='w-full p-inputtext-sm'
+              itemTemplate={plantillaOpcionCurso}
+              valueTemplate={plantillaValorCurso}
+              filter={(cursosDisponibles || []).length > 4}
+              filterBy='nombre,anyo,centro'
+              filterPlaceholder='Buscar curso...'
+              aria-label='Seleccionar curso académico para el historial'
             />
           </div>
         </div>
@@ -227,7 +256,7 @@ const DiscenteDetalleCabecera = ({
 
       {/* 3. Tarjetas KPI de resumen global para el curso seleccionado */}
       <div className='grid'>
-        {/* Tarjeta: Total Prácticas */}
+        {/* Tarjeta: total prácticas. */}
         <div className='col-12 sm:col-6 lg:col-3'>
           <Card className='shadow-1 h-full surface-card border-round'>
             <div className='flex justify-content-between align-items-start'>
@@ -259,7 +288,7 @@ const DiscenteDetalleCabecera = ({
           </Card>
         </div>
 
-        {/* Tarjeta: Calificadas y Cobertura */}
+        {/* Tarjeta: calificadas y cobertura. */}
         <div className='col-12 sm:col-6 lg:col-3'>
           <Card className='shadow-1 h-full surface-card border-round'>
             <div className='flex justify-content-between align-items-start'>
@@ -295,7 +324,7 @@ const DiscenteDetalleCabecera = ({
           </Card>
         </div>
 
-        {/* Tarjeta: Nota Media Global */}
+        {/* Tarjeta: nota media global. */}
         <div className='col-12 sm:col-6 lg:col-3'>
           <Card className='shadow-1 h-full surface-card border-round'>
             <div className='flex justify-content-between align-items-start'>
@@ -337,7 +366,7 @@ const DiscenteDetalleCabecera = ({
           </Card>
         </div>
 
-        {/* Tarjeta: Tasa de Aprobados */}
+        {/* Tarjeta: tasa de aprobados. */}
         <div className='col-12 sm:col-6 lg:col-3'>
           <Card className='shadow-1 h-full surface-card border-round'>
             <div className='flex justify-content-between align-items-start'>

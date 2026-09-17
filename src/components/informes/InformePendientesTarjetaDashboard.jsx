@@ -8,7 +8,7 @@ import { Skeleton } from 'primereact/skeleton';
 import { obtenerResumenCalificacionesPendientes } from '../../services/informesService.js';
 
 // Componente para la tarjeta de resumen del informe de pendientes ubicada en el Dashboard
-const InformePendientesTarjetaDashboard = () => {
+const InformePendientesTarjetaDashboard = ({ idCurso = null, nombreCurso = '' }) => {
   const navigate = useNavigate();
 
   const [resumen, setResumen] = useState({
@@ -18,13 +18,14 @@ const InformePendientesTarjetaDashboard = () => {
   });
   const [cargando, setCargando] = useState(true);
 
-  // Carga de los datos agregados de calificaciones pendientes
+  // Carga de los datos agregados de calificaciones pendientes según el curso seleccionado
   useEffect(() => {
     let activo = true;
 
     const cargarResumen = async () => {
+      setCargando(true);
       try {
-        const datos = await obtenerResumenCalificacionesPendientes();
+        const datos = await obtenerResumenCalificacionesPendientes(idCurso);
         if (activo) {
           setResumen(datos);
         }
@@ -42,7 +43,7 @@ const InformePendientesTarjetaDashboard = () => {
     return () => {
       activo = false;
     };
-  }, []);
+  }, [idCurso]);
 
   if (cargando) {
     return (
@@ -76,7 +77,9 @@ const InformePendientesTarjetaDashboard = () => {
               <div>
                 <span className="font-bold text-base text-color">Control de Calificaciones Pendientes</span>
                 <p className="text-muted text-xs m-0 mt-1 font-normal">
-                  Supervisión de prácticas sin evaluar antes del cierre oficial de convocatorias.
+                  {nombreCurso
+                    ? `Supervisión de prácticas sin evaluar en el curso ${nombreCurso}.`
+                    : 'Supervisión de prácticas sin evaluar antes del cierre oficial de convocatorias.'}
                 </p>
               </div>
             </div>

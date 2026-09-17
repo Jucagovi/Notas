@@ -49,16 +49,35 @@ const useInformeCompetencias = () => {
   // Contexto global de cursos
   const { datos: todosCursosContexto } = useCursosContexto();
 
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+
   // Estados de selección para los desplegables en cascada
   const [cursoSeleccionadoId, setCursoSeleccionadoId] = useState(
-    () => location.state?.idCurso || null
+    () => location.state?.idCurso || searchParams.get("curso") || searchParams.get("idCurso") || null
   );
   const [moduloSeleccionadoId, setModuloSeleccionadoId] = useState(
-    () => location.state?.idModulo || null
+    () => location.state?.idModulo || searchParams.get("modulo") || searchParams.get("idModulo") || null
   );
   const [discenteSeleccionadoId, setDiscenteSeleccionadoId] = useState(
-    () => location.state?.idDiscente || null
+    () => location.state?.idDiscente || searchParams.get("discente") || searchParams.get("idDiscente") || null
   );
+
+  // Sincronización cuando se navega con nuevos parámetros de ubicación o estado
+  useEffect(() => {
+    const nuevoCurso = location.state?.idCurso || searchParams.get("curso") || searchParams.get("idCurso");
+    const nuevoModulo = location.state?.idModulo || searchParams.get("modulo") || searchParams.get("idModulo");
+    const nuevoDiscente = location.state?.idDiscente || searchParams.get("discente") || searchParams.get("idDiscente");
+
+    if (nuevoCurso && nuevoCurso !== cursoSeleccionadoId) {
+      setCursoSeleccionadoId(nuevoCurso);
+    }
+    if (nuevoModulo && nuevoModulo !== moduloSeleccionadoId) {
+      setModuloSeleccionadoId(nuevoModulo);
+    }
+    if (nuevoDiscente && nuevoDiscente !== discenteSeleccionadoId) {
+      setDiscenteSeleccionadoId(nuevoDiscente);
+    }
+  }, [location.state, searchParams]);
 
   // Listados disponibles para los selectores
   const [modulosDisponibles, setModulosDisponibles] = useState([]);

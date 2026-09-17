@@ -1,22 +1,24 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   obtenerListaDiscentes,
+  obtenerTodosLosCursos,
   getHistorialDiscente,
   guardarNotaDiscente,
   actualizarEstadoDiscente
 } from '../services/discenteService.js';
 import useToast from './useToast.js';
 
-// Hook personalizado para la gestión reactiva del informe integral 360º del discente
+// Hook personalizado para la gestión reactiva del informe integral 360º del discente con filtro por curso
 const useInformeDiscente = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { mostrarExito, mostrarError } = useToast();
 
   // Estados reactivos principales
+  const [cursos, setCursos] = useState([]);
   const [listaDiscentes, setListaDiscentes] = useState([]);
   const [discenteSeleccionadoId, setDiscenteSeleccionadoId] = useState(() => searchParams.get('id') || null);
-  const [cursoSeleccionadoId, setCursoSeleccionadoId] = useState(null);
+  const [cursoSeleccionadoId, setCursoSeleccionadoId] = useState(() => searchParams.get('curso') || null);
   const [historial, setHistorial] = useState(null);
   const [cargandoLista, setCargandoLista] = useState(false);
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
@@ -24,12 +26,58 @@ const useInformeDiscente = () => {
   const [error, setError] = useState(null);
   const [filtroTexto, setFiltroTexto] = useState('');
 
-  // Se carga la lista general de discentes con soporte para filtrado
-  const cargarLista = useCallback(async (termino = '') => {
+  // Se consultan los cursos escolares disponibles en el sistema ordenados por el más reciente
+  const cargarCursos = useCallback(async () => {
+    try {
+      const resp = await obtenerTodosLosCursos();
+      const listaCursos = resp.data || [];
+      setCursos(listaCursos);
+      return listaCursos;
+    } catch (err) {
+      console.error('Error al cargar cursos en useInformeDiscente:', err);
+      return [];
+    }
+  }, []);
+
+  // Se inicializan los cursos y se fija por defecto el año escolar más reciente
+  useEffect(() => {
+    let activo = true;
+
+    const inicializar = async () => {
+      const listaCursos = await cargarCursos();
+      if (!activo) return;
+
+      if (listaCursos && listaCursos.length > 0) {
+        const paramCurso = searchParams.get('curso');
+        const existeCurso = listaCursos.some((c) => c.id_curso === paramCurso);
+        if (paramCurso && existeCurso) {
+          setCursoSeleccionadoId(paramCurso);
+        } else if (!cursoSeleccionadoId) {
+          // Se selecciona automáticamente el curso más reciente por defecto
+          setCursoSeleccionadoId(listaCursos[0].id_curso);
+        }
+      }
+    };
+
+    inicializar();
+
+    return () => {
+      activo = false;
+    };
+  }, [cargarCursos]);
+
+  // Se calcula el objeto del curso seleccionado
+  const cursoSeleccionado = useMemo(() => {
+    if (!cursoSeleccionadoId) return null;
+    return (cursos || []).find((c) => c.id_curso === cursoSeleccionadoId) || null;
+  }, [cursos, cursoSeleccionadoId]);
+
+  // Se carga la lista de discentes con soporte para filtrado por curso y texto
+  const cargarLista = useCallback(async (termino = '', idCurso = null) => {
     setCargandoLista(true);
     setError(null);
     try {
-      const resp = await obtenerListaDiscentes(termino);
+      const resp = await obtenerListaDiscentes(termino, idCurso);
       if (resp.error) {
         console.error('Error al cargar lista de discentes:', resp.error);
         setError(resp.error);
@@ -60,7 +108,7 @@ const useInformeDiscente = () => {
         mostrarError('Error al consultar historial', resp.error);
       } else {
         setHistorial(resp.data);
-        if (resp.data?.curso?.id_curso) {
+        if (resp.data?.curso?.id_curso && !cursoSeleccionadoId) {
           setCursoSeleccionadoId(resp.data.curso.id_curso);
         }
       }
@@ -71,14 +119,14 @@ const useInformeDiscente = () => {
     } finally {
       setCargandoHistorial(false);
     }
-  }, [mostrarError]);
+  }, [mostrarError, cursoSeleccionadoId]);
 
-  // Se inicializa la lista de discentes al montar el hook o cambiar el filtro
+  // Se actualiza la lista de discentes al cambiar el filtro de texto o el curso escolar seleccionado
   useEffect(() => {
-    cargarLista(filtroTexto);
-  }, [cargarLista, filtroTexto]);
+    cargarLista(filtroTexto, cursoSeleccionadoId);
+  }, [cargarLista, filtroTexto, cursoSeleccionadoId]);
 
-  // Sincronización con el parámetro de URL (?id=...)
+  // Sincronización con los parámetros de URL (?id=...&curso=...)
   useEffect(() => {
     const idUrl = searchParams.get('id');
     if (idUrl && idUrl !== discenteSeleccionadoId) {
@@ -87,7 +135,12 @@ const useInformeDiscente = () => {
       setDiscenteSeleccionadoId(null);
       setHistorial(null);
     }
-  }, [searchParams, discenteSeleccionadoId]);
+
+    const cursoUrl = searchParams.get('curso');
+    if (cursoUrl && cursoUrl !== cursoSeleccionadoId) {
+      setCursoSeleccionadoId(cursoUrl);
+    }
+  }, [searchParams, discenteSeleccionadoId, cursoSeleccionadoId]);
 
   // Se carga el historial cuando cambia el discente seleccionado o el curso escolar
   useEffect(() => {
@@ -96,23 +149,39 @@ const useInformeDiscente = () => {
     }
   }, [discenteSeleccionadoId, cursoSeleccionadoId, cargarHistorial]);
 
-  // Se selecciona un discente navegando a su ficha de detalle
+  // Se selecciona un discente navegando a su ficha de detalle y conservando el curso
   const seleccionarDiscente = useCallback((discenteId) => {
     setDiscenteSeleccionadoId(discenteId);
-    setSearchParams({ id: discenteId });
-  }, [setSearchParams]);
+    const nuevosParams = { id: discenteId };
+    if (cursoSeleccionadoId) {
+      nuevosParams.curso = cursoSeleccionadoId;
+    }
+    setSearchParams(nuevosParams);
+  }, [setSearchParams, cursoSeleccionadoId]);
 
-  // Se restablece la vista al listado principal de discentes
+  // Se restablece la vista al listado principal de discentes conservando el filtro de curso
   const limpiarSeleccion = useCallback(() => {
     setDiscenteSeleccionadoId(null);
     setHistorial(null);
-    setSearchParams({});
-  }, [setSearchParams]);
+    const nuevosParams = {};
+    if (cursoSeleccionadoId) {
+      nuevosParams.curso = cursoSeleccionadoId;
+    }
+    setSearchParams(nuevosParams);
+  }, [setSearchParams, cursoSeleccionadoId]);
 
-  // Se cambia el curso escolar de contexto y se recargan los módulos correspondientes
+  // Se cambia el curso escolar de contexto y se sincroniza con la URL
   const cambiarCurso = useCallback((nuevoCursoId) => {
-    setCursoSeleccionadoId(nuevoCursoId);
-  }, []);
+    setCursoSeleccionadoId(nuevoCursoId || null);
+    const nuevosParams = {};
+    if (discenteSeleccionadoId) {
+      nuevosParams.id = discenteSeleccionadoId;
+    }
+    if (nuevoCursoId) {
+      nuevosParams.curso = nuevoCursoId;
+    }
+    setSearchParams(nuevosParams);
+  }, [discenteSeleccionadoId, setSearchParams]);
 
   // Se recalcula el estado del historial tras la edición en línea de una nota
   const recalcularEstadoHistorial = (historialPrevio, idFilaUnica, nuevaNota, idEvaluan) => {
@@ -372,7 +441,9 @@ const useInformeDiscente = () => {
   return {
     listaDiscentes,
     discenteSeleccionadoId,
+    cursos,
     cursoSeleccionadoId,
+    cursoSeleccionado,
     historial,
     cargandoLista,
     cargandoHistorial,
@@ -385,7 +456,10 @@ const useInformeDiscente = () => {
     cambiarCurso,
     guardarNota,
     cambiarEstadoDiscente,
-    recargarLista: () => cargarLista(filtroTexto),
+    recargarLista: () => {
+      cargarCursos();
+      cargarLista(filtroTexto, cursoSeleccionadoId);
+    },
     recargarHistorial: () => cargarHistorial(discenteSeleccionadoId, cursoSeleccionadoId)
   };
 };
