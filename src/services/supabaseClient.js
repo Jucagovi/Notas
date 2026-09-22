@@ -1,16 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Variables de entorno obtenidas desde import.meta.env de Vite o process.env en Node
-const supabaseUrl =
-  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_SUPABASE_URL) ||
-  (typeof process !== 'undefined' && process.env && process.env.VITE_SUPABASE_URL) ||
-  '';
+// Se obtienen las credenciales de Supabase desde las variables de entorno de Vite.
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_KEY;
 
-const supabaseAnonKey =
-  (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_KEY)) ||
-  (typeof process !== 'undefined' && process.env && (process.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_KEY)) ||
-  '';
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Faltan las variables de entorno de Supabase (VITE_SUPABASE_URL o VITE_SUPABASE_ANON_KEY). Compruebe el archivo .env.local.');
+}
 
-// Se inicializa y exporta la instancia del cliente Supabase
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-export default supabase;
+// Se inicializa y exporta la instancia del cliente de Supabase.
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');

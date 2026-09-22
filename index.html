@@ -2,9 +2,31 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Control de Notas</title>
+    <title>Administración Académica</title>
+
+    <!-- Hoja de estilos del tema Lara oficial de PrimeReact (cambio dinámico claro/oscuro) -->
+    <link id="tema-css" rel="stylesheet" href="/themes/lara-dark-blue/theme.css" />
+
+    <!-- Script para evitar destellos iniciales (oscuro por defecto según estilo.png) -->
+    <script>
+      (function() {
+        try {
+          var guardado = localStorage.getItem('tema_notas_preferencia');
+          var esClaro = guardado === 'claro';
+          var link = document.getElementById('tema-css');
+          if (esClaro && link) {
+            link.href = '/themes/lara-light-blue/theme.css';
+            document.documentElement.classList.remove('app-dark', 'dark-theme');
+            document.documentElement.setAttribute('data-theme', 'light');
+          } else {
+            document.documentElement.classList.add('app-dark', 'dark-theme');
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

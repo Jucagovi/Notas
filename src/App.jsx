@@ -1,187 +1,129 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout.jsx';
-import RutaProtegida from './components/RutaProtegida.jsx';
-import DashboardPagina from './pages/DashboardPagina.jsx';
-import IniciarSesionPagina from './pages/IniciarSesionPagina.jsx';
+import LayoutPrincipal from './components/LayoutPrincipal.jsx';
+
+// Páginas de la aplicación
+import PanelControl from './pages/PanelControl.jsx';
 import DiscentesPagina from './pages/DiscentesPagina.jsx';
 import ClasesPagina from './pages/ClasesPagina.jsx';
-import EvaluacionesPagina from './pages/EvaluacionesPagina.jsx';
-import AsignacionPagina from './pages/AsignacionPagina.jsx';
+import UnidadesPagina from './pages/UnidadesPagina.jsx';
+import TemporizacionPagina from './pages/planificacion/TemporizacionPagina.jsx';
+import ProgramacionPagina from './pages/planificacion/ProgramacionPagina.jsx';
+import CuadernoPagina from './pages/evaluacion/CuadernoPagina.jsx';
 import CalificarPagina from './pages/CalificarPagina.jsx';
-import InformesPagina from './pages/InformesPagina.jsx';
-import InformeCoberturaCE from './pages/informes/InformeCoberturaCE.jsx';
-import InformePendientes from './pages/informes/InformePendientes.jsx';
-import InformeDificultad from './pages/informes/InformeDificultad.jsx';
-import InformeEvaluacion from './pages/informes/InformeEvaluacion.jsx';
-import InformeEvaluacionRa from './pages/informes/InformeEvaluacionRa.jsx';
-import InformeCompetencia from './pages/informes/InformeCompetencia.jsx';
+import PracticasPagina from './pages/evaluacion/PracticasPagina.jsx';
 import PesosPagina from './pages/PesosPagina.jsx';
 import PesosRAPagina from './pages/PesosRAPagina.jsx';
 import CriteriosPagina from './pages/CriteriosPagina.jsx';
+import DiarioPagina from './pages/evaluacion/DiarioPagina.jsx';
+import InformesPagina from './pages/InformesPagina.jsx';
+import MemoriaPagina from './pages/informes/MemoriaPagina.jsx';
+import SeguimientoPagina from './pages/informes/SeguimientoPagina.jsx';
+import ProgresoPagina from './pages/informes/ProgresoPagina.jsx';
 import HerramientasPagina from './pages/HerramientasPagina.jsx';
+import ExportadorPagina from './pages/herramientas/ExportadorPagina.jsx';
+import CalendarioPagina from './pages/herramientas/CalendarioPagina.jsx';
+import HorariosPagina from './pages/herramientas/HorariosPagina.jsx';
+import MantenimientoPagina from './pages/herramientas/MantenimientoPagina.jsx';
+import RelacionesPagina from './pages/herramientas/RelacionesPagina.jsx';
 import AcercaDePagina from './pages/AcercaDePagina.jsx';
+import NotFoundPagina from './pages/NotFoundPagina.jsx';
+import LoginPagina from './pages/LoginPagina.jsx';
+import RutaPrivada from './components/autenticacion/RutaPrivada.jsx';
 
-import CopiasSeguridad from './pages/CopiasSeguridad.jsx';
-import ImportacionPagina from './pages/ImportacionPagina.jsx';
-import ClonadoCurso from './pages/ClonadoCurso.jsx';
-
-// Páginas de mantenimiento específico de tablas del sistema
-import CiclosMantenimientoPagina from './pages/mantenimiento/CiclosPagina.jsx';
-import CursosMantenimientoPagina from './pages/mantenimiento/CursosPagina.jsx';
-import ModulosMantenimientoPagina from './pages/mantenimiento/ModulosPagina.jsx';
-import DiscentesMantenimientoPagina from './pages/mantenimiento/DiscentesPagina.jsx';
-import EvaluacionesMantenimientoPagina from './pages/mantenimiento/EvaluacionesPagina.jsx';
-import PracticasMantenimientoPagina from './pages/mantenimiento/PracticasPagina.jsx';
-import RAMantenimientoPagina from './pages/mantenimiento/RAPagina.jsx';
-import CEMantenimientoPagina from './pages/mantenimiento/CEPagina.jsx';
-
-// Páginas de mantenimiento de tablas de relación (sensibles)
-import ImparteMantenimientoPagina from './pages/mantenimiento/ImpartePagina.jsx';
-import EvaluanMantenimientoPagina from './pages/mantenimiento/EvaluanPagina.jsx';
-import TrabajanMantenimientoPagina from './pages/mantenimiento/TrabajanPagina.jsx';
-import CECursoMantenimientoPagina from './pages/mantenimiento/CECursoPagina.jsx';
-import RACursoMantenimientoPagina from './pages/mantenimiento/RACursoPagina.jsx';
-
-// Proveedores de contexto global, sesión y mantenimiento de tablas
-import ToastContexto from './context/ToastContexto.jsx';
-import SesionContexto from './context/SesionContexto.jsx';
-import MantenimientoProveedores from './context/MantenimientoProveedores.jsx';
-
-// Configuración principal del enrutador de la aplicación y sus subrutas
+// Componente principal de la aplicación con configuración de rutas.
 const App = () => {
   return (
-    <ToastContexto>
-      <SesionContexto>
-        <BrowserRouter>
-          <Routes>
-            {/* Rutas públicas para inicio de sesión */}
-            <Route path="/iniciar-sesion" element={<IniciarSesionPagina />} />
-            <Route path="/login" element={<Navigate to="/iniciar-sesion" replace />} />
+    <BrowserRouter>
+      <Routes>
+        {/* Ruta pública de acceso al sistema. */}
+        <Route path="/login" element={<LoginPagina />} />
+        <Route path="/iniciar-sesion" element={<Navigate to="/login" replace />} />
 
-            {/* Rutas protegidas que requieren autenticación activa con Supabase */}
-            <Route element={<RutaProtegida />}>
-              <Route
-                element={
-                  <MantenimientoProveedores>
-                    <Layout />
-                  </MantenimientoProveedores>
-                }
-              >
-                <Route path="/" element={<DashboardPagina />} />
-                <Route path="discentes" element={<DiscentesPagina />} />
-                <Route path="clases" element={<ClasesPagina />} />
-                <Route path="evaluaciones" element={<CriteriosPagina />} />
-                <Route path="criterios" element={<CriteriosPagina />} />
-                <Route path="evaluacion/criterios" element={<Navigate to="/criterios" replace />} />
-                <Route path="evaluaciones/criterios" element={<Navigate to="/criterios" replace />} />
-                <Route path="asignacion-ce" element={<Navigate to="/criterios" replace />} />
-                <Route path="calificar" element={<CalificarPagina />} />
-                <Route path="practicas" element={<AsignacionPagina />} />
-                <Route path="asignacion" element={<AsignacionPagina />} />
-                <Route path="asignacion-ra" element={<AsignacionPagina />} />
-                <Route path="evaluacion/asignacion" element={<Navigate to="/asignacion" replace />} />
-                <Route path="pesos" element={<PesosPagina />} />
-                <Route path="evaluacion/pesos" element={<Navigate to="/pesos" replace />} />
-                <Route path="pesos-ra" element={<PesosRAPagina />} />
-                <Route path="pesos-ra-ce" element={<Navigate to="/pesos-ra" replace />} />
-                <Route path="evaluacion/pesos-ra" element={<Navigate to="/pesos-ra" replace />} />
-                <Route path="evaluacion/pesos-ra-ce" element={<Navigate to="/pesos-ra" replace />} />
-                <Route path="informes" element={<InformesPagina />} />
-                <Route path="informes/competencia" element={<InformeCompetencia />} />
-                <Route path="informes/competencias" element={<InformeCompetencia />} />
-                <Route path="informes/competencia-individual" element={<InformeCompetencia />} />
-                <Route path="informes/InformeCompetencia" element={<InformeCompetencia />} />
-                <Route path="informes/InformeCompetencias" element={<InformeCompetencia />} />
-                <Route path="competencia" element={<Navigate to="/informes/competencia" replace />} />
-                <Route path="competencias" element={<Navigate to="/informes/competencia" replace />} />
-                <Route path="informes/cobertura-ce" element={<InformeCoberturaCE />} />
-                <Route path="informes/cobertura" element={<Navigate to="/informes/cobertura-ce" replace />} />
-                <Route path="informes/coberturaCE" element={<Navigate to="/informes/cobertura-ce" replace />} />
-                <Route path="cobertura-ce" element={<Navigate to="/informes/cobertura-ce" replace />} />
-                <Route path="informes/calificaciones-pendientes" element={<InformePendientes />} />
-                <Route path="informes/pendientes" element={<Navigate to="/informes/calificaciones-pendientes" replace />} />
-                <Route path="calificaciones-pendientes" element={<Navigate to="/informes/calificaciones-pendientes" replace />} />
-                <Route path="informes/dificultad" element={<InformeDificultad />} />
-                <Route path="informes/analisis-dificultad" element={<Navigate to="/informes/dificultad" replace />} />
-                <Route path="informes/dificultad-practicas" element={<Navigate to="/informes/dificultad" replace />} />
-                <Route path="dificultad" element={<Navigate to="/informes/dificultad" replace />} />
-                <Route path="informes/acta-evaluacion-ra" element={<InformeEvaluacionRa />} />
-                <Route path="informes/acta-ra" element={<InformeEvaluacionRa />} />
-                <Route path="informes/evaluacion-ra" element={<InformeEvaluacionRa />} />
-                <Route path="informes/evaluacion-modulo-ra" element={<InformeEvaluacionRa />} />
-                <Route path="acta-evaluacion-ra" element={<Navigate to="/informes/acta-evaluacion-ra" replace />} />
-                <Route path="acta-ra" element={<Navigate to="/informes/acta-evaluacion-ra" replace />} />
-                <Route path="informes/evaluacion-modulo" element={<InformeEvaluacion />} />
-                <Route path="informes/evaluacion" element={<InformeEvaluacion />} />
-                <Route path="informes/acta" element={<InformeEvaluacion />} />
-                <Route path="informes/actas" element={<InformeEvaluacion />} />
-                <Route path="informes/acta-evaluacion" element={<InformeEvaluacion />} />
-                <Route path="informes/informe-evaluacion" element={<InformeEvaluacion />} />
-                <Route path="informes/InformeEvaluacion" element={<InformeEvaluacion />} />
-                <Route path="evaluacion-modulo" element={<InformeEvaluacion />} />
-                <Route path="evaluacion/modulo" element={<InformeEvaluacion />} />
-                <Route path="evaluacion" element={<Navigate to="/criterios" replace />} />
-                <Route path="actas" element={<InformeEvaluacion />} />
-                <Route path="acta" element={<InformeEvaluacion />} />
+        {/* Rutas protegidas que requieren sesión activa. */}
+        <Route
+          path="/"
+          element={
+            <RutaPrivada>
+              <LayoutPrincipal />
+            </RutaPrivada>
+          }
+        >
+          {/* Panel de control y Dashboard principal. */}
+          <Route index element={<PanelControl />} />
+          <Route path="dashboard" element={<PanelControl />} />
+          <Route path="panel-control" element={<PanelControl />} />
 
-                {/* Módulo de Herramientas y Mantenimiento con subrutas */}
-                <Route path="herramientas" element={<HerramientasPagina />}>
-                  <Route path="copias-seguridad" element={<CopiasSeguridad />} />
-                  <Route path="copia-seguridad" element={<Navigate to="/herramientas/copias-seguridad" replace />} />
-                  <Route path="importacion" element={<ImportacionPagina />} />
-                  <Route path="importacion-datos" element={<Navigate to="/herramientas/importacion" replace />} />
-                  <Route path="clonado-curso" element={<ClonadoCurso />} />
-                  <Route path="clonado" element={<Navigate to="/herramientas/clonado-curso" replace />} />
-                  <Route path="clonar-curso" element={<Navigate to="/herramientas/clonado-curso" replace />} />
-                  <Route path="mantenimiento/ciclos" element={<CiclosMantenimientoPagina />} />
-                  <Route path="mantenimiento/cursos" element={<CursosMantenimientoPagina />} />
-                  <Route path="mantenimiento/modulos" element={<ModulosMantenimientoPagina />} />
-                  <Route path="mantenimiento/discentes" element={<DiscentesMantenimientoPagina />} />
-                  <Route path="mantenimiento/evaluaciones" element={<EvaluacionesMantenimientoPagina />} />
-                  <Route path="mantenimiento/practicas" element={<PracticasMantenimientoPagina />} />
-                  <Route path="mantenimiento/ra" element={<RAMantenimientoPagina />} />
-                  <Route path="mantenimiento/ce" element={<CEMantenimientoPagina />} />
-                  <Route path="mantenimiento" element={<Navigate to="/herramientas" replace />} />
+          {/* Discentes */}
+          <Route path="discentes" element={<DiscentesPagina />} />
 
-                  {/* Subrutas para mantenimiento de tablas de relación (sensibles) */}
-                  <Route path="relaciones/imparte" element={<ImparteMantenimientoPagina />} />
-                  <Route path="relaciones/evaluan" element={<EvaluanMantenimientoPagina />} />
-                  <Route path="relaciones/trabajan" element={<TrabajanMantenimientoPagina />} />
-                  <Route path="relaciones/ce-curso" element={<CECursoMantenimientoPagina />} />
-                  <Route path="relaciones/ra-curso" element={<RACursoMantenimientoPagina />} />
-                  <Route path="relaciones" element={<Navigate to="/herramientas" replace />} />
+          {/* Clases */}
+          <Route path="clases" element={<ClasesPagina />} />
 
-                  {/* Redirecciones de conveniencia bajo mantenimiento */}
-                  <Route path="mantenimiento/imparte" element={<Navigate to="/herramientas/relaciones/imparte" replace />} />
-                  <Route path="mantenimiento/evaluan" element={<Navigate to="/herramientas/relaciones/evaluan" replace />} />
-                  <Route path="mantenimiento/trabajan" element={<Navigate to="/herramientas/relaciones/trabajan" replace />} />
-                  <Route path="mantenimiento/ce-curso" element={<Navigate to="/herramientas/relaciones/ce-curso" replace />} />
-                  <Route path="mantenimiento/ra-curso" element={<Navigate to="/herramientas/relaciones/ra-curso" replace />} />
-                </Route>
+          {/* Planificación */}
+          <Route path="unidades" element={<UnidadesPagina />} />
+          <Route path="temporizacion" element={<TemporizacionPagina />} />
+          <Route path="planificacion">
+            <Route index element={<Navigate to="/temporizacion" replace />} />
+            <Route path="temporizacion" element={<TemporizacionPagina />} />
+            <Route path="programacion" element={<ProgramacionPagina />} />
+            <Route path="unidades" element={<UnidadesPagina />} />
+          </Route>
 
-                <Route path="copias-seguridad" element={<Navigate to="/herramientas/copias-seguridad" replace />} />
-                <Route path="copia-seguridad" element={<Navigate to="/herramientas/copias-seguridad" replace />} />
-                <Route path="importacion" element={<Navigate to="/herramientas/importacion" replace />} />
-                <Route path="importacion-datos" element={<Navigate to="/herramientas/importacion" replace />} />
-                <Route path="clonado-curso" element={<Navigate to="/herramientas/clonado-curso" replace />} />
-                <Route path="clonar-curso" element={<Navigate to="/herramientas/clonado-curso" replace />} />
-                <Route path="clonado" element={<Navigate to="/herramientas/clonado-curso" replace />} />
-                <Route path="relaciones/imparte" element={<Navigate to="/herramientas/relaciones/imparte" replace />} />
-                <Route path="relaciones/evaluan" element={<Navigate to="/herramientas/relaciones/evaluan" replace />} />
-                <Route path="relaciones/trabajan" element={<Navigate to="/herramientas/relaciones/trabajan" replace />} />
-                <Route path="relaciones/ce-curso" element={<Navigate to="/herramientas/relaciones/ce-curso" replace />} />
-                <Route path="relaciones/ra-curso" element={<Navigate to="/herramientas/relaciones/ra-curso" replace />} />
-                <Route path="acercaDe" element={<AcercaDePagina />} />
-              </Route>
-            </Route>
+          {/* Evaluación y Calificación */}
+          <Route path="calificar" element={<CalificarPagina />} />
+          <Route path="practicas" element={<PracticasPagina />} />
+          <Route path="pesos" element={<PesosPagina />} />
+          <Route path="pesos-ra" element={<PesosRAPagina />} />
+          <Route path="criterios" element={<CriteriosPagina />} />
+          <Route path="evaluacion">
+            <Route index element={<Navigate to="/calificar" replace />} />
+            <Route path="cuaderno" element={<CuadernoPagina />} />
+            <Route path="diario" element={<DiarioPagina />} />
+            <Route path="practicas" element={<PracticasPagina />} />
+            <Route path="pesos" element={<PesosPagina />} />
+            <Route path="pesos-ra" element={<PesosRAPagina />} />
+            <Route path="criterios" element={<CriteriosPagina />} />
+          </Route>
 
-            {/* Redirección ante cualquier ruta no coincidente */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </SesionContexto>
-    </ToastContexto>
+          {/* Informes */}
+          <Route path="informes">
+            <Route index element={<InformesPagina />} />
+            <Route path="acta-evaluacion-ra" element={<InformesPagina />} />
+            <Route path="evaluacion-modulo" element={<InformesPagina />} />
+            <Route path="competencia" element={<InformesPagina />} />
+            <Route path="cobertura-ce" element={<InformesPagina />} />
+            <Route path="calificaciones-pendientes" element={<InformesPagina />} />
+            <Route path="dificultad" element={<InformesPagina />} />
+            <Route path="memoria" element={<MemoriaPagina />} />
+            <Route path="seguimiento" element={<SeguimientoPagina />} />
+            <Route path="progreso" element={<ProgresoPagina />} />
+          </Route>
+
+          {/* Herramientas y Mantenimiento */}
+          <Route path="herramientas">
+            <Route index element={<HerramientasPagina />} />
+            <Route path="copias-seguridad" element={<HerramientasPagina />} />
+            <Route path="importacion" element={<HerramientasPagina />} />
+            <Route path="clonado-curso" element={<HerramientasPagina />} />
+            <Route path="exportador" element={<ExportadorPagina />} />
+            <Route path="calendario" element={<CalendarioPagina />} />
+            <Route path="horarios" element={<HorariosPagina />} />
+            <Route path="mantenimiento" element={<MantenimientoPagina />} />
+            <Route path="mantenimiento/:tabla" element={<MantenimientoPagina />} />
+            <Route path="relaciones" element={<RelacionesPagina />} />
+            <Route path="relaciones/:tabla" element={<RelacionesPagina />} />
+          </Route>
+
+          {/* Acerca de y Ayuda */}
+          <Route path="acercaDe" element={<AcercaDePagina />} />
+          <Route path="ayuda" element={<AcercaDePagina />} />
+
+          {/* Página 404 */}
+          <Route path="*" element={<NotFoundPagina />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 };
 

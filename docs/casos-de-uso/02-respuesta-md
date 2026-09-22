@@ -1,0 +1,114 @@
+  Hemos completado la construcción e integración del módulo de Herramientas de Mantenimiento (tanto    
+  para las Tablas Maestras como para las Tablas de Relación o Sensibles), cumpliendo detalladamente con
+  lo establecido en el caso de uso y en las convenciones del proyecto.                                 
+  ──────                                                                                               
+  ### Resumen de los cambios implementados paso a paso                                                 
+                                                                                                       
+  #### 1. Sistema Global de Notificaciones y Confirmaciones                                            
+                                                                                                       
+  • Contexto y Hook de Notificaciones: Se ha creado ToastContext.jsx y su correspondiente hook         
+  useGlobalToast.js para emitir alertas (mostrarExito, mostrarError, mostrarInfo, mostrarAdvertencia)  
+  sin recurrir a prop drilling.                                                                        
+  • Inyección en la Raíz: Se envolvió la jerarquía de la aplicación en main.jsx con ToastContext.jsx.  
+  • Confirmación de Acciones Críticas: Se integró el componente ConfirmDialog de PrimeReact en         
+  LayoutPrincipal.jsx para salvaguardar las operaciones de eliminación mediante diálogos modales de    
+  confirmación con severidad de peligro.                                                               
+  ──────                                                                                               
+  #### 2. Metadatos y Configuración Técnica de las Tablas                                              
+                                                                                                       
+  En configuracionTablas.js se centralizó la definición técnica de las 20 tablas (10 maestras y 10 de  
+  relación):                                                                                           
+                                                                                                       
+  • Tablas Maestras (10): Ciclos, Cursos, Modulos, Unidades_Trabajo, RA, CE, Practicas, Discentes,     
+  Evaluaciones, Sesiones.
+  • Tablas de Relación (10): desarrollan, Versiones, Temporizacion, ra_curso, ce_curso, trabajan,      
+  imparte, evaluan, Festivos, Horarios.
+  • Cada configuración define clave primaria, columnas con tipo, etiquetas, anchos optimizados,        
+  resolución de claves foráneas y campos requeridos para los formularios.
+  ──────
+  #### 3. Custom Hooks de Acceso a Supabase (sin Context Hell)
+  
+  Siguiendo la directriz de aislar los datos en hooks individuales consumiendo useDatos.js:            
+  
+  • Fábrica de Hooks: Se creó crearHookTabla.js para proveer métodos estándar (crear, actualizar,      
+  eliminar, recargar, datos, cargando, error).
+  • Hooks Maestros Creados:
+      • useCiclos.js
+      • useCursos.js
+      • useModulos.js
+      • useUnidadesTrabajo.js
+      • useRA.js
+      • useCE.js
+      • usePracticas.js
+      • useDiscentes.js
+      • useEvaluaciones.js
+      • useSesiones.js
+  • Hooks de Tablas de Relación Creados:
+      • useDesarrollan.js
+      • useVersiones.js
+      • useTemporizacion.js
+      • useRaCurso.js
+      • useCeCurso.js
+      • useTrabajan.js
+      • useImparte.js
+      • useEvaluan.js
+      • useFestivos.js
+      • useHorarios.js
+  • Hook Orquestador Dinámico: useTablaMantenimiento.js, que además de orquestar el CRUD según la tabla
+  activa, resuelve asíncronamente las entidades foráneas vinculadas para poblar los desplegables de los
+  formularios y mostrar textos legibles en las celdas en vez de identificadores UUID crudos.           
+  ──────
+  #### 4. Componentización Modular (Carpeta /src/components/mantenimiento/)
+  
+  Se respetó la regla estricta de componentes no monolíticos dividiendo las responsabilidades en piezas
+  reutilizables:
+  
+  • CeldaTruncada.jsx: Garantiza que los textos largos se mantengan estrictamente en una sola línea    
+  mediante elipsis y activa el componente Tooltip de PrimeReact al pasar el cursor sobre la celda.     
+  • BarraHerramientasTabla.jsx: Integra el campo de búsqueda global, el botón "Nuevo Registro", el     
+  botón de recarga y el contador de registros.
+  • TablaMantenimiento.jsx: Renderiza el DataTable de PrimeReact con paginación (rows={10}), ordenación
+  por columnas, anchos específicos y botones de acción ("Editar" y "Eliminar").
+  • DialogoFormulario.jsx: Renderiza el modal Dialog adaptando dinámicamente los campos a componentes  
+  PrimeReact (InputText, InputTextarea, InputNumber, Calendar, Dropdown, InputSwitch) y gestionando    
+  validaciones de obligatoriedad.
+  • AlertaTablaSensible.jsx: Banner de advertencia con Message para advertir sobre el impacto en la    
+  integridad referencial al gestionar tablas de relación.
+  • CabeceraMantenimiento.jsx: Cabecera con título, subtítulo descriptivo, icono y distintivos (Tag) de
+  tipo de tabla.
+  • SelectorTabla.jsx: Barra superior de conmutación rápida entre tablas de la misma categoría.        
+  • TarjetaTablaHub.jsx: Tarjetas presentacionales para el panel central de herramientas.              
+  ──────
+  #### 5. Páginas Contenedoras y Enrutamiento
+  
+  • Panel Central de Herramientas: HerramientasPagina.jsx presenta un panel de control con accesos     
+  directos a todas las tablas maestras y a las tablas sensibles con alertas visuales.
+  • Página de Tablas Maestras: MantenimientoPagina.jsx actúa como orquestador para
+  /herramientas/mantenimiento/:tabla.
+  • Página de Tablas de Relación: RelacionesPagina.jsx actúa como orquestador para
+  /herramientas/relaciones/:tabla, incorporando confirmaciones reforzadas y advertencias de auditoría. 
+  • Menú y Rutas: Se actualizaron menuConfiguracion.js y App.jsx con las 20 rutas accesibles desde el  
+  menú lateral.
+
+---
+
+  Se ha configurado la localización de los calendarios a la región de España (es):
+  
+  1. Configuración de la localización en castellano:
+      • Se ha creado configuracionCalendario.js haciendo uso de addLocale y locale de PrimeReact para  
+      registrar:
+          • Inicio de semana en lunes: firstDayOfWeek: 1.
+          • Nombres de días en castellano: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves',       
+          'viernes', 'sábado'].
+          • Abreviaturas de días: ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'] y mínimas ['D', 'L',
+          'M', 'X', 'J', 'V', 'S'].
+          • Nombres de meses: ['enero', 'febrero', ..., 'diciembre'].
+          • Textos de botones: today: 'Hoy', clear: 'Limpiar', weekHeader: 'Sm'.
+          • Formato predeterminado: dd/mm/yy.
+  
+  2. Inicialización global en la aplicación:
+      • En main.jsx se invoca configurarLocaleEspanol() al arrancar la aplicación para que todos los   
+      componentes Calendar y selectores de fecha adopten esta configuración de forma predeterminada.   
+  3. Parámetros explícitos en formularios:
+      • En DialogoFormulario.jsx se han añadido explícitamente las propiedades locale="es" y           
+      firstDayOfWeek={1} al componente Calendar de PrimeReact.

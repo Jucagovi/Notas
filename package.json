@@ -1,37 +1,28 @@
 {
-  "name": "control-de-notas",
+  "name": "control-notas",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "oxlint",
-    "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.4",
+    "@primereact/themes": "file:./src/themes",
+    "@primeuix/themes": "^3.0.1",
+    "@supabase/supabase-js": "^2.49.1",
     "chart.js": "^4.5.1",
-    "jspdf": "^4.2.1",
-    "jspdf-autotable": "^5.0.8",
-    "papaparse": "^5.7.0",
     "primeflex": "^4.0.0",
-    "primeicons": "^8.0.0",
-    "primereact": "^10.9.8",
-    "quill": "^2.0.2",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "react-router-dom": "^7.18.2",
+    "primeicons": "^8.0.1",
+    "primereact": "^10.9.9",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.1.5",
     "swapy": "^1.0.5"
   },
   "devDependencies": {
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "@vitejs/plugin-react": "^6.1.0",
-    "gh-pages": "^6.3.0",
-    "oxlint": "^1.79.0",
-    "vite": "^8.2.2"
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.2.0"
   }
 }

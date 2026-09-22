@@ -1,17 +1,22 @@
-# Caso de uso: incio sesión de usuario.
+# Caso de uso 03: Gestión de Sesión y Autenticación
 
 ## 1. Objetivo
 
-Proporcionar al docente un sistema de inicio de sesión para poder consultar los datos del servicio de Supabase.
+Proporcionar al docente un sistema de acceso seguro (autenticación) para consultar y gestionar los datos de la base de datos, garantizando que ninguna vista de la aplicación quede expuesta a usuarios no autorizados.
 
 ## 2. Lógica de Interfaz y Flujo (UI/UX)
 
-Ya existe un apartado para iniciar sesión que deberá ser modificado. Se deberá crear una página extra para iniciar sesión que contendrá un formulario para inciar sesión.
+* **Vista de Login:** Se creará una página de "Inicio de sesión" independiente (`/login`). Constará de un panel central (`Card` de PrimeReact) que contendrá un formulario con los campos `InputText` (para el correo) y `Password` (para la contraseña, preferiblemente sin *feedback* de seguridad para agilizar el login), junto a un `Button` de envío.
+* **Cabecera (Layout Global):** Una vez iniciada la sesión, el usuario accederá al *Layout* principal de la aplicación. En la barra superior (cabecera) deberá aparecer el correo o nombre del usuario logueado junto a un botón de "Salir" (`Button` con un icono de PrimeIcons como `pi-sign-out`).
+* **Feedback:** Si las credenciales son incorrectas, se informará al usuario mediante el sistema global de notificaciones (`Toast` de PrimeReact).
 
-## 3. Reglas de Negocio
+## 3. Reglas de Negocio y Enrutamiento
 
-Si no hay sesión iniciada enviará al usuario a una página de "Inicio de sesión". Cuando se inicie la sesión el usuario tendrá acceso a todo el contenido de la aplicación y aparecerá la información de usuario y el botón de "Salir" (exactamente igual que está ahora). Si el usuario no tiene la sesión iniciada no podrá acceder a ninguna parte de la web. Crea un hook y un contexto para esta funcionalidad.
+* **Bloqueo Total (Protected Routes):** Se utilizará `react-router-dom` para crear un componente envoltorio de rutas privadas (ej. `<RutaPrivada>`). Si un usuario no autenticado intenta acceder a cualquier URL (como `/dashboard` o `/mantenimiento`), será redirigido forzosamente a `/login`.
+* Si un usuario ya tiene sesión iniciada e intenta navegar a `/login`, el sistema debe redirigirlo automáticamente a la página principal (`/dashboard`).
 
-## 4. Obtención de Datos (Services) y Estados
+## 4. Obtención de Datos y Arquitectura de Estados
 
-Deberás utilizar el sistema que ofrece Supabase de usuario/contraseña y evitar usar cualquier otro.
+* **Supabase Auth:** Se utilizará exclusivamente el servicio nativo de Supabase de Autenticación mediante Email/Contraseña (`signInWithPassword` y `signOut`). No se habilitarán proveedores sociales (OAuth) de momento.
+* **Contexto Global:** Se creará un contexto (`AuthContext`) que escuchará los cambios de estado de la sesión de Supabase (`onAuthStateChange`).
+* **Custom Hook:** Se expondrá un hook llamado `useAuth` para que cualquier componente de la aplicación pueda acceder fácilmente al usuario actual (`user`) y a las funciones de `login` y `logout`, aislando así la lógica directa del SDK de Supabase.

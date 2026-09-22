@@ -13,9 +13,11 @@
   --surface-border: #dee2e6;
   --border-color: #dee2e6;
   --border-radius: 8px;
-  --header-height: 64px;
+  --header-height: 100px;
+  --altura-cabecera: 100px;
   --sidebar-width: 288px;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: var(--font-family);
   line-height: 1.5;
   font-weight: 400;
   color: var(--text-color);
@@ -41,6 +43,7 @@
 
 /* Dark Theme Variables */
 html.dark-theme,
+html.app-dark,
 [data-theme='dark'] {
   --primary-color: #38bdf8;
   --primary-hover: #0ea5e9;
@@ -212,19 +215,28 @@ body {
 .app-branding {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .brand-icon {
-  font-size: 1.5rem;
+  font-size: 2.25rem;
   color: var(--primary-color);
 }
 
 .brand-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-color);
   letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.sidebar-header-custom .brand-icon {
+  font-size: 1.5rem;
+}
+
+.sidebar-header-custom .brand-title {
+  font-size: 1.25rem;
 }
 
 .header-end {
@@ -261,9 +273,27 @@ body {
   color: var(--text-muted);
 }
 
+/* Unificación tipográfica para botones y controles interactivos */
+button,
+input,
+select,
+textarea,
+.p-component,
+.p-button,
+.p-button-label {
+  font-family: inherit !important;
+}
+
 .logout-btn {
   border: none !important;
   box-shadow: none !important;
+  font-family: inherit !important;
+}
+
+.logout-btn .p-button-label {
+  font-family: inherit !important;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 /* App Body (Sidebar + Main) */
@@ -744,6 +774,63 @@ html.dark-theme .p-tag.p-tag-info,
 .p-inputnumber .p-inputnumber-input {
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Botones de incremento y decremento compactos (mitad de ancho y mitad de altura) para campos numéricos */
+.inputnumber-compacto.p-inputnumber {
+  position: relative !important;
+  display: inline-flex !important;
+}
+
+.inputnumber-compacto.p-inputnumber .p-inputnumber-button-group {
+  position: absolute !important;
+  right: 4px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  height: 50% !important;
+  max-height: 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  z-index: 2 !important;
+}
+
+.inputnumber-compacto.p-inputnumber .p-inputnumber-button-group .p-button.p-inputnumber-button,
+.inputnumber-compacto.p-inputnumber .p-inputnumber-button,
+.inputnumber-compacto .p-inputnumber-button {
+  width: 1.15rem !important;
+  min-width: 1.15rem !important;
+  height: 50% !important;
+  min-height: 0 !important;
+  max-height: 10px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+}
+
+.inputnumber-compacto.p-inputnumber .p-inputnumber-button .p-icon,
+.inputnumber-compacto .p-inputnumber-button .p-icon,
+.inputnumber-compacto.p-inputnumber .p-inputnumber-button .p-button-icon,
+.inputnumber-compacto .p-inputnumber-button .p-button-icon {
+  font-size: 0.5rem !important;
+  width: 0.5rem !important;
+  height: 0.5rem !important;
+}
+
+.inputnumber-compacto.p-inputnumber .p-inputnumber-input,
+.inputnumber-compacto .p-inputnumber-input {
+  padding-right: 1.65rem !important;
+}
+
+/* Diálogo de edición y creación de Unidades de Trabajo con un 30% más de anchura */
+.dialog-unidad-trabajo.p-dialog,
+.p-dialog.dialog-unidad-trabajo {
+  width: 760px !important;
+  max-width: 95vw !important;
 }
 
 .p-dropdown {
@@ -1692,7 +1779,6 @@ html.dark-theme .p-dropdown-items .p-dropdown-item.p-highlight,
   color: #0f172a !important;
   font-weight: 600 !important;
 }
-
 /* ==========================================================================
    Calendar & DatePicker Customization (Espaciado respirable y diseño moderno)
    ========================================================================== */
@@ -1939,38 +2025,177 @@ html.dark-theme .p-datepicker .p-yearpicker .p-yearpicker-year.p-highlight,
   color: #0f172a !important;
 }
 
-/* Estilos para el Módulo de Inicio de Sesión */
+
+/* Estilos para el módulo de inicio de sesión. */
 .login-wrapper {
-  background: linear-gradient(135deg, var(--bg-color) 0%, var(--surface-ground, var(--bg-color)) 100%);
+  background-color: var(--bg-color) !important;
+  background: var(--bg-color) !important;
   min-height: 100vh;
 }
 
 .login-wrapper .p-card {
-  background-color: var(--surface-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  background-color: var(--surface-card, #ffffff) !important;
+  border: 1px solid var(--border-color, #dee2e6) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
 }
 
-.login-wrapper .p-password {
-  width: 100%;
+/* Contenedor unificado para que ambos inputs tengan exactamente las mismas dimensiones. */
+.login-input-contenedor {
+  position: relative !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
-.login-wrapper .p-password input {
-  width: 100%;
+/* Se asegura la expansión al 100% de cualquier envoltorio interno de PrimeReact. */
+.login-input-contenedor .p-password,
+.login-input-contenedor .p-icon-field {
+  position: relative !important;
+  width: 100% !important;
+  display: flex !important;
+  flex: 1 1 100% !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-.login-wrapper .p-input-icon-left {
-  width: 100%;
+/* Se homologan las dimensiones, márgenes y rellenos de ambos campos de entrada. */
+.login-input-contenedor input,
+.login-input-contenedor .p-inputtext,
+.login-input-contenedor .p-password input,
+.login-input-contenedor .p-password-input {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  flex: 1 1 100% !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  font-size: 0.95rem !important;
+  line-height: normal !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 2.5rem !important;
+  padding-right: 2.5rem !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border-color, #dee2e6) !important;
+  background-color: var(--surface-card, #ffffff) !important;
+  color: var(--text-color, #343a3f) !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+  transition: all 0.15s ease-in-out !important;
 }
 
-.login-wrapper .p-input-icon-left > i:first-of-type {
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
+.login-input-contenedor input:focus,
+.login-input-contenedor .p-inputtext:focus,
+.login-input-contenedor .p-password input:focus {
+  border-color: var(--primary-color, #1174c0) !important;
+  box-shadow: 0 0 0 2px var(--primary-light, rgba(17, 116, 192, 0.2)) !important;
+  outline: none !important;
 }
 
-.login-wrapper .p-input-icon-left > .p-inputtext {
-  padding-left: 2.25rem;
+/* Icono izquierdo dentro del contenedor de acceso. */
+.login-input-contenedor .login-icono-izquierda {
+  position: absolute !important;
+  left: 0.85rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: var(--text-muted, #697077) !important;
+  font-size: 1rem !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Centrado vertical y alineación del icono para mostrar u ocultar la contraseña. */
+.login-input-contenedor .p-input-icon,
+.login-input-contenedor .p-password .p-input-icon,
+.login-input-contenedor .p-password .p-password-show-icon,
+.login-input-contenedor .p-password .p-password-hide-icon,
+.login-input-contenedor .p-password > i,
+.login-input-contenedor .p-password > svg,
+.login-input-contenedor .p-password [role='switch'] {
+  position: absolute !important;
+  right: 0.85rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin: 0 !important;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+  color: var(--text-muted, #697077) !important;
+  font-size: 1.05rem !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+}
+
+.login-input-contenedor .p-input-icon svg,
+.login-input-contenedor .p-input-icon i {
+  display: block !important;
+  margin: auto !important;
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+/* Se anula el fondo amarillo impuesto por el autorrellenado de navegadores. */
+.login-wrapper input:-webkit-autofill,
+.login-wrapper input:-webkit-autofill:hover, 
+.login-wrapper input:-webkit-autofill:focus,
+.login-wrapper input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-card, #ffffff) inset !important;
+  -webkit-text-fill-color: var(--text-color, #343a3f) !important;
+  caret-color: var(--text-color, #343a3f) !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Adaptación del módulo de acceso para el tema oscuro. */
+html.dark-theme .login-wrapper,
+[data-theme='dark'] .login-wrapper {
+  background-color: var(--bg-color, #0f172a) !important;
+  background: var(--bg-color, #0f172a) !important;
+}
+
+html.dark-theme .login-wrapper .p-card,
+[data-theme='dark'] .login-wrapper .p-card {
+  background-color: var(--surface-card, #1e293b) !important;
+  border-color: var(--border-color, #334155) !important;
+}
+
+html.dark-theme .login-input-contenedor input,
+html.dark-theme .login-input-contenedor .p-inputtext,
+html.dark-theme .login-input-contenedor .p-password input,
+[data-theme='dark'] .login-input-contenedor input,
+[data-theme='dark'] .login-input-contenedor .p-inputtext,
+[data-theme='dark'] .login-input-contenedor .p-password input {
+  background-color: var(--surface-card, #1e293b) !important;
+  color: var(--text-color, #f1f5f9) !important;
+  border-color: var(--border-color, #334155) !important;
+}
+
+html.dark-theme .login-wrapper input:-webkit-autofill,
+html.dark-theme .login-wrapper input:-webkit-autofill:hover,
+html.dark-theme .login-wrapper input:-webkit-autofill:focus,
+html.dark-theme .login-wrapper input:-webkit-autofill:active,
+[data-theme='dark'] .login-wrapper input:-webkit-autofill,
+[data-theme='dark'] .login-wrapper input:-webkit-autofill:hover,
+[data-theme='dark'] .login-wrapper input:-webkit-autofill:focus,
+[data-theme='dark'] .login-wrapper input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  caret-color: #f1f5f9 !important;
 }
 
 /* Responsive Breakpoints */
@@ -2359,6 +2584,12 @@ html.dark-theme .p-stepper .p-stepper-header.p-highlight .p-stepper-number,
   max-width: 28rem;
 }
 
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Zonas de soltado para Swapy y eventos drag & drop */
 [data-swapy-slot] {
   transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
@@ -2621,6 +2852,188 @@ html.dark-theme .p-treetable .p-treetable-tbody > tr:hover,
 [data-theme='dark'] .p-treetable .p-treetable-tbody > tr:hover {
   background-color: var(--table-row-hover) !important;
 }
+
+/* ==========================================================================
+   Estilos específicos y adaptados para PickList (Modificar Clase)
+   ========================================================================== */
+.p-picklist.picklist-matriculas {
+  gap: 0;
+  align-items: center;
+}
+
+/* Contenedores principales de las dos tablas (Disponibles y Matriculados) */
+.picklist-matriculas > .p-picklist-source-wrapper,
+.picklist-matriculas > .p-picklist-target-wrapper,
+.picklist-matriculas div.p-picklist-list-wrapper {
+  flex: 1 1 0;
+  width: 100%;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius) !important;
+  background-color: var(--surface-card) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.picklist-matriculas .p-picklist-header {
+  background-color: var(--table-header-bg) !important;
+  color: var(--text-color) !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  padding: 0.85rem 1.25rem !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  letter-spacing: 0.01em;
+}
+
+.picklist-matriculas .p-picklist-filter-container {
+  padding: 0.75rem 1rem !important;
+  background-color: var(--surface-card) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.picklist-matriculas .p-picklist-filter {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.picklist-matriculas .p-picklist-filter-input {
+  width: 100% !important;
+  padding: 0.55rem 2.5rem 0.55rem 0.85rem !important;
+  border-radius: var(--border-radius) !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--surface-ground) !important;
+  color: var(--text-color) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+.picklist-matriculas .p-picklist-filter-input:focus {
+  outline: none !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 1px var(--primary-color) !important;
+}
+
+/* Alineación vertical centrada para el icono de la lupa en el buscador */
+.picklist-matriculas .p-picklist-filter > span {
+  position: absolute !important;
+  top: 50% !important;
+  right: 0.85rem !important;
+  transform: translateY(-50%) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+  line-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+}
+
+.picklist-matriculas .p-picklist-filter-icon {
+  position: absolute !important;
+  top: 50% !important;
+  right: 0.85rem !important;
+  transform: translateY(-50%) !important;
+  margin: 0 !important;
+  color: var(--text-muted, #64748b) !important;
+  width: 1rem !important;
+  height: 1rem !important;
+  pointer-events: none !important;
+}
+
+.picklist-matriculas .p-picklist-filter > span .p-picklist-filter-icon {
+  position: static !important;
+  transform: none !important;
+}
+
+/* Normalización de la lista <ul> para asegurar idéntico comportamiento en Disponibles y Matriculados */
+.picklist-matriculas ul.p-picklist-list,
+.picklist-matriculas ul.p-picklist-source,
+.picklist-matriculas ul.p-picklist-target {
+  padding: 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+  outline: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  display: block !important;
+}
+
+/* Filas con colores alternos e incremento de paddings en ambas tablas (Disponibles y Matriculados) */
+.picklist-matriculas .p-picklist-source .p-picklist-item,
+.picklist-matriculas .p-picklist-target .p-picklist-item,
+.picklist-matriculas .p-picklist-list .p-picklist-item,
+.picklist-matriculas .p-picklist-item {
+  padding: 0.85rem 1.25rem !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  transition: background-color 0.15s ease-in-out;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.picklist-matriculas .p-picklist-item:last-child {
+  border-bottom: none !important;
+}
+
+.picklist-matriculas .p-picklist-item:nth-child(odd):not(.p-highlight) {
+  background-color: var(--table-row-odd) !important;
+}
+
+.picklist-matriculas .p-picklist-item:nth-child(even):not(.p-highlight) {
+  background-color: var(--surface-card) !important;
+}
+
+.picklist-matriculas .p-picklist-item:hover:not(.p-highlight) {
+  background-color: var(--table-row-hover) !important;
+}
+
+.picklist-matriculas .p-picklist-item.p-highlight {
+  background-color: var(--primary-color) !important;
+  color: #ffffff !important;
+}
+
+.picklist-matriculas .p-picklist-item.p-highlight * {
+  color: #ffffff !important;
+}
+
+/* Espacio generoso entre los botones y las tablas */
+.picklist-matriculas .p-picklist-buttons {
+  padding: 0 2rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem !important;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Botones de selección cuadrados con el border-radius estándar de la aplicación */
+.picklist-matriculas .p-picklist-buttons .p-button {
+  width: 2.75rem !important;
+  height: 2.75rem !important;
+  border-radius: var(--border-radius, 8px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.picklist-matriculas .p-picklist-buttons .p-button:hover {
+  transform: scale(1.06);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+@media screen and (max-width: 768px) {
+  .picklist-matriculas .p-picklist-buttons {
+    padding: 1.5rem 0 !important;
+    flex-direction: row;
+    gap: 0.75rem !important;
+  }
+}
+
 
 
 

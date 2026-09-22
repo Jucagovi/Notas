@@ -1,61 +1,66 @@
-// src/utils/coloresNota.js
-
+// Función auxiliar para obtener la clase CSS y el color hexadecimal asociado a una calificación (0-100).
 export const getColorNota = (nota) => {
-  if (nota === null || nota === undefined || nota === "" || isNaN(nota)) {
+  const valor = Number(nota);
+
+  if (Number.isNaN(valor)) {
     return {
-      text: "text-500",
-      bg: "bg-gray-100",
-      hex: "#9ca3af",
-      label: "Sin calificar",
+      clase: 'text-color-secondary',
+      hex: '#6c757d',
+      etiqueta: 'Sin calificar'
     };
   }
 
-  const n = parseFloat(nota);
-  if (isNaN(n)) {
+  if (valor < 50) {
     return {
-      text: "text-500",
-      bg: "bg-gray-100",
-      hex: "#9ca3af",
-      label: "Sin calificar",
+      clase: 'text-red-500',
+      hex: '#ef4444',
+      etiqueta: 'Suspenso'
     };
   }
 
-  if (n < 50)
+  if (valor < 60) {
     return {
-      text: "text-red-500",
-      bg: "bg-red-100",
-      hex: "#ef4444",
-      label: "Suspenso",
+      clase: 'text-orange-500',
+      hex: '#f97316',
+      etiqueta: 'Suficiente'
     };
-  if (n < 60)
+  }
+
+  if (valor < 70) {
     return {
-      text: "text-orange-500",
-      bg: "bg-orange-100",
-      hex: "#f97316",
-      label: "Suficiente",
+      clase: 'text-yellow-500',
+      hex: '#eab308',
+      etiqueta: 'Bien'
     };
-  if (n < 70)
+  }
+
+  if (valor < 90) {
     return {
-      text: "text-yellow-500",
-      bg: "bg-yellow-100",
-      hex: "#eab308",
-      label: "Bien",
+      clase: 'text-green-500',
+      hex: '#22c55e',
+      etiqueta: 'Notable'
     };
-  if (n < 90)
-    return {
-      text: "text-green-500",
-      bg: "bg-green-100",
-      hex: "#22c55e",
-      label: "Notable",
-    };
+  }
 
   return {
-    text: "text-blue-500",
-    bg: "bg-blue-100",
-    hex: "#3b82f6",
-    label: "Sobresaliente",
+    clase: 'text-blue-500',
+    hex: '#3b82f6',
+    etiqueta: 'Sobresaliente'
   };
 };
 
-export const getGradeColor = getColorNota;
+// Obtiene la severidad (severity) de PrimeReact correspondiente a una calificación (0-100).
+// Menor a 50: danger, 50-59: warning, 60-69: info, 70-89: success, 90-100: primary
+export const getSeverityNota = (nota) => {
+  const valor = Number(nota);
 
+  if (Number.isNaN(valor) || nota === null || nota === undefined) {
+    return null;
+  }
+
+  if (valor < 50) return 'danger';
+  if (valor < 60) return 'warning';
+  if (valor < 70) return 'info';
+  if (valor < 90) return 'success';
+  return 'primary';
+};

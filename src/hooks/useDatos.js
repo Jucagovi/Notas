@@ -7,16 +7,19 @@ const useDatos = (nombreTabla) => {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
-  // Obtención de todos los registros de la tabla o con selección personalizada de columnas
+  // Obtención de todos los registros de la tabla o con selección personalizada de columnas y modificadores opcionales.
   const obtenerDatos = useCallback(
-    async (columnas = '*') => {
+    async (columnas = '*', modificadorConsulta = null) => {
       if (!nombreTabla) return [];
       setCargando(true);
       setError(null);
       try {
-        const { data, error: errorConsulta } = await supabase
-          .from(nombreTabla)
-          .select(columnas);
+        let consulta = supabase.from(nombreTabla).select(columnas);
+        if (typeof modificadorConsulta === 'function') {
+          consulta = modificadorConsulta(consulta);
+        }
+
+        const { data, error: errorConsulta } = await consulta;
 
         if (errorConsulta) throw errorConsulta;
         const resultado = data || [];
@@ -130,10 +133,6 @@ const useDatos = (nombreTabla) => {
     actualizar,
     eliminar,
     setDatos,
-    // Aliases para compatibilidad
-    data: datos,
-    loading: cargando,
-    fetchData: obtenerDatos
   };
 };
 
