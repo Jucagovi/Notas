@@ -1,40 +1,4 @@
-## 1. Objetivo
-
-Implementar la interfaz estructural para que un docente pueda definir el currículo de un módulo. Esto incluye la creación, edición y borrado (CRUD) de Unidades de Trabajo (UT), así como la asignación intuitiva de las Prácticas existentes a dichas unidades.
-
-## 2. Modelo de Datos
-
-La funcionalidad se apoya en las siguientes estructuras:
-
-* La tabla `Modulos` actúa como contenedor curricular de las materias.
-* La tabla `Unidades_Trabajo` almacena el currículo específico por año lectivo (`numero`, `nombre`, `descripcion`) vinculado a un `id_modulo` y un `id_curso`. Esto permite que la programación y número de unidades varíe de un curso a otro sin afectar a los cursos históricos.
-* La tabla `practicas_curso` enlaza las prácticas de cada curso a su respectiva Unidad de Trabajo (`id_ut`).
-* La funcionalidad de duplicación permite copiar la estructura completa de UTs y asignaciones desde un curso previo.
-
-## 3. Interfaz de Usuario (UI)
-
-Toda la interfaz debe construirse con PrimeReact (tema Nano) y PrimeIcons.
-
-* En **menú principal de la izquierda** crea la sección de `Unidades de trabajo` que conduzca al fichero src/pages/UnidadesPagina.jsx
-* **Gestión de UT:** Un componente `DataTable` o `DataView` de PrimeReact mostrará las Unidades de Trabajo del módulo seleccionado. Un botón flotante o de cabecera abrirá un `Dialog` (modal) con un formulario (`InputText`, `InputTextarea`) para crear o editar una UT.
-* **Panel de Prácticas Huérfanas:** Un panel lateral o inferior mostrará las Prácticas que aún tienen su campo `id_ut` en nulo.
-* **Asignación (Drag & Drop):** Se utilizará estrictamente la librería `swapy` para arrastrar una práctica desde el "Panel de Prácticas Huérfanas" y soltarla dentro de una Unidad de Trabajo, actualizando automáticamente la base de datos.
-* **Eliminación:** Borrar una UT debe mostrar un `ConfirmDialog` de PrimeReact. El borrado dejará las prácticas asociadas nuevamente "huérfanas" (esto dependerá del ON DELETE SET NULL configurado en BD, pero la UI debe refrescarlo).
-
-## 4. Arquitectura y Lógica de Negocio
-
-* Crea/modifica los archivos src/hooks/useUnidadesTrabajo.js y src/hooks/usePracticas.js. Utiliza el hook genérico useDatos para implementar el CRUD completo de la tabla Unidades_Trabajo (filtrando por id_modulo) y un método para actualizar el id_ut de un registro en la tabla Practicas. Aplica el manejo de errores estricto definido en las convenciones y redacta los comentarios en estilo impersonal.
-* **Gestión de Estado:** Se crearán dos *Custom Hooks*: `useUnidadesTrabajo.js` y `usePracticas.js`.
-* **Abstracción de Datos:** Ambos hooks utilizarán el hook genérico `useDatos` para interactuar con Supabase.
-* **Componentes:** Se creará el componente principal `GestorCurriculo.jsx` en formato `PascalCase`, siendo un componente funcional con la función exportada en la última línea.
-
-## 5. Tabla de mantenimiento
-
-Genera una nueva entrada en la sección `herramientas` -> `MANTENIMIENTO` para mantener la tabla a través de un <DataTable> de igual modo que está hecho con el resto de tablas. (revisa alguna de ellas si tienes dudas).
-
-## Propuesta
-
-# 📚 Caso de uso 18: Gestor de Unidades de Trabajo y Asignación de Actividades
+## Caso de uso 18: Gestor de Unidades de Trabajo y Asignación de Actividades
 
 ## 1. Objetivo
 
@@ -53,12 +17,13 @@ La funcionalidad se apoya en el patrón Maestro-Detalle consolidado:
 
 Toda la interfaz se construirá utilizando los componentes de PrimeReact y sus iconos (`primeicons`).
 
-* **Enrutamiento Principal:** En el menú principal izquierdo, crear la sección `Unidades de trabajo` que conducirá a la página `src/pages/UnidadesPagina.jsx`.
+* **Enrutamiento Principal:** En el menú principal izquierdo en su sección `Planificación`, crear la sección `Unidades de trabajo` que conducirá a la página `src/pages/UnidadesPagina.jsx`.
 * **Layout de Gestión (Drag & Drop):** La vista se dividirá en dos áreas interactivas utilizando la librería `swapy`:
   * **Zona Curricular (UTs):** Un componente `DataView` o un diseño en Grid con tarjetas (`Card`) por cada Unidad de Trabajo del módulo seleccionado. Cada tarjeta actuará como una zona de destino (Drop Zone). Un botón principal permitirá abrir un `Dialog` para crear/editar una UT.
   * **Panel de Actividades Huérfanas:** Un panel lateral o inferior fijo que mostrará las `Versiones` cuyo campo `id_ut` sea nulo.
   * **Interacción:** El usuario arrastrará una actividad desde el panel de huérfanas y la soltará dentro de una UT. Esto disparará una actualización automática en la base de datos y refrescará la vista.
 * **Eliminación:** Borrar una UT requerirá confirmación mediante un `ConfirmDialog` de PrimeReact, advirtiendo que las actividades contenidas quedarán huérfanas.
+* Antes de la creación de algún componente, el agente **DEBE** reutilizar los ubicados en `src/components/common/` si es necesario (no se pueden modificar estos componentes).
 
 ## 4. Obtención de Datos y Custom Hooks
 

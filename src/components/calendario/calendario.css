@@ -1,0 +1,189 @@
+/* Estilos específicos para la vista y comportamiento visual del Calendario Escolar */
+
+.calendario-escolar-contenedor {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Disposición responsive con cuadrícula fija de 3 meses por fila */
+.calendario-escolar {
+  width: 100%;
+  min-width: 680px; /* Mantiene la proporción de 3 meses por fila sin deformar números */
+}
+
+.calendario-escolar .p-datepicker {
+  width: 100% !important;
+  border: 1px solid var(--surface-border, #e2e8f0) !important;
+  border-radius: 12px !important;
+  background-color: var(--surface-card, #ffffff) !important;
+  padding: 0.75rem !important;
+}
+
+/* Ocultar botones de paginación para mantener siempre fijados los 12 meses del curso académico */
+.calendario-escolar .p-datepicker-prev,
+.calendario-escolar .p-datepicker-next {
+  display: none !important;
+}
+
+/* Deshabilitar interacción en títulos de mes y año para impedir cambio accidental a vista de meses */
+.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title,
+.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title button,
+.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-month,
+.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-year {
+  pointer-events: none !important;
+  cursor: default !important;
+}
+
+/* Cuadrícula estricta de 3 columnas (3 meses por fila) independientemente de la resolución */
+.calendario-escolar .p-datepicker-group-container {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 1rem !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+.calendario-escolar .p-datepicker-group {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  border: 1px solid var(--surface-border, #e2e8f0) !important;
+  border-radius: 8px !important;
+  padding: 0.5rem !important;
+  background-color: var(--surface-0, #ffffff) !important;
+}
+
+/* Cabecera compacta por mes con nombre en castellano capitalizado */
+.calendario-escolar .p-datepicker .p-datepicker-header {
+  padding: 0.25rem 0.35rem 0.5rem 0.35rem !important;
+  justify-content: center !important;
+}
+
+.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-month,
+.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-year {
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  padding: 0.2rem 0.35rem !important;
+  text-transform: capitalize !important;
+}
+
+/* Tabla de días ajustada a la columna */
+.calendario-escolar .p-datepicker table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 2px !important;
+  margin: 0.25rem 0 !important;
+}
+
+.calendario-escolar .p-datepicker table th {
+  padding: 0.25rem 0.1rem !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+}
+
+.calendario-escolar .p-datepicker table td {
+  padding: 1px !important;
+  text-align: center !important;
+}
+
+.calendario-escolar .p-datepicker table td > span {
+  width: 100% !important;
+  max-width: 2rem !important;
+  height: 2rem !important;
+  font-size: 0.78rem !important;
+  border-radius: 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+}
+
+/* Festivos seleccionados: resaltados en rojo vivo sobreescribiendo temas claro y oscuro */
+html .calendario-escolar .p-datepicker table td > span.p-highlight,
+html.dark-theme .calendario-escolar .p-datepicker table td > span.p-highlight,
+[data-theme='dark'] .calendario-escolar .p-datepicker table td > span.p-highlight,
+html .calendario-escolar .p-datepicker table td.p-datepicker-today > span.p-highlight,
+html.dark-theme .calendario-escolar .p-datepicker table td.p-datepicker-today > span.p-highlight,
+[data-theme='dark'] .calendario-escolar .p-datepicker table td.p-datepicker-today > span.p-highlight,
+.calendario-escolar .p-datepicker table td > span.p-highlight,
+.calendario-escolar .p-datepicker table td.p-datepicker-today > span.p-highlight,
+.calendario-escolar .p-datepicker table td > span:has(.dia-es-festivo),
+.calendario-escolar .p-datepicker table td > span.dia-es-festivo {
+  background-color: #ef4444 !important;
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45) !important;
+  border-color: #dc2626 !important;
+}
+
+html .calendario-escolar .p-datepicker table td > span.p-highlight:hover,
+html.dark-theme .calendario-escolar .p-datepicker table td > span.p-highlight:hover,
+[data-theme='dark'] .calendario-escolar .p-datepicker table td > span.p-highlight:hover,
+.calendario-escolar .p-datepicker table td > span.p-highlight:hover {
+  background-color: #dc2626 !important;
+  background: #dc2626 !important;
+  border-color: #b91c1c !important;
+}
+
+/* Fines de semana (columnas 6 y 7 con semana iniciada en lunes): color gris/inactivo por defecto */
+.calendario-escolar .p-datepicker table th:nth-child(6),
+.calendario-escolar .p-datepicker table th:nth-child(7) {
+  color: #94a3b8 !important;
+  font-weight: 600 !important;
+}
+
+.calendario-escolar .p-datepicker table td:nth-child(6) > span:not(.p-highlight):not(:has(.dia-es-festivo)),
+.calendario-escolar .p-datepicker table td:nth-child(7) > span:not(.p-highlight):not(:has(.dia-es-festivo)) {
+  color: #94a3b8 !important;
+  background-color: rgba(148, 163, 184, 0.12) !important;
+  opacity: 0.65;
+}
+
+/* Estilo interior interactivo de cada celda del día */
+.calendario-dia-celda {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  cursor: pointer;
+  pointer-events: auto;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.calendario-dia-celda:hover:not(.dia-es-festivo) {
+  background-color: var(--surface-hover, #f1f5f9);
+}
+
+.calendario-dia-celda.dia-es-festivo {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+  border-radius: 6px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45) !important;
+}
+
+.calendario-dia-celda.dia-es-festivo:hover {
+  background-color: #dc2626 !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.55) !important;
+}
+
+/* Indicador con punto blanco cuando el festivo tiene un motivo o descripción escrita */
+.calendario-dia-punto-motivo {
+  position: absolute;
+  bottom: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #ffffff;
+}
+
+/* Días atenuados por encontrarse fuera de los límites oficiales del curso lectivo */
+.calendario-dia-fuera-rango {
+  opacity: 0.35;
+}

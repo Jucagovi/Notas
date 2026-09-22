@@ -198,7 +198,7 @@ CREATE TABLE public."Sesiones" (
 -- 2. Cuadrícula semanal del horarios
 CREATE TABLE public."Horarios" (
   id_horario uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  id_curso uuid NOT NULL REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
+id_curso uuid REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
   id_sesion uuid NOT NULL REFERENCES public."Sesiones"(id_sesion) ON DELETE CASCADE,
   dia_semana smallint NOT NULL CHECK (dia_semana >= 1 AND dia_semana <= 7), -- 1=Lunes, 5=Viernes
   grupo text NOT NULL, -- Identificador manual, ej: "2º DAW"

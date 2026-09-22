@@ -21,8 +21,10 @@ export const ELEMENTOS_CLASES = [
 
 // Elementos del submenú Planificación
 export const ELEMENTOS_PLANIFICACION = [
+  { label: 'Calendario escolar', icon: 'pi pi-calendar', to: '/planificacion/calendario-escolar' },
+  { label: 'Horario', icon: 'pi pi-clock', to: '/planificacion/horarios' },
   { label: 'Unidades de trabajo', icon: 'pi pi-folder-open', to: '/unidades' },
-  { label: 'Temporización', icon: 'pi pi-calendar', to: '/temporizacion' }
+  { label: 'Temporización', icon: 'pi pi-calendar-times', to: '/temporizacion' }
 ];
 
 // Elementos del submenú Evaluación
@@ -54,7 +56,7 @@ export const ELEMENTOS_HERRAMIENTAS = [
     to: '/herramientas/copias-seguridad'
   },
   {
-    label: 'Importar datos',
+    label: 'Importación de datos',
     icon: 'pi pi-file-import',
     to: '/herramientas/importacion'
   },

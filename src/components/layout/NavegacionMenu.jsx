@@ -75,7 +75,7 @@ const NavegacionMenu = ({ menusExpandidos, onToggleMenu, onItemClick = () => {} 
                         onClick={onItemClick}
                       >
                         <i className="pi pi-file-import nav-subicon" />
-                        <span>Importar datos</span>
+                        <span>Importación de datos</span>
                       </NavLink>
                       <NavLink
                         to="/herramientas/clonado-curso"

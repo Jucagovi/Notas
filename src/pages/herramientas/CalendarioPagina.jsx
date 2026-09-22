@@ -1,16 +1,9 @@
 import React from 'react';
-import HeaderPagina from '../../components/common/HeaderPagina.jsx';
+import CalendarioEscolarPagina from '../CalendarioEscolarPagina.jsx';
 
-// Calendario lectivo con festivos y jornadas laborales.
+// Componente adaptador para la ruta de herramientas del Calendario Escolar.
 const CalendarioPagina = () => {
-  return (
-    <div className="flex flex-column w-full">
-      <HeaderPagina
-        titulo="Calendario Lectivo"
-        descripcion="Gestión de días festivos, vacaciones escolares y jornadas no lectivas."
-      />
-    </div>
-  );
+  return <CalendarioEscolarPagina />;
 };
 
 export default CalendarioPagina;

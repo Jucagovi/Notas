@@ -1,16 +1,9 @@
 import React from 'react';
-import HeaderPagina from '../../components/common/HeaderPagina.jsx';
+import HorarioPagina from '../HorarioPagina.jsx';
 
-// Planificación semanal de sesiones y horarios escolares.
+// Reexportación de la página oficial de gestión de horarios para compatibilidad de rutas de herramientas.
 const HorariosPagina = () => {
-  return (
-    <div className="flex flex-column w-full">
-      <HeaderPagina
-        titulo="Horarios y Disponibilidad"
-        descripcion="Configuración de sesiones lectivas semanales, tramos horarios y aulas."
-      />
-    </div>
-  );
+  return <HorarioPagina />;
 };
 
 export default HorariosPagina;

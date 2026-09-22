@@ -17,9 +17,10 @@ import './index.css';
 
 import App from './App.jsx';
 
-// Configuración global del proveedor de PrimeReact con efecto ripple activado.
+// Configuración global del proveedor de PrimeReact con efecto ripple activado y localización en castellano.
 const configuracionPrimeReact = {
-  ripple: true
+  ripple: true,
+  locale: 'es'
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(
