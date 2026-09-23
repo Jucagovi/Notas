@@ -143,6 +143,36 @@ Regla estricta de Componentización: no escribas toda la interfaz en el archivo 
 
 Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
 
+## 29 revisión
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es revisar el caso de uso en @docs/casos-de-uso/29-calendario-escolar.md. Se han aplicado cambios en la tabla `Festivos` que ha sido renombrada a `Calendario_Eventos`, presta atención a esa tabla y a sus nuevas columnas.
+
+Lee atentamente el caso de uso @docs/casos-de-uso/29-revision-calendario.md y haz los cambios necesarios para implementar las nuevas fucionalidades pero respetando las partes del caso de uso anterior que no han sido modificadas por el nuevo (29-revisión-calendario.md).
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 29 revisión 2
+
+En el calendario hay un error de base: todos los eventos deben ser únicos y no pertenecer a un curso determinado, sino que si hay un evento en el calendario afecta a todos los cursos/clases por igual, por lo que no es necesario la distinción entre cursos/clases. El calendario debe comportarse como un ente único que afecta a todos los cursos/clases por igual.
+
+La fecha de inicio espefificada en cada curso/clase no se utiliza en esta característica. Por lo tanto, no debes guardar id_curso en los eventos (será null). En la sección incial (donde se elige el curso/clase) quita todos los elementos con la excepción de los botones `Imprimir en PDF` y `Añadir periodo`.
+
+Además, añade un <DrpDown> nuevo para filtrar los eventos que aparecen en el calendario por años (será una consulta que muestre los años únicos en la columna `anyo` de `Cursos` que servirá para filtrar los eventos desde el 1 de septiembre del año seleccionado hasta el 31 de agosto del año siguiente al seleccionado.
+
+## 29 revisión 3
+
+Hay cosas que cambiar:
+
+- en el cálculo de `días lectivos` y `semanas estimadas` hay que descontar el mes de agosto que es el periodo de vacaciones legal (debería marcarse con el color del fin de semana), pero no cuentan como días no lectivos para el curso.
+- El <DropDown> que muestra los años debería mostrar sus valores como `2026/2027` para el año 2026 (aunque su valor real sea 2026, es por formato visual nada más). Además, debe estar en la misma fila que el texto `Año académico` y el resto de botones.
+- en la impresión en PDF la página debe estar colocada en vertical y conotro color de texto ya que el fondo de la página es blanco y no se puede leer.
+- la leyenda dbe estar encima del calendario,
+- la sección de ayuda del final debe desaparecer (ya no es necesaria).
+
 ## 30 Gestión de horarios
 
 ¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. El proyecto ya está inicializado con Vite, PrimeReact y React-Router.
@@ -155,6 +185,50 @@ Regla estricta de Componentización: no escribas toda la interfaz en el archivo 
 
 Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
 
+## 30 revisión horarios
+
+Hay que revisar algunas cosas:
+
+- elimina el selector de curso general que está a la derecha del título de la sección `Gestor de horarios...`. En su lugar muestra un <DropDown> que mostrará los años en los que existen cursos (columna `anyo` de la tabla `Cursos`) y que se mostrá del mismo modo que en la sección `Calendario escolar`. Este <DropDown> filtrará los cursos por año que se mostrarán en el resto de pestañas de esta sección.
+- en la pestaña `Horario por curso` hay que hacer dos cosas:
+  - elimina el selector de curso general y
+  - se van a mostrar los cursos disponibles filtrado por el <DropDown> de año creado (en una fila y como botones como se muestran ahora mismo) pero filtrados a los del curso actual (columna `anyo` de la tabla `Cursos`), que son los que van desde el mes de septiembre del año del curso actual hasta el mes de agosto del año siguiente.
+  - Cuando se muestra un horario existe un carcter "+" para añadir una clase que debería estar cebtrado en la celda tanto vertical como horizaontalmente.
+  - en el popup que se muestra al hacer clic y desmarcar el tick `Es mi clase...` cambia el input de `Nombre de la Asignatura...` por el mismo <DropDown> que has utilizado a la hora de elegir módulo si es mi clase.
+  - cuando muestres mi horario docente no muestres el texto `No lectiva` en las celdas con horas no lectivas (deja ese espcion para la descripción de la hora)
+
+  ## 30 revisión  horarios 2
+
+  Hay un problemilla: al cambiar el año académico las tareas que se añaden en la sección `Mi horario docente(blobal)` se
+  mantienen entre años escolares y ni deberías ya que los horarios son diferentes entre años académicos. Al cambiar de año
+  académico no se debería mostrar las horas marcadas en esta sección. Además, es posible que algunas de las tareas
+  incluidas en esta sección `Mi horario docente...` sean lectivas para el cálculo de horas lectivas del horario pero no
+  para los módulos. Añade una opción de indicar si es lectiva o no al introducirla en la ventana popup que se abre.
+
+1.41M in | 50.8k out | 34.8k thinking
+● Bash(git diff src/components/horarios/DialogoTareaNoLectiva.jsx src/hooks/useHorarios.js src/pages/Ho...) (ctrl+o to
+expand)
+
+  Se han resuelto los dos puntos solicitados:
+  
+  1. Aislamiento de tareas de Mi horario docente (global) por año académico:
+      • En HorarioPagina.jsx, anteriormente se devolvía if (!h.id_curso) return true;, lo que hacía que las tareas
+      personales sin curso directo se mostraran en todos los años académicos.
+      • Ahora se comprueba el curso al que pertenece la sesión horaria de la tarea (mapaSesiones.get(h.id_sesion)?.
+      id_curso) contra la lista de cursos del año escolar seleccionado (idsCursosValidos). Al cambiar de año académico,  
+      las horas y tareas añadidas en otros cursos escolares quedan totalmente filtradas y no se mezclan.
+  2. Opción de indicar si la tarea es lectiva o no en la ventana emergente:
+      • En DialogoTareaNoLectiva.jsx, se ha añadido un <Checkbox> interactivo con texto explicativo: «Es hora lectiva
+      (computa en el total de horas lectivas)», permitiendo clasificar actividades como tutorías lectivas, coordinaciones
+      o jefaturas que computan como lectivas para el docente sin pertenecer a un módulo escolar de alumnos.
+      • Las sugerencias de tareas frecuentes ahora preconfiguran automáticamente esta opción (por ejemplo, Tutoría de
+      alumnos, Coordinación docente y Jefatura de Departamento como lectivas; Guardias y Reuniones como no lectivas).
+      • En useHorarios.js y HorarioPagina.jsx, se ha actualizado el cómputo de horas semanales para que las tareas
+      marcadas como lectivas sumen a Horas Lectivas y las no marcadas sumen a Horas No Lectivas.
+      • En CuadriculaMiHorario.jsx, las tareas docentes lectivas se diferencian visualmente con borde y fondo azul junto
+      a una insignia distintiva Lectiva, manteniendo el estilo anaranjado para las actividades complementarias o no
+      lectivas.
+  
 ## 18 Gestión de unidades de trabajo
 
 ¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. El proyecto ya está inicializado con Vite, PrimeReact y React-Router.

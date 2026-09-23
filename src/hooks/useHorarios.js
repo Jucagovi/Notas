@@ -70,9 +70,17 @@ const useHorarios = (cursoId, autoCargar = true) => {
         setSesiones([]);
       }
 
-      // 3. Se obtienen los registros del horario semanal (todas las asignaciones y tareas no lectivas).
+      // 3. Se obtienen los registros del horario semanal (todas las asignaciones y tareas personales).
       const datosHorarios = await obtenerHorariosDb('*');
-      setHorarios(datosHorarios || []);
+      const horariosNormalizados = (datosHorarios || []).map((h) => ({
+        ...h,
+        es_lectiva: Boolean(
+          h.es_lectiva ||
+          (h.id_modulo && Boolean(h.id_modulo)) ||
+          (h.grupo && h.grupo.toLowerCase().includes('lectiva'))
+        )
+      }));
+      setHorarios(horariosNormalizados);
     } catch (err) {
       console.error('Error al cargar la información de horarios:', err);
       mostrarError('No se pudo cargar la información de los horarios.', 'Error de carga');
@@ -146,20 +154,36 @@ const useHorarios = (cursoId, autoCargar = true) => {
 
   // Resumen cuantitativo de la carga horaria semanal del docente desglosada por tipo de actividad.
   const resumenDocente = useMemo(() => {
-    const clasesLectivas = horarioDocente.filter((h) => h.id_curso !== null && Boolean(h.id_curso));
-    const tareasNoLectivas = horarioDocente.filter((h) => h.id_curso === null || !h.id_curso);
+    const clasesLectivas = horarioDocente.filter((h) => {
+      const esClaseCurricular = h.id_curso !== null && Boolean(h.id_curso);
+      const esTareaPersonalLectiva =
+        (!h.id_curso || h.id_curso === null) &&
+        Boolean(h.es_lectiva || (h.grupo && h.grupo.toLowerCase().includes('lectiva')));
+      return esClaseCurricular || esTareaPersonalLectiva;
+    });
+
+    const tareasNoLectivas = horarioDocente.filter((h) => {
+      const esPersonal = !h.id_curso || h.id_curso === null;
+      const esTareaPersonalLectiva = Boolean(
+        h.es_lectiva || (h.grupo && h.grupo.toLowerCase().includes('lectiva'))
+      );
+      return esPersonal && !esTareaPersonalLectiva;
+    });
 
     const horasLectivas = clasesLectivas.length;
     const horasNoLectivas = tareasNoLectivas.length;
     const horasTotales = horasLectivas + horasNoLectivas;
 
     const gruposDistintos = new Set(
-      clasesLectivas.map((h) => h.grupo).filter(Boolean)
+      clasesLectivas
+        .filter((h) => h.id_curso && h.grupo && !h.grupo.toLowerCase().startsWith('docente'))
+        .map((h) => h.grupo)
+        .filter(Boolean)
     ).size;
 
     const modulosDistintos = new Set(
       clasesLectivas
-        .map((h) => h.id_modulo || h.modulo_alt)
+        .map((h) => h.id_modulo || (h.id_curso ? h.modulo_alt : null))
         .filter(Boolean)
     ).size;
 
@@ -505,9 +529,9 @@ const useHorarios = (cursoId, autoCargar = true) => {
     [cursoId, horarios, actualizarHorarioDb, insertarHorarioDb, mostrarAdvertencia, mostrarExito, mostrarError]
   );
 
-  // Inserción o actualización de tareas no lectivas (Guardias, Reuniones, Tutorías) sin id_curso ni id_modulo.
+  // Inserción o actualización de actividades docentes personales (Guardias, Reuniones, Tutorías, Coordinaciones).
   const guardarTareaNoLectiva = useCallback(
-    async ({ id_horario, id_sesion, dia_semana, nombreTarea, aula }) => {
+    async ({ id_horario, id_sesion, dia_semana, nombreTarea, aula, es_lectiva = false }) => {
       if (!id_sesion) {
         mostrarAdvertencia('Debes especificar la sesión horaria.', 'Validación');
         return null;
@@ -517,17 +541,20 @@ const useHorarios = (cursoId, autoCargar = true) => {
         return null;
       }
       if (!nombreTarea || String(nombreTarea).trim() === '') {
-        mostrarAdvertencia('Debes indicar el nombre de la tarea no lectiva.', 'Validación');
+        mostrarAdvertencia('Debes indicar el nombre de la tarea docente.', 'Validación');
         return null;
       }
 
       setGuardando(true);
       try {
+        const esLectivaBool = Boolean(es_lectiva);
+        const grupoValor = esLectivaBool ? 'Docente (Lectiva)' : 'Docente';
+
         const registroAGuardar = {
           id_curso: null,
           id_sesion,
           dia_semana: Number(dia_semana),
-          grupo: 'Docente',
+          grupo: grupoValor,
           id_modulo: null,
           modulo_alt: String(nombreTarea).trim(),
           profesor: 'Docente titular',
@@ -553,26 +580,26 @@ const useHorarios = (cursoId, autoCargar = true) => {
             setHorarios((prev) =>
               prev.map((h) =>
                 h.id_horario === existente.id_horario
-                  ? { ...h, ...registroAGuardar }
+                  ? { ...h, ...registroAGuardar, es_lectiva: esLectivaBool }
                   : h
               )
             );
-            mostrarExito('Tarea no lectiva actualizada correctamente.');
-            return { ...existente, ...registroAGuardar };
+            mostrarExito('Tarea docente actualizada correctamente.');
+            return { ...existente, ...registroAGuardar, es_lectiva: esLectivaBool };
           }
         } else {
           const resInsertar = await insertarHorarioDb(registroAGuardar);
           if (resInsertar && resInsertar.length > 0) {
-            const nueva = resInsertar[0];
+            const nueva = { ...resInsertar[0], es_lectiva: esLectivaBool };
             setHorarios((prev) => [...prev, nueva]);
-            mostrarExito('Tarea no lectiva asignada al horario correctamente.');
+            mostrarExito('Tarea docente asignada al horario correctamente.');
             return nueva;
           }
         }
         return null;
       } catch (err) {
-        console.error('Error al guardar la tarea no lectiva:', err);
-        mostrarError('No se pudo guardar la tarea no lectiva.', 'Error de guardado');
+        console.error('Error al guardar la tarea docente:', err);
+        mostrarError('No se pudo guardar la tarea docente.', 'Error de guardado');
         return null;
       } finally {
         setGuardando(false);

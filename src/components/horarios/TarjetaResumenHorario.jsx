@@ -30,7 +30,7 @@ export const TarjetaResumenHorario = ({ resumen }) => {
               {horasLectivas}
             </span>
             <span className="text-xs text-500">
-              Clases en aula
+              Clases y tareas lectivas
             </span>
           </div>
           <div className="w-3rem h-3rem border-round bg-blue-50 flex align-items-center justify-content-center flex-shrink-0">

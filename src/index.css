@@ -38,6 +38,12 @@
   --p-gray-100: #f3f4f6;
   --p-gray-500: #9ca3af;
   --p-text-500: #9ca3af;
+  /* Variables de Recreo / Descanso en cuadrículas de horarios */
+  --recreo-bg: #fff7ed;
+  --recreo-bg-hover: #ffedd5;
+  --recreo-badge-bg: #ffedd5;
+  --recreo-badge-text: #9a3412;
+  --recreo-badge-border: #fed7aa;
   color-scheme: light;
 }
 
@@ -89,6 +95,12 @@ html.app-dark,
   --p-gray-100: rgba(148, 163, 184, 0.22);
   --p-gray-500: #94a3b8;
   --p-text-500: #94a3b8;
+  /* Variables de Recreo / Descanso en cuadrículas de horarios en modo oscuro */
+  --recreo-bg: rgba(249, 115, 22, 0.12);
+  --recreo-bg-hover: rgba(249, 115, 22, 0.22);
+  --recreo-badge-bg: rgba(249, 115, 22, 0.28);
+  --recreo-badge-text: #fdba74;
+  --recreo-badge-border: rgba(249, 115, 22, 0.45);
 }
 
 /* ==========================================================================
@@ -131,6 +143,23 @@ html.dark-theme .p-inputnumber-input.text-blue-500, [data-theme='dark'] .p-input
 html.dark-theme .text-500, [data-theme='dark'] .text-500,
 html.dark-theme .p-inputnumber-input.text-500, [data-theme='dark'] .p-inputnumber-input.text-500 {
   color: var(--p-gray-500, #94a3b8) !important;
+}
+
+/* ==========================================================================
+   Utilidades visuales para tramos y celdas de Recreo / Descanso en horarios
+   ========================================================================== */
+.celda-recreo {
+  background-color: var(--recreo-bg, #fff7ed) !important;
+}
+
+.celda-recreo:hover {
+  background-color: var(--recreo-bg-hover, #ffedd5) !important;
+}
+
+.badge-recreo {
+  background-color: var(--recreo-badge-bg, #ffedd5);
+  color: var(--recreo-badge-text, #9a3412);
+  border: 1px solid var(--recreo-badge-border, #fed7aa);
 }
 
 /* Utilidades de borde y superficies con redondeo armónico */

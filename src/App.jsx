@@ -22,8 +22,7 @@ import SeguimientoPagina from './pages/informes/SeguimientoPagina.jsx';
 import ProgresoPagina from './pages/informes/ProgresoPagina.jsx';
 import HerramientasPagina from './pages/HerramientasPagina.jsx';
 import ExportadorPagina from './pages/herramientas/ExportadorPagina.jsx';
-import CalendarioEscolarPagina from "./pages/CalendarioEscolarPagina.jsx";
-import CalendarioPagina from './pages/herramientas/CalendarioPagina.jsx';
+import CalendarioPagina from "./pages/CalendarioPagina.jsx";
 import HorarioPagina from "./pages/HorarioPagina.jsx";
 import MantenimientoPagina from './pages/herramientas/MantenimientoPagina.jsx';
 import RelacionesPagina from './pages/herramientas/RelacionesPagina.jsx';
@@ -97,7 +96,7 @@ const App = () => {
             />
             <Route
               path='calendario-escolar'
-              element={<CalendarioEscolarPagina />}
+              element={<CalendarioPagina />}
             />
             <Route
               path='calendario'

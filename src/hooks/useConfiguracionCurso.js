@@ -16,7 +16,7 @@ const useConfiguracionCurso = () => {
   const raCursoHook = useDatos('ra_curso');
   const ceCursoHook = useDatos('ce_curso');
   const trabajanHook = useDatos('trabajan');
-  const festivosHook = useDatos('Festivos');
+  const festivosHook = useDatos('Calendario_Eventos');
   const horariosHook = useDatos('Horarios');
   const sesionesHook = useDatos('Sesiones');
 

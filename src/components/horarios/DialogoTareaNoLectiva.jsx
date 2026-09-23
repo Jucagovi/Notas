@@ -2,29 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
+import { Checkbox } from 'primereact/checkbox';
 import BotonAccion from '../common/BotonAccion.jsx';
 import { formatearHoraParaMostrar } from './constantesHorarios.js';
 
-// Tareas no lectivas frecuentes en la labor docente para asignación con un solo clic.
+// Tareas frecuentes en la labor docente con predefinición de si computan como lectivas.
 const TAREAS_FRECUENTES = [
-  'Guardia de aula',
-  'Guardia de recreo',
-  'Reunión de Departamento',
-  'Tutoría de alumnos',
-  'Atención a familias',
-  'Coordinación docente'
+  { nombre: 'Guardia de aula', lectiva: false },
+  { nombre: 'Guardia de recreo', lectiva: false },
+  { nombre: 'Reunión de Departamento', lectiva: false },
+  { nombre: 'Tutoría de alumnos', lectiva: true },
+  { nombre: 'Atención a familias', lectiva: false },
+  { nombre: 'Coordinación docente', lectiva: true },
+  { nombre: 'Jefatura de Departamento', lectiva: true }
 ];
 
 /**
- * DialogoTareaNoLectiva - Diálogo modal presentacional para añadir y gestionar horas no lectivas.
+ * DialogoTareaNoLectiva - Diálogo modal presentacional para añadir y gestionar actividades docentes personales.
  *
  * Responsabilidad Única: Capturar actividades del docente titular que no pertenecen a ningún curso
- * curricular (guardias, reuniones, tutorías) para su persistencia con id_curso e id_modulo nulos.
+ * curricular directo (guardias, reuniones, tutorías, coordinaciones), permitiendo catalogarlas como
+ * lectivas o no lectivas para el cómputo de la jornada semanal.
  *
  * @param {Object} props
  * @param {boolean} props.visible - Controla la visibilidad del modal.
  * @param {Function} props.onHide - Callback al cerrar el diálogo.
- * @param {Function} props.onGuardar - Callback al confirmar la tarea ({ id_horario, id_sesion, dia_semana, nombreTarea, aula }).
+ * @param {Function} props.onGuardar - Callback al confirmar la tarea ({ id_horario, id_sesion, dia_semana, nombreTarea, aula, es_lectiva }).
  * @param {Function} [props.onEliminar] - Callback opcional para eliminar la tarea si ya existía.
  * @param {Object|null} props.celdaActiva - Información de la sesión, día y tarea existente en la celda.
  * @param {boolean} [props.guardando=false] - Indicador de guardado en curso.
@@ -39,6 +42,7 @@ export const DialogoTareaNoLectiva = ({
 }) => {
   const [nombreTarea, setNombreTarea] = useState('');
   const [aula, setAula] = useState('');
+  const [esLectiva, setEsLectiva] = useState(false);
   const [errorValidacion, setErrorValidacion] = useState('');
 
   // Se inicializa el formulario con los datos de la celda activa al abrirse el modal.
@@ -48,9 +52,15 @@ export const DialogoTareaNoLectiva = ({
       if (tareaExistente) {
         setNombreTarea(tareaExistente.modulo_alt || '');
         setAula(tareaExistente.aula || '');
+        const esLectivaExistente = Boolean(
+          tareaExistente.es_lectiva ||
+          (tareaExistente.grupo && tareaExistente.grupo.toLowerCase().includes('lectiva'))
+        );
+        setEsLectiva(esLectivaExistente);
       } else {
         setNombreTarea('');
         setAula('');
+        setEsLectiva(false);
       }
       setErrorValidacion('');
     }
@@ -59,7 +69,7 @@ export const DialogoTareaNoLectiva = ({
   // Manejador del guardado tras validar el nombre de la actividad.
   const manejarGuardar = () => {
     if (!nombreTarea || nombreTarea.trim() === '') {
-      setErrorValidacion('Debes indicar el nombre o tipo de la tarea no lectiva.');
+      setErrorValidacion('Debes indicar el nombre o tipo de la tarea.');
       return;
     }
 
@@ -69,7 +79,8 @@ export const DialogoTareaNoLectiva = ({
       id_sesion: celdaActiva.sesion.id_sesion,
       dia_semana: celdaActiva.dia.dia,
       nombreTarea: nombreTarea.trim(),
-      aula: aula.trim()
+      aula: aula.trim(),
+      es_lectiva: esLectiva
     });
   };
 
@@ -112,7 +123,7 @@ export const DialogoTareaNoLectiva = ({
     <Dialog
       visible={visible}
       onHide={onHide}
-      header="Añadir Tarea No Lectiva"
+      header={tieneTareaAsignada ? 'Editar Tarea Docente' : 'Añadir Tarea Docente'}
       footer={pieDialogo}
       style={{ width: '90vw', maxWidth: '520px' }}
       modal
@@ -120,7 +131,7 @@ export const DialogoTareaNoLectiva = ({
     >
       <div className="flex flex-column gap-3 pt-1">
         {/* Bloque informativo de la posición temporal */}
-        <div className="surface-100 p-3 border-round flex flex-column gap-1 border-left-3 border-orange-500">
+        <div className={`surface-100 p-3 border-round flex flex-column gap-1 border-left-3 ${esLectiva ? 'border-blue-500' : 'border-orange-500'}`}>
           <div className="flex align-items-center justify-content-between text-sm">
             <span className="font-bold text-900">
               {celdaActiva.dia?.nombre} &bull; {nombreSesion}
@@ -129,12 +140,12 @@ export const DialogoTareaNoLectiva = ({
               {horarioSesion}
             </span>
           </div>
-          <span className="text-xs text-orange-700 font-semibold">
-            Horario Docente Personal (Tarea no vinculada a un curso lectivo)
+          <span className={`text-xs font-semibold ${esLectiva ? 'text-blue-700' : 'text-orange-700'}`}>
+            {esLectiva ? 'Tarea docente lectiva (computa en cómputo lectivo semanal)' : 'Tarea docente complementaria / no lectiva'}
           </span>
         </div>
 
-        {/* Sugerencias rápidas de actividades no lectivas */}
+        {/* Sugerencias rápidas de actividades docentes */}
         <div className="flex flex-column gap-1">
           <span className="text-xs text-color-secondary font-semibold uppercase">
             Tareas Frecuentes
@@ -142,14 +153,15 @@ export const DialogoTareaNoLectiva = ({
           <div className="flex gap-2 flex-wrap">
             {TAREAS_FRECUENTES.map((sugerencia) => (
               <Button
-                key={sugerencia}
+                key={sugerencia.nombre}
                 type="button"
-                label={sugerencia}
+                label={sugerencia.nombre}
                 size="small"
-                severity="secondary"
-                outlined={nombreTarea !== sugerencia}
+                severity={sugerencia.lectiva ? 'info' : 'secondary'}
+                outlined={nombreTarea !== sugerencia.nombre}
                 onClick={() => {
-                  setNombreTarea(sugerencia);
+                  setNombreTarea(sugerencia.nombre);
+                  setEsLectiva(sugerencia.lectiva);
                   setErrorValidacion('');
                 }}
                 className="py-1 px-2 text-xs"
@@ -167,8 +179,25 @@ export const DialogoTareaNoLectiva = ({
             id="nombre-tarea-input"
             value={nombreTarea}
             onChange={(e) => setNombreTarea(e.target.value)}
-            placeholder="Ej: Guardia de biblioteca, Reunión de Departamento..."
+            placeholder="Ej: Guardia de biblioteca, Reunión de Departamento, Coordinación..."
           />
+        </div>
+
+        {/* Checkbox para indicar si la actividad computa como lectiva */}
+        <div className="p-3 surface-50 border-round border-1 surface-border flex flex-column gap-1">
+          <div className="flex align-items-center">
+            <Checkbox
+              inputId="tarea-es-lectiva"
+              checked={esLectiva}
+              onChange={(e) => setEsLectiva(Boolean(e.checked))}
+            />
+            <label htmlFor="tarea-es-lectiva" className="font-semibold text-900 text-sm cursor-pointer ml-2">
+              Es hora lectiva (computa en el total de horas lectivas)
+            </label>
+          </div>
+          <span className="text-xs text-color-secondary ml-4">
+            Márcala si esta actividad cuenta como hora lectiva en tu horario (ej: tutoría lectiva, jefatura, coordinación) aunque no sea un módulo de alumnos.
+          </span>
         </div>
 
         {/* Ubicación o espacio */}

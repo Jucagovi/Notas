@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from 'primereact/button';
 import { Tooltip } from 'primereact/tooltip';
-import SelectorCurso from '../common/SelectorCurso.jsx';
 import EstadoVacio from '../common/EstadoVacio.jsx';
 import DialogoClaseHorario from './DialogoClaseHorario.jsx';
 import {
@@ -109,29 +108,14 @@ export const CuadriculaHorarioGrupo = ({
     <div className="flex flex-column gap-3 w-full">
       <Tooltip target="[data-pr-tooltip]" />
 
-      {/* Barra de control para seleccionar el curso mediante SelectorCurso */}
+      {/* Barra de selección de cursos del año escolar activo mediante botones */}
       <div className="surface-card p-3 border-round shadow-1 flex flex-column sm:flex-row align-items-start sm:align-items-center justify-content-between gap-3">
-        <div className="flex align-items-center gap-2 w-full sm:w-auto">
-          <label htmlFor="selector-curso-horario-tab" className="font-bold text-sm text-900 white-space-nowrap">
-            Curso (Grupo):
-          </label>
-          <div style={{ minWidth: '240px', maxWidth: '360px' }} className="w-full">
-            <SelectorCurso
-              id="selector-curso-horario-tab"
-              value={cursoId}
-              options={cursos}
-              onChange={(e) => onSeleccionarCurso && onSeleccionarCurso(e.value)}
-              placeholder="Seleccionar curso escolar..."
-            />
-          </div>
-        </div>
-
-        {cursos.length > 0 && (
-          <div className="flex align-items-center gap-2 flex-wrap">
-            <span className="text-xs text-color-secondary font-medium">
-              Cursos disponibles:
-            </span>
-            {cursos.map((c) => (
+        <div className="flex align-items-center gap-2 flex-wrap">
+          <span className="text-sm text-900 font-semibold white-space-nowrap mr-1">
+            Cursos disponibles:
+          </span>
+          {cursos.length > 0 ? (
+            cursos.map((c) => (
               <Button
                 key={c.id_curso}
                 label={c.nombre}
@@ -139,11 +123,15 @@ export const CuadriculaHorarioGrupo = ({
                 severity={c.id_curso === cursoId ? 'primary' : 'secondary'}
                 outlined={c.id_curso !== cursoId}
                 onClick={() => onSeleccionarCurso && onSeleccionarCurso(c.id_curso)}
-                className="py-1 px-2 text-xs"
+                className="py-1 px-3 text-sm font-semibold"
               />
-            ))}
-          </div>
-        )}
+            ))
+          ) : (
+            <span className="text-xs text-color-secondary italic">
+              No hay cursos registrados para este año académico.
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Estado si el usuario aún no ha seleccionado ningún curso académico */}
@@ -201,15 +189,15 @@ export const CuadriculaHorarioGrupo = ({
                 return (
                   <tr
                     key={sesion.id_sesion}
-                    className={esRecreo ? 'surface-50' : ''}
+                    className={esRecreo ? 'celda-recreo' : ''}
                   >
                     {/* Celda de cabecera de fila: Tramo horario */}
-                    <td className="p-2 border-1 surface-border align-middle">
+                    <td className={`p-2 border-1 surface-border align-middle ${esRecreo ? 'celda-recreo' : ''}`}>
                       <div className="flex flex-column gap-1">
-                        <span className="font-bold text-xs text-900">
+                        <span className={`font-bold text-xs ${esRecreo ? 'text-orange-900' : 'text-900'}`}>
                           {sesion.descripcion || `${sesion.numero}ª Hora`}
                         </span>
-                        <span className="text-xs text-color-secondary">
+                        <span className={`text-xs ${esRecreo ? 'text-orange-700' : 'text-color-secondary'}`}>
                           {horaInicioVisual} - {horaFinVisual}
                         </span>
                       </div>
@@ -248,9 +236,11 @@ export const CuadriculaHorarioGrupo = ({
                               ? esMiClase
                                 ? 'bg-primary-50 hover:bg-primary-100'
                                 : 'surface-100 hover:surface-200'
-                              : 'hover:surface-100'
+                              : esRecreo
+                                ? 'celda-recreo'
+                                : 'hover:surface-100'
                           }`}
-                          style={{ minHeight: '68px', verticalAlign: 'top' }}
+                          style={{ minHeight: '68px', verticalAlign: clase ? 'top' : 'middle' }}
                         >
                           {clase ? (
                             <div
@@ -303,9 +293,19 @@ export const CuadriculaHorarioGrupo = ({
                                 )}
                               </div>
                             </div>
+                          ) : esRecreo ? (
+                            <div className="flex align-items-center justify-content-center text-center w-full h-full py-2">
+                              <span
+                                className="inline-flex align-items-center gap-1 px-3 py-1 border-round badge-recreo font-bold text-xs shadow-1"
+                                data-pr-tooltip="Recreo / Descanso"
+                              >
+                                <i className="pi pi-coffee text-xs text-orange-600" />
+                                Recreo
+                              </span>
+                            </div>
                           ) : (
-                            <div className="flex align-items-center justify-content-center h-full min-h-3rem text-400 opacity-60 hover:opacity-100">
-                              <i className="pi pi-plus text-xs" />
+                            <div className="flex align-items-center justify-content-center text-center w-full h-full text-500 opacity-60 hover:opacity-100 py-3">
+                              <i className="pi pi-plus text-base" />
                             </div>
                           )}
                         </td>

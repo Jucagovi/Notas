@@ -1,254 +1,222 @@
--- ==========================================
--- 1. ESTRUCTURA CURRICULAR BASE (Inmutable)
--- ==========================================
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
 
-CREATE TABLE public."Ciclos" (
-  id_ciclo uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.Ciclos (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
-nombre text NOT NULL, siglas text NOT NULL, descripcion text
+nombre character varying NOT NULL DEFAULT ''::character varying,
+  siglas character varying NOT NULL DEFAULT ''::character varying,
+  descripcion text DEFAULT ''::text,
+  id_ciclo uuid NOT NULL DEFAULT gen_random_uuid(),
+  CONSTRAINT Ciclos_pkey PRIMARY KEY (id_ciclo)
 );
-CREATE TABLE public."Modulos" (
-  id_modulo uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.Discentes ( nombre text NOT NULL,
+apellidos text NOT NULL,
+correo text,
+fecha_nac date,
+localidad text,
+id_discente uuid NOT NULL DEFAULT gen_random_uuid (),
+imagen text,
+created_at timestamp
+with
+    time zone DEFAULT now(),
+    NIA text,
+    activo boolean DEFAULT true,
+    CONSTRAINT Discentes_pkey PRIMARY KEY (id_discente)
+);
+CREATE TABLE public.Modulos (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
-nombre text NOT NULL,
-  siglas text NOT NULL,
-  descripcion text,
-  id_ciclo uuid REFERENCES public."Ciclos"(id_ciclo) ON DELETE CASCADE
+nombre character varying NOT NULL DEFAULT ''::character varying,
+  siglas character varying NOT NULL DEFAULT ''::character varying,
+  descripcion text DEFAULT ''::text,
+  id_modulo uuid NOT NULL DEFAULT gen_random_uuid(),
+  id_ciclo uuid,
+  CONSTRAINT Modulos_pkey PRIMARY KEY (id_modulo),
+  CONSTRAINT Modulos_id_ciclo_fkey FOREIGN KEY (id_ciclo) REFERENCES public.Ciclos(id_ciclo)
 );
-CREATE TABLE public."Unidades_Trabajo" (
-  id_ut uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.RA (
+  id_ra uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+nombre character varying NOT NULL,
+numero integer NOT NULL,
+descripcion character varying,
+id_modulo uuid,
+CONSTRAINT RA_pkey PRIMARY KEY (id_ra),
+CONSTRAINT RA_id_modulo_fkey FOREIGN KEY (id_modulo) REFERENCES public.Modulos (id_modulo)
+);
+CREATE TABLE public.CE (
+  id_ce uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+nombre character varying NOT NULL,
+  numero real NOT NULL,
+  descripcion character varying,
+  id_ra uuid,
+  CONSTRAINT CE_pkey PRIMARY KEY (id_ce),
+  CONSTRAINT CE_id_ra_fkey FOREIGN KEY (id_ra) REFERENCES public.RA(id_ra)
+);
+
+CREATE TABLE public.Unidades_Trabajo (
+  id_ut uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   numero smallint NOT NULL,
   nombre text NOT NULL,
-descripcion text,
-  id_modulo uuid NOT NULL REFERENCES public."Modulos"(id_modulo) ON DELETE CASCADE
-);
-CREATE TABLE public."RA" (
-  id_ra uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-numero smallint NOT NULL,
-  nombre text NOT NULL,
   descripcion text,
-  id_modulo uuid NOT NULL REFERENCES public."Modulos"(id_modulo) ON DELETE CASCADE
+id_modulo uuid NOT NULL,
+CONSTRAINT Unidades_Trabajo_pkey PRIMARY KEY (id_ut),
+CONSTRAINT Unidades_Trabajo_id_modulo_fkey FOREIGN KEY (id_modulo) REFERENCES public.Modulos (id_modulo)
 );
-CREATE TABLE public."CE" (
-  id_ce uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-numero text NOT NULL, -- Texto por si existen nomenclaturas como "1.a"
-  nombre text NOT NULL,
-  descripcion text,
-  id_ra uuid NOT NULL REFERENCES public."RA"(id_ra) ON DELETE CASCADE
+CREATE TABLE public.desarrollan (
+  id_desarrollan uuid NOT NULL DEFAULT gen_random_uuid(),
+  id_ut uuid NOT NULL,
+  id_ra uuid NOT NULL,
+  CONSTRAINT desarrollan_pkey PRIMARY KEY (id_desarrollan),
+  CONSTRAINT desarrollan_id_ut_fkey FOREIGN KEY (id_ut) REFERENCES public.Unidades_Trabajo(id_ut),
+  CONSTRAINT desarrollan_id_ra_fkey FOREIGN KEY (id_ra) REFERENCES public.RA(id_ra)
 );
-CREATE TABLE public."desarrollan" (
-  id_desarrollan uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  id_ut uuid NOT NULL REFERENCES public."Unidades_Trabajo"(id_ut) ON DELETE CASCADE,
-  id_ra uuid NOT NULL REFERENCES public."RA"(id_ra) ON DELETE CASCADE,
-  UNIQUE(id_ut, id_ra)
-);
-
--- Banco de Prácticas (Repositorio Maestro)
-CREATE TABLE public."Practicas" (
-  id_practica uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.Practicas (
+  id_practica uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
 nombre text NOT NULL, descripcion text,
   id_tipopractica text NOT NULL,
-id_modulo uuid NOT NULL REFERENCES public."Modulos"(id_modulo) ON DELETE CASCADE
+id_modulo uuid NOT NULL,
+CONSTRAINT Practicas_pkey PRIMARY KEY (id_practica),
+CONSTRAINT Practicas_id_modulo_fkey FOREIGN KEY (id_modulo) REFERENCES public.Modulos (id_modulo)
 );
--- ==========================================
--- 2. PLANIFICACIÓN ACADÉMICA (Por Curso)
--- ==========================================
-
-CREATE TABLE public."Cursos" (
-  id_curso uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.Cursos (
+  id_curso uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
-anyo text NOT NULL, -- Ej: "2024/2025"
+anyo text NOT NULL,
   centro text NOT NULL,
   nombre text NOT NULL,
-  descripcion text
+descripcion text,
+fecha_inicio date,
+fecha_fin date,
+CONSTRAINT Cursos_pkey PRIMARY KEY (id_curso)
 );
-
-CREATE TABLE public."Temporizacion" (
-  id_temporizacion uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.Temporizacion (
+  id_temporizacion uuid NOT NULL DEFAULT gen_random_uuid(),
   fecha_ini_prevista date,
   fecha_fin_prevista date,
   fecha_ini_real date,
   fecha_fin_real date,
-  estado text DEFAULT 'Pendiente',
+estado text DEFAULT 'Pendiente'::text,
   observaciones text,
   orden smallint,
   nombre_alternativo text,
-  id_ut uuid NOT NULL REFERENCES public."Unidades_Trabajo"(id_ut) ON DELETE CASCADE,
-  id_curso uuid NOT NULL REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
-  UNIQUE(id_ut, id_curso)
+id_ut uuid NOT NULL,
+id_curso uuid NOT NULL,
+CONSTRAINT Temporizacion_pkey PRIMARY KEY (id_temporizacion),
+CONSTRAINT Temporizacion_id_ut_fkey FOREIGN KEY (id_ut) REFERENCES public.Unidades_Trabajo (id_ut),
+CONSTRAINT Temporizacion_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso)
 );
-
-CREATE TABLE public."ra_curso" (
-  id_ra_curso uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.ra_curso (
+  id_ra_curso uuid NOT NULL DEFAULT gen_random_uuid(),
   peso smallint NOT NULL CHECK (peso >= 0 AND peso <= 100),
-  id_ra uuid NOT NULL REFERENCES public."RA"(id_ra) ON DELETE CASCADE,
-  id_curso uuid NOT NULL REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
-  UNIQUE(id_ra, id_curso)
+id_ra uuid NOT NULL,
+id_curso uuid NOT NULL,
+CONSTRAINT ra_curso_pkey PRIMARY KEY (id_ra_curso),
+CONSTRAINT ra_curso_id_ra_fkey FOREIGN KEY (id_ra) REFERENCES public.RA (id_ra),
+CONSTRAINT ra_curso_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso)
 );
-CREATE TABLE public."ce_curso" (
-  id_ce_curso uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.ce_curso (
+  id_ce_curso uuid NOT NULL DEFAULT gen_random_uuid(),
   peso smallint NOT NULL CHECK (peso >= 0 AND peso <= 100),
-  id_ce uuid NOT NULL REFERENCES public."CE"(id_ce) ON DELETE CASCADE,
-  id_curso uuid NOT NULL REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
-  UNIQUE(id_ce, id_curso)
+id_ce uuid NOT NULL,
+id_curso uuid NOT NULL,
+CONSTRAINT ce_curso_pkey PRIMARY KEY (id_ce_curso),
+CONSTRAINT ce_curso_id_ce_fkey FOREIGN KEY (id_ce) REFERENCES public.CE (id_ce),
+CONSTRAINT ce_curso_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso)
 );
--- Instancia de la Práctica (Edición)
-CREATE TABLE public."Versiones" (
-  id_version uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.Versiones (
+  id_version uuid NOT NULL DEFAULT gen_random_uuid(),
   enunciado text,
   numero text,
-  id_practica uuid NOT NULL REFERENCES public."Practicas"(id_practica) ON DELETE CASCADE,
-  id_curso uuid NOT NULL REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
-  id_ut uuid REFERENCES public."Unidades_Trabajo"(id_ut) ON DELETE SET NULL
+id_practica uuid NOT NULL,
+id_curso uuid NOT NULL,
+id_ut uuid,
+id_evaluacion uuid,
+peso_evaluacion smallint DEFAULT 0,
+CONSTRAINT Versiones_pkey PRIMARY KEY (id_version),
+CONSTRAINT Versiones_id_practica_fkey FOREIGN KEY (id_practica) REFERENCES public.Practicas (id_practica),
+CONSTRAINT Versiones_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso),
+CONSTRAINT Versiones_id_ut_fkey FOREIGN KEY (id_ut) REFERENCES public.Unidades_Trabajo (id_ut),
+CONSTRAINT Versiones_id_evaluacion_fkey FOREIGN KEY (id_evaluacion) REFERENCES public.Evaluaciones (id_evaluacion)
 );
--- Cobertura de Criterios (Mapeo)
-CREATE TABLE public."trabajan" (
-  id_trabajan uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.trabajan (
+  id_trabajan uuid NOT NULL DEFAULT gen_random_uuid(),
   porcentaje smallint NOT NULL CHECK (porcentaje >= 0 AND porcentaje <= 100),
-  id_ce uuid NOT NULL REFERENCES public."CE"(id_ce) ON DELETE CASCADE,
-  id_version uuid NOT NULL REFERENCES public."Versiones"(id_version) ON DELETE CASCADE
+id_ce uuid NOT NULL,
+id_version uuid NOT NULL,
+CONSTRAINT trabajan_pkey PRIMARY KEY (id_trabajan),
+CONSTRAINT trabajan_id_ce_fkey FOREIGN KEY (id_ce) REFERENCES public.CE (id_ce),
+CONSTRAINT trabajan_id_version_fkey FOREIGN KEY (id_version) REFERENCES public.Versiones (id_version)
 );
--- ==========================================
--- 3. MATRICULACIÓN Y EVALUACIÓN
--- ==========================================
-
-CREATE TABLE public."Discentes" (
-  id_discente uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  created_at timestamp with time zone DEFAULT now(),
-  nombre text NOT NULL,
-  apellidos text NOT NULL,
-  correo text,
-  fecha_nac date,
-  localidad text,
-  NIA text UNIQUE,
-  activo boolean DEFAULT true,
-  imagen text
-);
-CREATE TABLE public."imparte" (
-  id_imparte uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.imparte (
+  id_imparte uuid NOT NULL DEFAULT gen_random_uuid(),
   notas text,
-  id_curso uuid NOT NULL REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
-  id_modulo uuid NOT NULL REFERENCES public."Modulos"(id_modulo) ON DELETE CASCADE,
-  id_discente uuid NOT NULL REFERENCES public."Discentes"(id_discente) ON DELETE CASCADE,
-  UNIQUE(id_curso, id_modulo, id_discente)
+id_curso uuid NOT NULL,
+id_modulo uuid NOT NULL,
+id_discente uuid NOT NULL,
+CONSTRAINT imparte_pkey PRIMARY KEY (id_imparte),
+CONSTRAINT imparte_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso),
+CONSTRAINT imparte_id_modulo_fkey FOREIGN KEY (id_modulo) REFERENCES public.Modulos (id_modulo),
+CONSTRAINT imparte_id_discente_fkey FOREIGN KEY (id_discente) REFERENCES public.Discentes (id_discente)
 );
-CREATE TABLE public."Evaluaciones" (
-  id_evaluacion uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  nombre text NOT NULL, -- 'Primera', 'Segunda', 'Final', 'Extraordinaria'
+CREATE TABLE public.Evaluaciones (
+  id_evaluacion uuid NOT NULL DEFAULT gen_random_uuid(),
+  nombre text NOT NULL,
   fecha_ini date,
   fecha_fin date,
   descripcion text,
-  id_curso uuid NOT NULL REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
-  id_modulo uuid NOT NULL REFERENCES public."Modulos"(id_modulo) ON DELETE CASCADE
+id_curso uuid NOT NULL,
+id_modulo uuid NOT NULL,
+CONSTRAINT Evaluaciones_pkey PRIMARY KEY (id_evaluacion),
+CONSTRAINT Evaluaciones_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso),
+CONSTRAINT Evaluaciones_id_modulo_fkey FOREIGN KEY (id_modulo) REFERENCES public.Modulos (id_modulo)
 );
-CREATE TABLE public."evaluan" (
-  id_evaluan uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE public.evaluan (
+  id_evaluan uuid NOT NULL DEFAULT gen_random_uuid(),
   nota integer CHECK (nota >= 0 AND nota <= 100),
-  id_version uuid NOT NULL REFERENCES public."Versiones"(id_version) ON DELETE CASCADE,
-  id_evaluacion uuid NOT NULL REFERENCES public."Evaluaciones"(id_evaluacion) ON DELETE CASCADE,
-  id_discente uuid NOT NULL REFERENCES public."Discentes"(id_discente) ON DELETE CASCADE,
-  UNIQUE(id_version, id_evaluacion, id_discente)
+id_version uuid NOT NULL,
+id_evaluacion uuid NOT NULL,
+id_discente uuid NOT NULL,
+CONSTRAINT evaluan_pkey PRIMARY KEY (id_evaluan),
+CONSTRAINT evaluan_id_version_fkey FOREIGN KEY (id_version) REFERENCES public.Versiones (id_version),
+CONSTRAINT evaluan_id_evaluacion_fkey FOREIGN KEY (id_evaluacion) REFERENCES public.Evaluaciones (id_evaluacion),
+CONSTRAINT evaluan_id_discente_fkey FOREIGN KEY (id_discente) REFERENCES public.Discentes (id_discente)
 );
-
--- Cambio para la Asirnación de Versiones (caso de uso 5, punto 2).
-ALTER TABLE public."Versiones" ADD COLUMN id_evaluacion uuid REFERENCES public."Evaluaciones"(id_evaluacion) ON DELETE SET NULL;
-
--- Cambio para la evaluación de pesos (ya no se hace en evalua sino en Versiones).
-ALTER TABLE public."Versiones" ADD COLUMN peso_evaluacion smallint DEFAULT 0;
-
--- ==========================================
--- MODIFICACIONES PARA EL CASO DE USO 29 (CALENDARIO ESCOLAR)
--- ==========================================
-
--- 1. Añadir fechas límite a la tabla Cursos existente
-ALTER TABLE public."Cursos" 
-ADD COLUMN fecha_inicio date,
-ADD COLUMN fecha_fin date;
-
--- 2. Crear la nueva tabla de días no lectivos (festivos/fines de semana marcados)
-CREATE TABLE public."Festivos" (
-  id_festivo uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  id_curso uuid NOT NULL REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
-  fecha date NOT NULL,
+CREATE TABLE public.Calendario_Eventos (
+  id_evento uuid NOT NULL DEFAULT gen_random_uuid(),
+  id_curso uuid,
+  fecha_inicio date NOT NULL,
   descripcion text,
-UNIQUE (id_curso, fecha)
+fecha_fin date NOT NULL,
+tipo_evento text NOT NULL,
+es_lectivo boolean NOT NULL,
+CONSTRAINT Calendario_Eventos_pkey PRIMARY KEY (id_evento),
+CONSTRAINT Calendario_Eventos_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso)
 );
-
--- 3. Habilitar la seguridad a nivel de fila (RLS) para la nueva tabla
-ALTER TABLE public."Festivos" ENABLE ROW LEVEL SECURITY;
-
--- ==========================================
--- ESTRUCTURA PARA EL CASO DE USO 30 (HORARIOSS)
--- ==========================================
-
--- 1. Definición de los tramos horarioss del centro (ej. 1ª hora, Recreo, etc.)
-CREATE TABLE public."Sesiones" (
-  id_sesion uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  id_curso uuid NOT NULL REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
-  numero smallint NOT NULL, -- Para ordenar (1, 2, 3...)
-  hora_inicio time NOT NULL,
-  hora_fin time NOT NULL,
-  descripcion text -- Ej: "1ª Hora", "Recreo"
+CREATE TABLE public.Sesiones (
+  id_sesion uuid NOT NULL DEFAULT gen_random_uuid(),
+  id_curso uuid NOT NULL,
+  numero smallint NOT NULL,
+  hora_inicio time without time zone NOT NULL,
+  hora_fin time without time zone NOT NULL,
+  descripcion text,
+  CONSTRAINT Sesiones_pkey PRIMARY KEY (id_sesion),
+  CONSTRAINT Sesiones_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos(id_curso)
 );
-
--- 2. Cuadrícula semanal del horarios
-CREATE TABLE public."Horarios" (
-  id_horario uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-id_curso uuid REFERENCES public."Cursos"(id_curso) ON DELETE CASCADE,
-  id_sesion uuid NOT NULL REFERENCES public."Sesiones"(id_sesion) ON DELETE CASCADE,
-  dia_semana smallint NOT NULL CHECK (dia_semana >= 1 AND dia_semana <= 7), -- 1=Lunes, 5=Viernes
-  grupo text NOT NULL, -- Identificador manual, ej: "2º DAW"
-  id_modulo uuid REFERENCES public."Modulos"(id_modulo) ON DELETE SET NULL, -- Vinculado si es tu módulo
-  modulo_alt text, -- Texto libre si es un módulo impartido por otro profesor
-  profesor text, -- Nombre del compañero (o el tuyo)
+CREATE TABLE public.Horarios (
+  id_horario uuid NOT NULL DEFAULT gen_random_uuid(),
+  id_curso uuid,
+  id_sesion uuid NOT NULL,
+  dia_semana smallint NOT NULL CHECK (dia_semana >= 1 AND dia_semana <= 7),
+  grupo text NOT NULL,
+  id_modulo uuid,
+  modulo_alt text,
+  profesor text,
   aula text,
-  UNIQUE(id_curso, id_sesion, dia_semana, grupo) -- Un grupo no puede estar en dos sitios a la vez
+CONSTRAINT Horarios_pkey PRIMARY KEY (id_horario),
+CONSTRAINT Horarios_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso),
+CONSTRAINT Horarios_id_sesion_fkey FOREIGN KEY (id_sesion) REFERENCES public.Sesiones (id_sesion),
+CONSTRAINT Horarios_id_modulo_fkey FOREIGN KEY (id_modulo) REFERENCES public.Modulos (id_modulo)
 );
--- 3. Habilitar RLS
-ALTER TABLE public."Sesiones" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."Horarios" ENABLE ROW LEVEL SECURITY;
-
--- ==========================================
--- HABILITAR RLS
--- ==========================================
--- Habilitar RLS para la Estructura Curricular Base
-ALTER TABLE public."Ciclos" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."Modulos" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."Unidades_Trabajo" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."RA" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."CE" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."desarrollan" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."Practicas" ENABLE ROW LEVEL SECURITY;
-
--- Habilitar RLS para la Planificación Académica
-ALTER TABLE public."Cursos" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."Temporizacion" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."ra_curso" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."ce_curso" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."Versiones" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."trabajan" ENABLE ROW LEVEL SECURITY;
-
--- Habilitar RLS para la Matriculación y Evaluación
-ALTER TABLE public."Discentes" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."imparte" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."Evaluaciones" ENABLE ROW LEVEL SECURITY;
-
-ALTER TABLE public."evaluan" ENABLE ROW LEVEL SECURITY;

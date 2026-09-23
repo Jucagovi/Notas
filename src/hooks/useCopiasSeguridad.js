@@ -21,7 +21,7 @@ export const TABLAS_BACKUP = [
   { id: 'evaluan', nombre: 'Calificaciones (Evalúan)', icono: 'pi pi-calculator', descripcion: 'Calificaciones individuales de actividades.' },
   { id: 'ra_curso', nombre: 'Ponderación RA', icono: 'pi pi-chart-pie', descripcion: 'Pesos de los RA por curso.' },
   { id: 'ce_curso', nombre: 'Ponderación CE', icono: 'pi pi-percentage', descripcion: 'Pesos de los CE por curso.' },
-  { id: 'Festivos', nombre: 'Festivos y No Lectivos', icono: 'pi pi-sun', descripcion: 'Días no lectivos del calendario escolar.' },
+  { id: 'Calendario_Eventos', nombre: 'Calendario y Eventos', icono: 'pi pi-calendar', descripcion: 'Días no lectivos, festivos y eventos del calendario escolar.' },
   { id: 'Sesiones', nombre: 'Sesiones Horarias', icono: 'pi pi-clock', descripcion: 'Tramos y horas lectivas del centro.' },
   { id: 'Horarios', nombre: 'Horarios Semanales', icono: 'pi pi-th-large', descripcion: 'Distribución horaria de asignaturas.' }
 ];

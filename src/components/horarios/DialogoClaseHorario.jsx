@@ -34,7 +34,6 @@ export const DialogoClaseHorario = ({
 }) => {
   const [esMiClase, setEsMiClase] = useState(true);
   const [idModulo, setIdModulo] = useState(null);
-  const [moduloAlt, setModuloAlt] = useState('');
   const [profesor, setProfesor] = useState('');
   const [aula, setAula] = useState('');
   const [errorValidacion, setErrorValidacion] = useState('');
@@ -49,15 +48,30 @@ export const DialogoClaseHorario = ({
           (claseActual.profesor && claseActual.profesor.toLowerCase().includes('docente'))
         );
         setEsMiClase(esPropia);
-        setIdModulo(claseActual.id_modulo || (modulos.length > 0 ? modulos[0].id_modulo : null));
-        setModuloAlt(claseActual.modulo_alt || '');
-        setProfesor(claseActual.profesor || '');
+
+        // Se localiza el id_modulo correspondiente tanto para clases propias como de compañeros.
+        let moduloEncontradoId = claseActual.id_modulo;
+        if (!moduloEncontradoId && claseActual.modulo_alt) {
+          const mod = modulos.find(
+            (m) =>
+              m.siglas === claseActual.modulo_alt ||
+              m.nombre === claseActual.modulo_alt ||
+              (m.siglas && claseActual.modulo_alt.includes(m.siglas))
+          );
+          if (mod) moduloEncontradoId = mod.id_modulo;
+        }
+
+        setIdModulo(moduloEncontradoId || (modulos.length > 0 ? modulos[0].id_modulo : null));
+        setProfesor(
+          claseActual.profesor && !claseActual.profesor.toLowerCase().includes('docente')
+            ? claseActual.profesor
+            : ''
+        );
         setAula(claseActual.aula || '');
       } else {
         // Valores predeterminados para una nueva asignación en celda vacía.
         setEsMiClase(true);
         setIdModulo(modulos.length > 0 ? modulos[0].id_modulo : null);
-        setModuloAlt('');
         setProfesor('');
         setAula('');
       }
@@ -67,14 +81,15 @@ export const DialogoClaseHorario = ({
 
   // Manejador del guardado con validación de campos obligatorios.
   const manejarGuardar = () => {
-    if (esMiClase && !idModulo) {
+    if (!idModulo) {
       setErrorValidacion('Debes seleccionar un módulo curricular.');
       return;
     }
-    if (!esMiClase && (!moduloAlt || moduloAlt.trim() === '')) {
-      setErrorValidacion('Debes indicar el nombre de la asignatura o módulo alternativo.');
-      return;
-    }
+
+    const moduloSeleccionado = modulos.find((m) => m.id_modulo === idModulo);
+    const nombreModuloAlt = moduloSeleccionado
+      ? moduloSeleccionado.siglas || moduloSeleccionado.nombre
+      : '';
 
     setErrorValidacion('');
     onGuardar({
@@ -84,8 +99,8 @@ export const DialogoClaseHorario = ({
       grupo,
       es_mi_clase: esMiClase,
       id_modulo: esMiClase ? idModulo : null,
-      modulo_alt: esMiClase ? null : moduloAlt.trim(),
-      profesor: esMiClase ? 'Docente titular' : profesor.trim(),
+      modulo_alt: esMiClase ? null : nombreModuloAlt,
+      profesor: esMiClase ? 'Docente titular' : (profesor.trim() || 'Compañero'),
       aula: aula.trim()
     });
   };
@@ -183,14 +198,15 @@ export const DialogoClaseHorario = ({
         ) : (
           <div className="flex flex-column gap-3">
             <div className="field flex flex-column gap-1 m-0">
-              <label htmlFor="modulo-alt" className="font-semibold text-sm">
-                Nombre de la Asignatura / Módulo <span className="text-red-500">*</span>
+              <label htmlFor="selector-modulo-companero" className="font-semibold text-sm">
+                Módulo curricular <span className="text-red-500">*</span>
               </label>
-              <InputText
-                id="modulo-alt"
-                value={moduloAlt}
-                onChange={(e) => setModuloAlt(e.target.value)}
-                placeholder="Ej: FOL, Inglés Técnico, Empresa e Iniciativa..."
+              <SelectorModulo
+                id="selector-modulo-companero"
+                value={idModulo}
+                options={modulos}
+                onChange={(e) => setIdModulo(e.value)}
+                placeholder="Seleccionar módulo impartido..."
               />
             </div>
             <div className="field flex flex-column gap-1 m-0">

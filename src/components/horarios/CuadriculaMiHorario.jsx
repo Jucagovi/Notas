@@ -195,15 +195,15 @@ export const CuadriculaMiHorario = ({
                 return (
                   <tr
                     key={sesion.id_sesion}
-                    className={esRecreo ? 'surface-50' : ''}
+                    className={esRecreo ? 'celda-recreo' : ''}
                   >
                     {/* Tramo horario en la primera columna */}
-                    <td className="p-2 border-1 surface-border align-middle">
+                    <td className={`p-2 border-1 surface-border align-middle ${esRecreo ? 'celda-recreo' : ''}`}>
                       <div className="flex flex-column gap-1">
-                        <span className="font-bold text-xs text-900">
+                        <span className={`font-bold text-xs ${esRecreo ? 'text-orange-900' : 'text-900'}`}>
                           {sesion.descripcion || `${sesion.numero}ª Hora`}
                         </span>
-                        <span className="text-xs text-color-secondary">
+                        <span className={`text-xs ${esRecreo ? 'text-orange-700' : 'text-color-secondary'}`}>
                           {horaInicioVisual} - {horaFinVisual}
                         </span>
                       </div>
@@ -224,37 +224,54 @@ export const CuadriculaMiHorario = ({
                       return (
                         <td
                           key={dia.dia}
-                          className="p-2 border-1 surface-border text-center"
-                          style={{ minHeight: '68px', verticalAlign: 'top' }}
+                          className={`p-2 border-1 surface-border text-center transition-colors transition-duration-150 ${
+                            !tieneClase && esRecreo ? 'celda-recreo' : ''
+                          }`}
+                          style={{ minHeight: '68px', verticalAlign: tieneClase ? 'top' : 'middle' }}
                         >
                           {tieneClase ? (
                             <div className="flex flex-column gap-2">
                               {clasesEnEsteTramo.map((clase) => {
-                                const esTareaNoLectiva = clase.id_curso === null || !clase.id_curso;
+                                const esTareaPersonal = clase.id_curso === null || !clase.id_curso;
 
-                                // Caso A: Tarea no lectiva personal (Guardia, Reunión, Tutoría).
-                                if (esTareaNoLectiva) {
+                                // Caso A: Tarea personal del docente (Guardia, Reunión, Tutoría, Coordinación).
+                                if (esTareaPersonal) {
                                   const iconoTarea = resolverIconoTarea(clase.modulo_alt);
+                                  const esLectiva = Boolean(
+                                    clase.es_lectiva ||
+                                    (clase.grupo && clase.grupo.toLowerCase().includes('lectiva'))
+                                  );
+
                                   return (
                                     <div
                                       key={clase.id_horario}
                                       onClick={() => manejarClickEditarTarea(sesion, dia, clase)}
-                                      className="p-2 border-round text-left border-left-3 border-orange-500 bg-orange-50 text-orange-900 flex flex-column gap-1 shadow-1 cursor-pointer hover:shadow-2 transition-duration-150"
-                                      data-pr-tooltip="Haz clic para editar o eliminar esta tarea no lectiva"
+                                      className={`p-2 border-round text-left shadow-1 cursor-pointer hover:shadow-2 transition-duration-150 flex flex-column gap-1 ${
+                                        esLectiva
+                                          ? 'border-left-3 border-blue-500 bg-blue-50 text-blue-900'
+                                          : 'border-left-3 border-orange-500 bg-orange-50 text-orange-900'
+                                      }`}
+                                      data-pr-tooltip={
+                                        esLectiva
+                                          ? 'Tarea docente lectiva (computa en horas lectivas). Haz clic para editar o eliminar'
+                                          : 'Tarea docente complementaria / no lectiva. Haz clic para editar o eliminar'
+                                      }
                                     >
-                                      <div className="flex align-items-center justify-content-between gap-1">
+                                      <div className="flex align-items-center justify-content-between gap-1 overflow-hidden w-full">
                                         <div className="flex align-items-center gap-1 overflow-hidden">
-                                          <i className={`${iconoTarea} text-xs text-orange-600 flex-shrink-0`} />
+                                          <i className={`${iconoTarea} text-xs ${esLectiva ? 'text-blue-600' : 'text-orange-600'} flex-shrink-0`} />
                                           <span className="font-bold text-xs line-height-1 text-overflow-ellipsis white-space-nowrap overflow-hidden">
                                             {clase.modulo_alt}
                                           </span>
                                         </div>
-                                        <span className="text-xs bg-orange-200 px-1 border-round text-orange-900 font-semibold flex-shrink-0">
-                                          No lectiva
-                                        </span>
+                                        {esLectiva && (
+                                          <span className="text-xs bg-blue-200 text-blue-900 font-semibold px-1 border-round flex-shrink-0">
+                                            Lectiva
+                                          </span>
+                                        )}
                                       </div>
                                       {clase.aula && (
-                                        <div className="flex align-items-center gap-1 text-xs text-orange-800">
+                                        <div className={`flex align-items-center gap-1 text-xs ${esLectiva ? 'text-blue-800' : 'text-orange-800'}`}>
                                           <i className="pi pi-map-marker text-xs" />
                                           <span>{clase.aula}</span>
                                         </div>
@@ -315,20 +332,21 @@ export const CuadriculaMiHorario = ({
                           ) : esRecreo ? (
                             <div
                               onClick={() => manejarClickCeldaVacia(sesion, dia)}
-                              className="flex align-items-center justify-content-center h-full min-h-3rem text-orange-400 cursor-pointer hover:bg-orange-50 border-round transition-colors transition-duration-150"
-                              data-pr-tooltip="Haz clic para asignar guardia de recreo u otra tarea no lectiva"
+                              className="flex align-items-center justify-content-center text-center w-full h-full cursor-pointer py-2"
+                              data-pr-tooltip="Haz clic para asignar guardia de recreo u otra actividad"
                             >
-                              <span className="text-xs font-semibold text-orange-600">
+                              <span className="inline-flex align-items-center gap-1 px-3 py-1 border-round badge-recreo font-bold text-xs shadow-1 hover:shadow-2 transition-duration-150">
+                                <i className="pi pi-coffee text-xs text-orange-600" />
                                 Recreo
                               </span>
                             </div>
                           ) : (
                             <div
                               onClick={() => manejarClickCeldaVacia(sesion, dia)}
-                              className="flex align-items-center justify-content-center h-full min-h-3rem text-400 cursor-pointer hover:surface-100 border-round transition-colors transition-duration-150"
-                              data-pr-tooltip="Haz clic para añadir tarea no lectiva (guardia, reunión, tutoría...)"
+                              className="flex align-items-center justify-content-center text-center w-full h-full text-500 cursor-pointer hover:surface-100 border-round transition-colors transition-duration-150 py-3"
+                              data-pr-tooltip="Haz clic para añadir tarea docente (guardia, reunión, tutoría, coordinación...)"
                             >
-                              <i className="pi pi-plus text-xs text-300 opacity-60 hover:opacity-100" />
+                              <i className="pi pi-plus text-base opacity-60 hover:opacity-100" />
                             </div>
                           )}
                         </td>

@@ -88,7 +88,7 @@ export const generarRangoFechas = (fechaInicio, fechaFin, excluirFinesDeSemana =
 };
 
 // Calcula los días lectivos netos, festivos y fines de semana entre el inicio y el fin del curso escolar.
-export const calcularResumenLectivo = (fechaInicio, fechaFin, listaFestivos = []) => {
+export const calcularResumenLectivo = (fechaInicio, fechaFin, listaEventos = []) => {
   const inicio = fechaInicio instanceof Date ? fechaInicio : parsearFechaISO(fechaInicio);
   const fin = fechaFin instanceof Date ? fechaFin : parsearFechaISO(fechaFin);
 
@@ -98,14 +98,57 @@ export const calcularResumenLectivo = (fechaInicio, fechaFin, listaFestivos = []
       diasFinSemana: 0,
       diasFestivosLaborables: 0,
       diasLectivos: 0,
-      semanasLectivas: '0,0'
+      semanasLectivas: '0,0',
+      totalNoLectivos: 0,
+      totalExamenes: 0,
+      totalEvaluaciones: 0
     };
   }
 
-  // Se crea un conjunto de cadenas ISO con las fechas festivas para comprobación inmediata.
-  const conjuntoFestivos = new Set(
-    listaFestivos.map((f) => (typeof f === 'string' ? f : formatearFechaISO(f.fecha || f)))
-  );
+  // Se crea un conjunto con todas las fechas no lectivas (es_lectivo === false).
+  // Se soportan tanto el formato antiguo { fecha } como el nuevo { fecha_inicio, fecha_fin, es_lectivo }.
+  const conjuntoNoLectivos = new Set();
+  let totalExamenes = 0;
+  let totalEvaluaciones = 0;
+
+  listaEventos.forEach((ev) => {
+    if (!ev) return;
+
+    // Conteo estadístico por tipo de evento lectivo.
+    const tipo = String(ev.tipo_evento || '').toLowerCase();
+    if (tipo.includes('examen')) totalExamenes += 1;
+    if (tipo.includes('evalua')) totalEvaluaciones += 1;
+
+    // Si tiene es_lectivo === true, no se marca como día festivo/no lectivo.
+    if (ev.es_lectivo === true) {
+      return;
+    }
+
+    if (ev.fecha_inicio && ev.fecha_fin) {
+      const fIni = parsearFechaISO(ev.fecha_inicio);
+      const fFin = parsearFechaISO(ev.fecha_fin);
+      if (fIni && fFin && fIni <= fFin) {
+        const cur = new Date(fIni.getTime());
+        while (cur <= fFin) {
+          // El mes de agosto (vacaciones legales) no se computa como festivo del curso escolar.
+          if (cur.getMonth() !== 7) {
+            conjuntoNoLectivos.add(formatearFechaISO(cur));
+          }
+          cur.setDate(cur.getDate() + 1);
+        }
+      }
+    } else if (ev.fecha) {
+      const d = parsearFechaISO(ev.fecha);
+      if (d && d.getMonth() !== 7) {
+        conjuntoNoLectivos.add(typeof ev.fecha === 'string' ? ev.fecha : formatearFechaISO(ev.fecha));
+      }
+    } else if (typeof ev === 'string') {
+      const d = parsearFechaISO(ev);
+      if (d && d.getMonth() !== 7) {
+        conjuntoNoLectivos.add(ev);
+      }
+    }
+  });
 
   let diasNaturales = 0;
   let diasFinSemana = 0;
@@ -119,10 +162,17 @@ export const calcularResumenLectivo = (fechaInicio, fechaFin, listaFestivos = []
     diasNaturales += 1;
     const esFin = esFinDeSemana(actual);
     const cadenaActual = formatearFechaISO(actual);
+    const esAgosto = actual.getMonth() === 7;
 
-    if (esFin) {
+    // Agosto corresponde al periodo vacacional legal estival: no computa como día lectivo
+    // ni como día festivo propio del curso escolar.
+    if (esAgosto) {
+      if (esFin) {
+        diasFinSemana += 1;
+      }
+    } else if (esFin) {
       diasFinSemana += 1;
-    } else if (conjuntoFestivos.has(cadenaActual)) {
+    } else if (conjuntoNoLectivos.has(cadenaActual)) {
       diasFestivosLaborables += 1;
     } else {
       diasLectivos += 1;
@@ -139,7 +189,10 @@ export const calcularResumenLectivo = (fechaInicio, fechaFin, listaFestivos = []
     diasFinSemana,
     diasFestivosLaborables,
     diasLectivos,
-    semanasLectivas
+    semanasLectivas,
+    totalNoLectivos: conjuntoNoLectivos.size,
+    totalExamenes,
+    totalEvaluaciones
   };
 };
 

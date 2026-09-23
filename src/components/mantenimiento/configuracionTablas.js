@@ -526,26 +526,32 @@ export const TABLAS_RELACIONES = {
   },
   festivos: {
     slug: 'festivos',
-    nombreTabla: 'Festivos',
-    clavePrimaria: 'id_festivo',
-    titulo: 'Días Festivos y No Lectivos',
-    singular: 'Día Festivo',
-    icono: 'pi pi-sun',
-    descripcion: 'Días no lectivos del calendario escolar por curso.',
+    nombreTabla: 'Calendario_Eventos',
+    clavePrimaria: 'id_evento',
+    titulo: 'Eventos del Calendario Escolar',
+    singular: 'Evento',
+    icono: 'pi pi-calendar',
+    descripcion: 'Eventos, festivos y no lectivos del calendario escolar por curso.',
     esRelacion: true,
     rutaBase: '/herramientas/relaciones/festivos',
     tablasReferenciadas: [
       { tabla: 'Cursos', clave: 'id_curso', campoTexto: 'nombre' }
     ],
     columnas: [
-      { campo: 'fecha', encabezado: 'Fecha', ancho: '140px', tipo: 'fecha', ordenar: true, filtrar: true },
-      { campo: 'descripcion', encabezado: 'Motivo / Festividad', ancho: '280px', ordenar: true, filtrar: true },
+      { campo: 'fecha_inicio', encabezado: 'Fecha Inicio', ancho: '140px', tipo: 'fecha', ordenar: true, filtrar: true },
+      { campo: 'fecha_fin', encabezado: 'Fecha Fin', ancho: '140px', tipo: 'fecha', ordenar: true, filtrar: true },
+      { campo: 'tipo_evento', encabezado: 'Tipo de Evento', ancho: '180px', tipo: 'texto', ordenar: true, filtrar: true },
+      { campo: 'es_lectivo', encabezado: 'Lectivo', ancho: '100px', tipo: 'booleano', ordenar: true },
+      { campo: 'descripcion', encabezado: 'Descripción', ancho: '240px', ordenar: true, filtrar: true },
       { campo: 'id_curso', encabezado: 'Curso', ancho: '200px', tipo: 'relacion', tablaReferencia: 'Cursos' }
     ],
     camposFormulario: [
       { campo: 'id_curso', etiqueta: 'Curso', tipo: 'desplegable', requerido: true, tablaReferencia: 'Cursos' },
-      { campo: 'fecha', etiqueta: 'Fecha', tipo: 'fecha', requerido: true },
-      { campo: 'descripcion', etiqueta: 'Descripción', tipo: 'texto', requerido: true, marcador: 'Ej: Fiesta Nacional, Navidad' }
+      { campo: 'fecha_inicio', etiqueta: 'Fecha Inicio', tipo: 'fecha', requerido: true },
+      { campo: 'fecha_fin', etiqueta: 'Fecha Fin', tipo: 'fecha', requerido: true },
+      { campo: 'tipo_evento', etiqueta: 'Tipo de Evento', tipo: 'texto', requerido: true, marcador: 'Ej: Festivo Nacional, Vacaciones' },
+      { campo: 'es_lectivo', etiqueta: 'Es Lectivo', tipo: 'booleano', requerido: true },
+      { campo: 'descripcion', etiqueta: 'Descripción', tipo: 'texto', requerido: false, marcador: 'Ej: Fiesta Nacional, Navidad' }
     ]
   },
   horarios: {

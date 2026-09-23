@@ -1,74 +1,76 @@
 import React from 'react';
+import { LISTA_TIPOS_EVENTO } from '../../utils/coloreCalendario.js';
 
 /**
- * LeyendaCalendario - Subcomponente presentacional que describe el significado de los colores del calendario.
+ * LeyendaCalendario - Subcomponente presentacional que expone la paleta y significado de los colores.
  *
- * Responsabilidad Única: Ofrecer una guía visual rápida al docente para interpretar el estado
- * de los días lectivos, fines de semana, festivos y rangos fuera del curso.
+ * Responsabilidad Única: Informar al docente de forma visual e inmediata sobre los 6 tipos de eventos
+ * estandarizados en el calendario escolar, distinguiendo entre jornadas lectivas y no lectivas.
+ *
+ * @param {Object} props
+ * @param {string} [props.className=''] - Clases CSS adicionales.
  */
-export const LeyendaCalendario = () => {
+export const LeyendaCalendario = ({ className = '' }) => {
   return (
-    <div className="surface-card border-round-xl border-1 surface-border p-3 shadow-1 flex flex-wrap align-items-center justify-content-between gap-3 text-sm">
-      <div className="flex align-items-center gap-2">
-        <i className="pi pi-info-circle text-primary text-base" />
+    <div className={`surface-card border-round-xl border-1 surface-border p-3 shadow-1 flex flex-column gap-2 text-sm ${className}`.trim()}>
+      <div className="flex align-items-center gap-2 pb-1 border-bottom-1 surface-border">
+        <i className="pi pi-palette text-primary text-base" />
         <span className="font-bold text-900 text-xs uppercase tracking-wider">
-          Leyenda del Calendario
+          Leyenda del Calendario Escolar
         </span>
       </div>
 
-      <div className="flex flex-wrap align-items-center gap-3">
-        {/* Día lectivo ordinario */}
-        <div className="flex align-items-center gap-2">
-          <span
-            className="w-1rem h-1rem border-round border-1 surface-border inline-block"
-            style={{ backgroundColor: 'var(--surface-0, #ffffff)' }}
-          />
-          <span className="text-700 text-xs">Lectivo Ordinario</span>
-        </div>
-
-        {/* Fines de semana inactivos */}
-        <div className="flex align-items-center gap-2">
-          <span
-            className="w-1rem h-1rem border-round inline-block"
-            style={{ backgroundColor: '#94a3b8', opacity: 0.5 }}
-          />
-          <span className="text-700 text-xs">Fin de Semana (Inactivo)</span>
-        </div>
-
-        {/* Festivo / Día no lectivo marcado */}
-        <div className="flex align-items-center gap-2">
-          <span
-            className="w-1rem h-1rem border-round inline-block"
-            style={{ backgroundColor: '#ef4444' }}
-          />
-          <span className="text-700 text-xs">Festivo / No Lectivo</span>
-        </div>
-
-        {/* Festivo con motivo asignado */}
-        <div className="flex align-items-center gap-2">
-          <span
-            className="w-1rem h-1rem border-round inline-block relative"
-            style={{ backgroundColor: '#ef4444' }}
-          >
+      <div className="flex flex-wrap align-items-center gap-3 pt-1">
+        {/* Los 6 tipos de eventos oficiales de la especificación */}
+        {LISTA_TIPOS_EVENTO.map((item) => (
+          <div key={item.id} className="flex align-items-center gap-2">
             <span
-              className="w-4px h-4px border-circle inline-block absolute"
+              className="w-1rem h-1rem border-round inline-block flex-shrink-0"
               style={{
-                backgroundColor: '#ffffff',
-                bottom: '2px',
-                left: 'calc(50% - 2px)'
+                backgroundColor: item.color,
+                border: `1px solid ${item.colorBorde || item.color}`
               }}
             />
-          </span>
-          <span className="text-700 text-xs">Con Motivo Anotado</span>
-        </div>
+            <span className="text-800 text-xs font-medium">
+              {item.tipo}{' '}
+              <span className={item.esLectivo ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold'}>
+                ({item.esLectivo ? 'Lectivo' : 'No lectivo'})
+              </span>
+            </span>
+          </div>
+        ))}
 
-        {/* Fuera del periodo de clases */}
+        {/* Fin de semana */}
         <div className="flex align-items-center gap-2">
           <span
-            className="w-1rem h-1rem border-round inline-block"
-            style={{ backgroundColor: 'var(--surface-300, #cbd5e1)', opacity: 0.4 }}
+            className="w-1rem h-1rem border-round inline-block flex-shrink-0"
+            style={{ backgroundColor: '#94a3b8', opacity: 0.6 }}
           />
-          <span className="text-700 text-xs">Fuera del Curso</span>
+          <span className="text-600 text-xs">
+            Fin de semana <span className="text-500">(Inactivo)</span>
+          </span>
+        </div>
+
+        {/* Mes de agosto (Vacaciones legales) */}
+        <div className="flex align-items-center gap-2">
+          <span
+            className="w-1rem h-1rem border-round inline-block flex-shrink-0"
+            style={{ backgroundColor: 'rgba(148, 163, 184, 0.25)', border: '1px dashed #94a3b8' }}
+          />
+          <span className="text-600 text-xs">
+            Agosto <span className="text-500">(Vacaciones legales)</span>
+          </span>
+        </div>
+
+        {/* Fuera del periodo oficial de clases */}
+        <div className="flex align-items-center gap-2">
+          <span
+            className="w-1rem h-1rem border-round inline-block flex-shrink-0"
+            style={{ backgroundColor: '#cbd5e1', opacity: 0.4 }}
+          />
+          <span className="text-600 text-xs">
+            Fuera de clases
+          </span>
         </div>
       </div>
     </div>

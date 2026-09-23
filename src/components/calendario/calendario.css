@@ -1,189 +1,241 @@
-/* Estilos específicos para la vista y comportamiento visual del Calendario Escolar */
+/* Estilos específicos para la vista y comportamiento visual del Calendario Escolar y FullCalendar */
 
-.calendario-escolar-contenedor {
+/* Contenedor general del calendario interactivo */
+.calendario-interactivo-contenedor {
   width: 100%;
-  overflow-x: auto;
+  background-color: var(--surface-card, #ffffff);
+  border-radius: 12px;
+  overflow: visible;
 }
 
-/* Disposición responsive con cuadrícula fija de 3 meses por fila */
-.calendario-escolar {
-  width: 100%;
-  min-width: 680px; /* Mantiene la proporción de 3 meses por fila sin deformar números */
+/* Paleta circular de selección de tipos de eventos */
+.boton-color-circular {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+  padding: 0;
 }
 
-.calendario-escolar .p-datepicker {
-  width: 100% !important;
-  border: 1px solid var(--surface-border, #e2e8f0) !important;
-  border-radius: 12px !important;
+.boton-color-circular:hover {
+  transform: scale(1.18);
+}
+
+.boton-color-circular:focus-visible {
+  outline: 2px solid var(--primary-color, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* Integración y estilizado de FullCalendar con el diseño de PrimeReact */
+.fc {
+  font-family: inherit !important;
+  --fc-border-color: var(--surface-border, #e2e8f0);
+  --fc-page-bg-color: var(--surface-card, #ffffff);
+  --fc-neutral-bg-color: var(--surface-50, #f8fafc);
+  --fc-list-event-hover-bg-color: var(--surface-hover, #f1f5f9);
+  --fc-today-bg-color: rgba(59, 130, 246, 0.08);
+}
+
+/* Barra de herramientas de FullCalendar */
+.fc .fc-toolbar {
+  padding: 0.75rem 1rem !important;
+  margin-bottom: 0.5rem !important;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: var(--text-color, #1e293b);
+  text-transform: capitalize;
+}
+
+/* Botones de navegación de FullCalendar adaptados al estilo de PrimeReact */
+.fc .fc-button {
   background-color: var(--surface-card, #ffffff) !important;
-  padding: 0.75rem !important;
-}
-
-/* Ocultar botones de paginación para mantener siempre fijados los 12 meses del curso académico */
-.calendario-escolar .p-datepicker-prev,
-.calendario-escolar .p-datepicker-next {
-  display: none !important;
-}
-
-/* Deshabilitar interacción en títulos de mes y año para impedir cambio accidental a vista de meses */
-.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title,
-.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title button,
-.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-month,
-.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-year {
-  pointer-events: none !important;
-  cursor: default !important;
-}
-
-/* Cuadrícula estricta de 3 columnas (3 meses por fila) independientemente de la resolución */
-.calendario-escolar .p-datepicker-group-container {
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  gap: 1rem !important;
-  width: 100% !important;
-  padding: 0 !important;
-}
-
-.calendario-escolar .p-datepicker-group {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  border: 1px solid var(--surface-border, #e2e8f0) !important;
+  border: 1px solid var(--surface-border, #cbd5e1) !important;
+  color: var(--text-color, #334155) !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  padding: 0.4rem 0.85rem !important;
   border-radius: 8px !important;
-  padding: 0.5rem !important;
-  background-color: var(--surface-0, #ffffff) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+  text-transform: capitalize;
 }
 
-/* Cabecera compacta por mes con nombre en castellano capitalizado */
-.calendario-escolar .p-datepicker .p-datepicker-header {
-  padding: 0.25rem 0.35rem 0.5rem 0.35rem !important;
-  justify-content: center !important;
+.fc .fc-button:hover {
+  background-color: var(--surface-hover, #f1f5f9) !important;
+  border-color: var(--surface-400, #94a3b8) !important;
+  color: var(--text-color, #0f172a) !important;
 }
 
-.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-month,
-.calendario-escolar .p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-year {
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: var(--primary-color, #3b82f6) !important;
+  border-color: var(--primary-color, #3b82f6) !important;
+  color: #ffffff !important;
+}
+
+.fc .fc-button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Cabecera de días de la semana */
+.fc .fc-col-header-cell {
+  background-color: var(--surface-50, #f8fafc) !important;
+  padding: 0.5rem 0 !important;
+  border-color: var(--surface-border, #e2e8f0) !important;
+}
+
+.fc .fc-col-header-cell-cushion {
   font-size: 0.85rem !important;
   font-weight: 700 !important;
-  padding: 0.2rem 0.35rem !important;
-  text-transform: capitalize !important;
+  color: var(--text-color-secondary, #64748b) !important;
+  text-transform: capitalize;
 }
 
-/* Tabla de días ajustada a la columna */
-.calendario-escolar .p-datepicker table {
-  width: 100% !important;
-  border-collapse: separate !important;
-  border-spacing: 2px !important;
-  margin: 0.25rem 0 !important;
+/* Fines de semana con sutil sombreado gris */
+.fc .fc-day-sat,
+.fc .fc-day-sun {
+  background-color: rgba(148, 163, 184, 0.06);
 }
 
-.calendario-escolar .p-datepicker table th {
-  padding: 0.25rem 0.1rem !important;
-  font-size: 0.72rem !important;
-  font-weight: 700 !important;
-  text-align: center !important;
+.fc .fc-day-sat .fc-col-header-cell-cushion,
+.fc .fc-day-sun .fc-col-header-cell-cushion {
+  color: #94a3b8 !important;
 }
 
-.calendario-escolar .p-datepicker table td {
-  padding: 1px !important;
-  text-align: center !important;
+/* Mes de agosto: periodo de vacaciones legal estival marcado con el sombreado de fin de semana */
+.fc .fc-dia-agosto-vacaciones {
+  background-color: rgba(148, 163, 184, 0.08) !important;
 }
 
-.calendario-escolar .p-datepicker table td > span {
-  width: 100% !important;
-  max-width: 2rem !important;
-  height: 2rem !important;
-  font-size: 0.78rem !important;
-  border-radius: 6px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  margin: 0 auto !important;
+.fc .fc-dia-agosto-vacaciones .fc-daygrid-day-number {
+  color: #94a3b8 !important;
 }
 
-/* Festivos seleccionados: resaltados en rojo vivo sobreescribiendo temas claro y oscuro */
-html .calendario-escolar .p-datepicker table td > span.p-highlight,
-html.dark-theme .calendario-escolar .p-datepicker table td > span.p-highlight,
-[data-theme='dark'] .calendario-escolar .p-datepicker table td > span.p-highlight,
-html .calendario-escolar .p-datepicker table td.p-datepicker-today > span.p-highlight,
-html.dark-theme .calendario-escolar .p-datepicker table td.p-datepicker-today > span.p-highlight,
-[data-theme='dark'] .calendario-escolar .p-datepicker table td.p-datepicker-today > span.p-highlight,
-.calendario-escolar .p-datepicker table td > span.p-highlight,
-.calendario-escolar .p-datepicker table td.p-datepicker-today > span.p-highlight,
-.calendario-escolar .p-datepicker table td > span:has(.dia-es-festivo),
-.calendario-escolar .p-datepicker table td > span.dia-es-festivo {
-  background-color: #ef4444 !important;
-  background: #ef4444 !important;
+/* Celdas de días individuales */
+.fc .fc-daygrid-day-top {
+  padding: 4px 6px !important;
+}
+
+.fc .fc-daygrid-day-number {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: var(--text-color, #334155);
+  padding: 2px 4px !important;
+  border-radius: 4px;
+}
+
+/* Día actual resaltado */
+.fc .fc-day-today .fc-daygrid-day-number {
+  background-color: var(--primary-color, #3b82f6);
   color: #ffffff !important;
   font-weight: 700 !important;
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45) !important;
-  border-color: #dc2626 !important;
 }
 
-html .calendario-escolar .p-datepicker table td > span.p-highlight:hover,
-html.dark-theme .calendario-escolar .p-datepicker table td > span.p-highlight:hover,
-[data-theme='dark'] .calendario-escolar .p-datepicker table td > span.p-highlight:hover,
-.calendario-escolar .p-datepicker table td > span.p-highlight:hover {
-  background-color: #dc2626 !important;
-  background: #dc2626 !important;
-  border-color: #b91c1c !important;
-}
-
-/* Fines de semana (columnas 6 y 7 con semana iniciada en lunes): color gris/inactivo por defecto */
-.calendario-escolar .p-datepicker table th:nth-child(6),
-.calendario-escolar .p-datepicker table th:nth-child(7) {
-  color: #94a3b8 !important;
+/* Eventos estilizados como barras redondeadas y legibles */
+.fc .fc-daygrid-event {
+  border-radius: 6px !important;
+  padding: 2px 6px !important;
+  margin: 1px 2px !important;
+  font-size: 0.78rem !important;
   font-weight: 600 !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
 }
 
-.calendario-escolar .p-datepicker table td:nth-child(6) > span:not(.p-highlight):not(:has(.dia-es-festivo)),
-.calendario-escolar .p-datepicker table td:nth-child(7) > span:not(.p-highlight):not(:has(.dia-es-festivo)) {
-  color: #94a3b8 !important;
-  background-color: rgba(148, 163, 184, 0.12) !important;
+.fc .fc-daygrid-event:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+.fc-event-title {
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Selección interactiva de rangos con cursor en cruz suave */
+.fc .fc-highlight {
+  background: rgba(59, 130, 246, 0.22) !important;
+  border: 1px dashed var(--primary-color, #3b82f6) !important;
+}
+
+/* Días fuera del curso lectivo oficial */
+.fc-dia-fuera-curso {
+  background-color: rgba(148, 163, 184, 0.14) !important;
   opacity: 0.65;
 }
 
-/* Estilo interior interactivo de cada celda del día */
-.calendario-dia-celda {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-  cursor: pointer;
-  pointer-events: auto;
-  border-radius: 6px;
-  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+/* --- Configuración y maquetación de la vista anual de 12 meses (multiMonth) --- */
+.fc .fc-multimonth {
+  border: none !important;
+  gap: 1rem !important;
+  background: transparent !important;
+  padding: 0.5rem 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
 }
 
-.calendario-dia-celda:hover:not(.dia-es-festivo) {
-  background-color: var(--surface-hover, #f1f5f9);
+@media (min-width: 992px) {
+  .fc .fc-multimonth {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
 }
 
-.calendario-dia-celda.dia-es-festivo {
-  background-color: #ef4444 !important;
-  color: #ffffff !important;
-  border-radius: 6px !important;
+.fc .fc-multimonth-month {
+  border: 1px solid var(--surface-border, #cbd5e1) !important;
+  border-radius: 12px !important;
+  background-color: var(--surface-card, #ffffff) !important;
+  padding: 0.5rem 0.75rem 0.75rem !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.fc .fc-multimonth-title {
+  font-size: 0.95rem !important;
   font-weight: 700 !important;
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.45) !important;
+  color: var(--text-color, #1e293b) !important;
+  text-transform: capitalize !important;
+  padding: 0.4rem 0 !important;
+  text-align: center;
 }
 
-.calendario-dia-celda.dia-es-festivo:hover {
-  background-color: #dc2626 !important;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.55) !important;
+.fc .fc-multimonth-header-table th {
+  padding: 0.25rem 0 !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: var(--text-color-secondary, #64748b) !important;
+  text-transform: capitalize;
 }
 
-/* Indicador con punto blanco cuando el festivo tiene un motivo o descripción escrita */
-.calendario-dia-punto-motivo {
-  position: absolute;
-  bottom: 2px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background-color: #ffffff;
+.fc .fc-multimonth-daygrid-table td {
+  padding: 1px !important;
+  text-align: center;
 }
 
-/* Días atenuados por encontrarse fuera de los límites oficiales del curso lectivo */
-.calendario-dia-fuera-rango {
-  opacity: 0.35;
+.fc .fc-multimonth .fc-daygrid-day-number {
+  font-size: 0.8rem !important;
+  padding: 2px 4px !important;
+}
+
+/* Zona oculta de impresión en PDF en una página */
+@media print {
+  .no-imprimir {
+    display: none !important;
+  }
 }
