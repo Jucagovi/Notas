@@ -1,0 +1,104 @@
+/* Estilos específicos para el módulo Taller de Prácticas */
+
+.taller-contenedor {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Tarjeta contenedora de catálogo maestro y panel de detalle */
+.tarjeta-taller {
+  background-color: var(--surface-card, #ffffff);
+  border: 1px solid var(--surface-border, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.tarjeta-taller-cabecera {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--surface-border, #e2e8f0);
+  background-color: var(--surface-50, #f8fafc);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.tarjeta-taller-cuerpo {
+  padding: 1rem 1.25rem;
+  flex: 1;
+}
+
+/* Texto truncado en una sola línea con soporte de tooltip para evitar desbordamientos */
+.celda-texto-truncado {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  cursor: default;
+}
+
+/* Fila de práctica activa seleccionada en la tabla maestra */
+.fila-practica-activa {
+  background-color: var(--primary-50, #eff6ff) !important;
+  font-weight: 600;
+  border-left: 4px solid var(--primary-color, #2563eb) !important;
+}
+
+/* Estilos de la barra de herramientas del editor enriquecido Quill */
+.editor-enunciado-contenedor .ql-toolbar {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-color: var(--surface-border, #cbd5e1);
+  background-color: var(--surface-50, #f8fafc);
+}
+
+.editor-enunciado-contenedor .ql-container {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-color: var(--surface-border, #cbd5e1);
+  font-family: inherit;
+  font-size: 0.95rem;
+  min-height: 250px;
+}
+
+/* Badges estilizados para tipos de práctica */
+.badge-tipo-practica {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.badge-tipo-individual {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.badge-tipo-grupal {
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-tipo-examen {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.badge-tipo-proyecto {
+  background-color: #faf5ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+}

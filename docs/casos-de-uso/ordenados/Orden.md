@@ -18,14 +18,14 @@ Creación de las entidades raíz (ciclos, módulos, alumnos) que no dependen de 
 Definición de las fechas, los horarios y las unidades didácticas.
 -7. `29-calendario-escolar.md`
 -8. `30-gestion-horarios.md`
--9. `18-gestion-unidades-trabajo.md`
+9. `18-gestion-unidades-trabajo.md` (revisar después del taller de prácticas)
 -10. `19-explicacion.md`
-11. `19-temporizacion.md`
+11. `19-temporizacion.md` (revisar)
 
 ### Fase 3: Materiales, Prácticas y Ponderaciones
 
 Diseño de los instrumentos de evaluación y su peso en el currículo.
-12. `14-creacion-taller-practicas.md`
+12. `14-creacion-taller-practicas.md` (revisar antes de temporización).
 13. `11-mapeo-practicas.md`
 14. `16-explicacion.md`
 15. `16-pesos-ra-ce.md`

@@ -1,0 +1,201 @@
+/* Estilos específicos para el Gestor de Unidades de Trabajo y zonas interactivas Swapy */
+
+.contenedor-curriculo {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.zona-curricular-columna {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.zona-curricular-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.tarjeta-ut {
+  border-radius: var(--border-radius);
+  border: 1px solid var(--surface-border);
+  background-color: var(--surface-card);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 240px;
+}
+
+.tarjeta-ut:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.tarjeta-ut-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--surface-border);
+  background-color: var(--surface-ground);
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+}
+
+.tarjeta-ut-body {
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1 1 auto;
+}
+
+.lista-actividades-ut {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  min-height: 60px;
+}
+
+/* Zona de soltado interactiva para recibir actividades */
+.dropzone-ut {
+  border: 2px dashed var(--surface-border);
+  border-radius: var(--border-radius);
+  padding: 0.85rem;
+  text-align: center;
+  background-color: var(--surface-ground);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  user-select: none;
+  min-height: 48px;
+}
+
+.dropzone-ut:hover,
+.dropzone-ut.drop-highlight {
+  border-color: var(--primary-color);
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+/* Tarjeta individual de actividad arrastrable */
+.tarjeta-actividad {
+  background-color: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-left: 4px solid var(--primary-color);
+  border-radius: 6px;
+  padding: 0.75rem 0.85rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.tarjeta-actividad:active {
+  cursor: grabbing;
+}
+
+.tarjeta-actividad.actividad-huerfana {
+  border-left-color: #f59e0b;
+}
+
+.tarjeta-actividad:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.actividad-drag-handle {
+  cursor: grab;
+  padding: 0.2rem;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.actividad-drag-handle:hover {
+  color: var(--primary-color);
+}
+
+/* Panel lateral para las actividades huérfanas */
+.panel-huerfanas {
+  width: 340px;
+  flex-shrink: 0;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--surface-border);
+  background-color: var(--surface-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: calc(var(--altura-cabecera, 100px) + 1rem);
+  max-height: calc(100vh - 140px);
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-huerfanas-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--surface-border);
+  background-color: var(--surface-ground);
+  border-top-left-radius: var(--border-radius);
+  border-top-right-radius: var(--border-radius);
+}
+
+.panel-huerfanas-list {
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1 1 auto;
+}
+
+/* Zona para desvincular actividades y devolverlas a huérfanas */
+.dropzone-desvincular {
+  border: 2px dashed #f59e0b;
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  text-align: center;
+  background-color: #fffbeb;
+  color: #b45309;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  user-select: none;
+}
+
+.dropzone-desvincular:hover,
+.dropzone-desvincular.drop-highlight {
+  background-color: #fef3c7;
+  border-color: #d97706;
+}
+
+/* Utilidad para truncado en una sola línea con soporte de tooltip */
+.linea-truncada {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 100%;
+}
+
+/* Ajustes responsivos */
+@media (max-width: 1024px) {
+  .contenedor-curriculo {
+    flex-direction: column;
+  }
+
+  .panel-huerfanas {
+    width: 100%;
+    position: static;
+    max-height: none;
+  }
+}

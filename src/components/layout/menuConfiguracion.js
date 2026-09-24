@@ -29,6 +29,7 @@ export const ELEMENTOS_PLANIFICACION = [
 
 // Elementos del submenú Evaluación
 export const ELEMENTOS_EVALUACION = [
+  { label: 'Taller de prácticas', icon: 'pi pi-briefcase', to: '/taller-practicas' },
   { label: 'Asignación RA', icon: 'pi pi-file-edit', to: '/practicas' },
   { label: 'Asignación pesos', icon: 'pi pi-percentage', to: '/pesos' },
   { label: 'Pesos RA y CE', icon: 'pi pi-sliders-h', to: '/pesos-ra' },
@@ -194,6 +195,7 @@ export const NAV_ITEMS = [
     esDesplegable: true,
     subItems: ELEMENTOS_EVALUACION
   },
+  { label: 'Taller de prácticas', icon: 'pi pi-briefcase', to: '/taller-practicas' },
   { label: 'Calificar', icon: 'pi pi-pencil', to: '/calificar' },
   {
     label: 'Informes',

@@ -12,6 +12,7 @@ import ProgramacionPagina from './pages/planificacion/ProgramacionPagina.jsx';
 import CuadernoPagina from './pages/evaluacion/CuadernoPagina.jsx';
 import CalificarPagina from './pages/CalificarPagina.jsx';
 import PracticasPagina from './pages/evaluacion/PracticasPagina.jsx';
+import TallerPracticas from './pages/TallerPracticas.jsx';
 import PesosPagina from './pages/PesosPagina.jsx';
 import PesosRAPagina from './pages/PesosRAPagina.jsx';
 import CriteriosPagina from './pages/CriteriosPagina.jsx';
@@ -115,6 +116,8 @@ const App = () => {
           </Route>
 
           {/* Evaluación y Calificación */}
+          <Route path='taller-practicas' element={<TallerPracticas />} />
+          <Route path='taller' element={<Navigate to='/taller-practicas' replace />} />
           <Route path='calificar' element={<CalificarPagina />} />
           <Route path='practicas' element={<PracticasPagina />} />
           <Route path='pesos' element={<PesosPagina />} />
@@ -122,6 +125,8 @@ const App = () => {
           <Route path='criterios' element={<CriteriosPagina />} />
           <Route path='evaluacion'>
             <Route index element={<Navigate to='/calificar' replace />} />
+            <Route path='taller-practicas' element={<TallerPracticas />} />
+            <Route path='taller' element={<Navigate to='/taller-practicas' replace />} />
             <Route path='cuaderno' element={<CuadernoPagina />} />
             <Route path='diario' element={<DiarioPagina />} />
             <Route path='practicas' element={<PracticasPagina />} />
