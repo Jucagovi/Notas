@@ -115,7 +115,7 @@ const PasoDiscentes = ({
         <div>
           <h3 className="m-0 text-xl font-bold text-800">Matriculación de Discentes</h3>
           <p className="text-secondary text-sm m-0 mt-1">
-            Marca los discentes que cursarán el módulo seleccionado en este curso.
+            Marca los discentes que cursarán el módulo seleccionado en esta clase.
           </p>
         </div>
         <span className="text-sm font-bold text-primary px-3 py-2 surface-100 border-round">

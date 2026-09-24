@@ -33,8 +33,7 @@ const resolverIconoTarea = (texto = '') => {
  * @param {Object} props.resumenDocente - Métricas calculadas de carga lectiva y no lectiva.
  * @param {Function} [props.onGuardarTareaNoLectiva] - Callback para persistir una tarea no lectiva.
  * @param {Function} [props.onEliminarTareaNoLectiva] - Callback para eliminar una tarea no lectiva.
- * @param {Function} props.onIrAGrupos - Callback para navegar a la pestaña de horario por cursos.
- * @param {Function} props.onIrATramos - Callback para navegar a la pestaña de tramos.
+ * @param {Function} props.onIrAGrupos - Callback para navegar a la pestaña de horario por clases.
  * @param {boolean} [props.guardando=false] - Indicador de guardado en curso.
  */
 export const CuadriculaMiHorario = ({
@@ -46,7 +45,6 @@ export const CuadriculaMiHorario = ({
   onGuardarTareaNoLectiva,
   onEliminarTareaNoLectiva,
   onIrAGrupos,
-  onIrATramos,
   guardando = false
 }) => {
   const [dialogoTareaVisible, setDialogoTareaVisible] = useState(false);
@@ -60,6 +58,7 @@ export const CuadriculaMiHorario = ({
   // Apertura del modal al hacer clic en una celda vacía para añadir tarea no lectiva.
   const manejarClickCeldaVacia = (sesion, dia) => {
     if (!onGuardarTareaNoLectiva) return;
+    if (esSesionRecreo(sesion.descripcion)) return;
     setCeldaActiva({
       sesion,
       dia,
@@ -104,9 +103,9 @@ export const CuadriculaMiHorario = ({
           icono="pi pi-calendar-times"
           accion={
             <Button
-              label="Configurar Tramos"
-              icon="pi pi-clock"
-              onClick={onIrATramos}
+              label="Ir a Horario por Clases"
+              icon="pi pi-th-large"
+              onClick={onIrAGrupos}
             />
           }
         />
@@ -131,7 +130,7 @@ export const CuadriculaMiHorario = ({
                 Mi Horario Docente (Global)
               </span>
               <span className="text-xs text-color-secondary">
-                Consolidación de todas tus clases lectivas y tareas no lectivas (guardias, reuniones, tutorías).
+                Consolidación de todas tus clases lectivas y tareas docentes personales (guardias, reuniones, tutorías, coordinaciones).
               </span>
             </div>
           </div>
@@ -151,11 +150,11 @@ export const CuadriculaMiHorario = ({
           <div className="py-5">
             <EstadoVacio
               mensaje="Aún no tienes clases ni tareas registradas"
-              descripcion="Puedes asignar clases en 'Horario por Cursos' o pulsar directamente en cualquier casilla vacía para registrar horas no lectivas (guardias, tutorías, reuniones)."
+              descripcion="Puedes asignar clases en 'Horario por Clases' o pulsar directamente en cualquier casilla vacía para registrar horas personales (guardias, tutorías, reuniones)."
               icono="pi pi-calendar-plus"
               accion={
                 <Button
-                  label="Ir a Horario por Cursos"
+                  label="Ir a Horario por Clases"
                   icon="pi pi-th-large"
                   onClick={onIrAGrupos}
                 />
@@ -200,10 +199,10 @@ export const CuadriculaMiHorario = ({
                     {/* Tramo horario en la primera columna */}
                     <td className={`p-2 border-1 surface-border align-middle ${esRecreo ? 'celda-recreo' : ''}`}>
                       <div className="flex flex-column gap-1">
-                        <span className={`font-bold text-xs ${esRecreo ? 'text-orange-900' : 'text-900'}`}>
+                        <span className="font-bold text-xs text-900">
                           {sesion.descripcion || `${sesion.numero}ª Hora`}
                         </span>
-                        <span className={`text-xs ${esRecreo ? 'text-orange-700' : 'text-color-secondary'}`}>
+                        <span className="text-xs text-color-secondary">
                           {horaInicioVisual} - {horaFinVisual}
                         </span>
                       </div>
@@ -211,6 +210,20 @@ export const CuadriculaMiHorario = ({
 
                     {/* Días Lunes a Viernes */}
                     {DIAS_SEMANA.map((dia) => {
+                      if (esRecreo) {
+                        return (
+                          <td
+                            key={dia.dia}
+                            className="p-2 border-1 surface-border text-center celda-recreo"
+                            style={{ minHeight: '68px', verticalAlign: 'middle' }}
+                          >
+                            <div className="flex align-items-center justify-content-center text-center w-full h-full py-2 select-none">
+                              <span className="text-sm font-medium text-color-secondary">Recreo</span>
+                            </div>
+                          </td>
+                        );
+                      }
+
                       const clasesEnEsteTramo = horarioDocente.filter((h) => {
                         const coincideSesion =
                           h.id_sesion === sesion.id_sesion ||
@@ -224,9 +237,7 @@ export const CuadriculaMiHorario = ({
                       return (
                         <td
                           key={dia.dia}
-                          className={`p-2 border-1 surface-border text-center transition-colors transition-duration-150 ${
-                            !tieneClase && esRecreo ? 'celda-recreo' : ''
-                          }`}
+                          className="p-2 border-1 surface-border text-center transition-colors transition-duration-150 hover:surface-100"
                           style={{ minHeight: '68px', verticalAlign: tieneClase ? 'top' : 'middle' }}
                         >
                           {tieneClase ? (
@@ -328,17 +339,6 @@ export const CuadriculaMiHorario = ({
                                   </div>
                                 );
                               })}
-                            </div>
-                          ) : esRecreo ? (
-                            <div
-                              onClick={() => manejarClickCeldaVacia(sesion, dia)}
-                              className="flex align-items-center justify-content-center text-center w-full h-full cursor-pointer py-2"
-                              data-pr-tooltip="Haz clic para asignar guardia de recreo u otra actividad"
-                            >
-                              <span className="inline-flex align-items-center gap-1 px-3 py-1 border-round badge-recreo font-bold text-xs shadow-1 hover:shadow-2 transition-duration-150">
-                                <i className="pi pi-coffee text-xs text-orange-600" />
-                                Recreo
-                              </span>
                             </div>
                           ) : (
                             <div

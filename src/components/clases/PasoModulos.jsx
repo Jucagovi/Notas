@@ -34,7 +34,7 @@ const PasoModulos = ({
         {/* Selector 1: Ciclos formativos */}
         <div className="field col-12 md:col-6 mb-3">
           <label htmlFor="selectorCiclo" className="font-semibold text-sm mb-2 block">
-            1. Ciclo Formativo <span className="text-red-500">*</span>
+            Ciclo Formativo <span className="text-red-500">*</span>
           </label>
           <SelectorCiclo
             id="selectorCiclo"
@@ -52,7 +52,7 @@ const PasoModulos = ({
         {/* Selector 2: Módulos profesionales filtrados */}
         <div className="field col-12 md:col-6 mb-3">
           <label htmlFor="selectorModulo" className="font-semibold text-sm mb-2 block">
-            2. Módulo Profesional <span className="text-red-500">*</span>
+            Módulo Profesional <span className="text-red-500">*</span>
           </label>
           <SelectorModulo
             id="selectorModulo"

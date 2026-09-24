@@ -6,7 +6,8 @@ import { parsearFechaISO, formatearFechaISO } from '../../utils/fechas.js';
  * CeldaFechaTemporizacion - Componente para la edición en línea de fechas dentro de la tabla.
  *
  * Responsabilidad Única: Renderizar el control Calendar de PrimeReact adaptando las fechas
- * en formato ISO a objetos Date de JavaScript y emitiendo la cadena formateada resultante.
+ * en formato ISO a objetos Date de JavaScript y emitiendo la cadena formateada resultante,
+ * asegurando la legibilidad del texto en cualquier resolución sin truncamientos visuales.
  *
  * @param {Object} props
  * @param {string|null} props.valor - Fecha en formato 'YYYY-MM-DD' o null.
@@ -41,6 +42,7 @@ export const CeldaFechaTemporizacion = ({
   return (
     <div
       className="flex align-items-center gap-1 w-full"
+      style={{ minWidth: '13rem' }}
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >
@@ -55,7 +57,9 @@ export const CeldaFechaTemporizacion = ({
         minDate={minDate}
         maxDate={maxDate}
         className="p-inputtext-sm w-full"
-        inputClassName="text-xs p-1"
+        inputClassName="text-sm py-1 px-2 font-medium"
+        inputStyle={{ minWidth: '7.5rem' }}
+        style={{ width: '100%' }}
         panelClassName="text-sm"
       />
       {valor && !disabled && (

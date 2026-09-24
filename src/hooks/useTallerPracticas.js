@@ -3,6 +3,26 @@ import useDatos from './useDatos.js';
 import { supabase } from '../services/supabaseClient.js';
 
 /**
+ * Sanitiza identificadores UUID para garantizar que valores vacíos, nulos o estructuras
+ * de objetos de selectores no se envíen a Supabase, evitando el error de Postgres 22P02.
+ *
+ * @param {*} val - Valor a sanitizar.
+ * @returns {string|null} - Cadena UUID válida o null.
+ */
+const sanitizarIdUUID = (val) => {
+  if (val === undefined || val === null) return null;
+  if (typeof val === 'object') {
+    const valorInterno = val.value !== undefined ? val.value : (val.id_ut || val.id_evaluacion || val.id_curso || val.id || null);
+    return sanitizarIdUUID(valorInterno);
+  }
+  if (typeof val === 'string') {
+    const limpio = val.trim();
+    return limpio.length > 0 && limpio !== 'null' && limpio !== 'undefined' ? limpio : null;
+  }
+  return val;
+};
+
+/**
  * useTallerPracticas - Custom Hook para la gestión del taller de prácticas y su historial de versiones.
  *
  * Responsabilidad Única: Encapsular la lógica de obtención y operaciones CRUD para el repositorio maestro
@@ -280,9 +300,9 @@ export const useTallerPracticas = (idModuloActivo = null) => {
     try {
       const nuevoRegistro = {
         id_practica: idPracticaEfectivo,
-        id_curso: id_curso,
-        id_ut: id_ut && id_ut.trim ? (id_ut.trim() ? id_ut.trim() : null) : id_ut || null,
-        id_evaluacion: id_evaluacion && id_evaluacion.trim ? (id_evaluacion.trim() ? id_evaluacion.trim() : null) : id_evaluacion || null,
+        id_curso: sanitizarIdUUID(id_curso),
+        id_ut: sanitizarIdUUID(id_ut),
+        id_evaluacion: sanitizarIdUUID(id_evaluacion),
         numero: numero && String(numero).trim() ? String(numero).trim() : 'v1.0',
         enunciado: enunciado || '',
         peso_evaluacion: peso_evaluacion !== undefined && peso_evaluacion !== null && peso_evaluacion !== ''
@@ -327,9 +347,9 @@ export const useTallerPracticas = (idModuloActivo = null) => {
     setErrorOperacion(null);
     try {
       const valoresActualizados = {
-        id_curso: id_curso,
-        id_ut: id_ut && id_ut.trim ? (id_ut.trim() ? id_ut.trim() : null) : id_ut || null,
-        id_evaluacion: id_evaluacion && id_evaluacion.trim ? (id_evaluacion.trim() ? id_evaluacion.trim() : null) : id_evaluacion || null,
+        id_curso: sanitizarIdUUID(id_curso),
+        id_ut: sanitizarIdUUID(id_ut),
+        id_evaluacion: sanitizarIdUUID(id_evaluacion),
         numero: numero && String(numero).trim() ? String(numero).trim() : 'v1.0',
         enunciado: enunciado || '',
         peso_evaluacion: peso_evaluacion !== undefined && peso_evaluacion !== null && peso_evaluacion !== ''
@@ -372,9 +392,9 @@ export const useTallerPracticas = (idModuloActivo = null) => {
 
       const registroClonado = {
         id_practica: versionOriginal.id_practica,
-        id_curso: versionOriginal.id_curso,
-        id_ut: versionOriginal.id_ut || null,
-        id_evaluacion: versionOriginal.id_evaluacion || null,
+        id_curso: sanitizarIdUUID(versionOriginal.id_curso),
+        id_ut: sanitizarIdUUID(versionOriginal.id_ut),
+        id_evaluacion: sanitizarIdUUID(versionOriginal.id_evaluacion),
         numero: numeroCopia,
         enunciado: versionOriginal.enunciado || '',
         peso_evaluacion: versionOriginal.peso_evaluacion || 0

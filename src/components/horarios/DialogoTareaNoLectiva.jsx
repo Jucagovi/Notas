@@ -4,12 +4,11 @@ import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
 import BotonAccion from '../common/BotonAccion.jsx';
-import { formatearHoraParaMostrar } from './constantesHorarios.js';
+import { formatearHoraParaMostrar, esSesionRecreo } from './constantesHorarios.js';
 
 // Tareas frecuentes en la labor docente con predefinición de si computan como lectivas.
 const TAREAS_FRECUENTES = [
   { nombre: 'Guardia de aula', lectiva: false },
-  { nombre: 'Guardia de recreo', lectiva: false },
   { nombre: 'Reunión de Departamento', lectiva: false },
   { nombre: 'Tutoría de alumnos', lectiva: true },
   { nombre: 'Atención a familias', lectiva: false },
@@ -68,6 +67,11 @@ export const DialogoTareaNoLectiva = ({
 
   // Manejador del guardado tras validar el nombre de la actividad.
   const manejarGuardar = () => {
+    if (celdaActiva?.sesion && esSesionRecreo(celdaActiva.sesion.descripcion)) {
+      setErrorValidacion('No se pueden asignar actividades en períodos de recreo.');
+      return;
+    }
+
     if (!nombreTarea || nombreTarea.trim() === '') {
       setErrorValidacion('Debes indicar el nombre o tipo de la tarea.');
       return;

@@ -1,0 +1,79 @@
+/* Estilos específicos para la gestión y ponderación de pesos de RA y CE */
+
+/* Control de ponderación con botones separados e igual altura */
+.input-ponderacion-pesos {
+  display: inline-flex !important;
+  align-items: center !important;
+  vertical-align: middle !important;
+}
+
+.input-ponderacion-pesos .p-inputnumber-button {
+  height: 2.25rem !important;
+  width: 2rem !important;
+  min-width: 2rem !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+  transition: background-color 0.2s, border-color 0.2s !important;
+}
+
+.input-ponderacion-pesos .p-inputnumber-button-down {
+  margin-right: 0.35rem !important;
+}
+
+.input-ponderacion-pesos .p-inputnumber-button-up {
+  margin-left: 0.35rem !important;
+}
+
+.input-ponderacion-pesos .p-inputnumber-input {
+  height: 2.25rem !important;
+  width: 4.5rem !important;
+  text-align: center !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+}
+
+/* Alineación estricta en una sola línea horizontal para los elementos con expander en TreeTable */
+.tabla-pesos-treetable .p-treetable-tbody > tr > td:first-child,
+.p-treetable .p-treetable-tbody > tr > td:first-child {
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+}
+
+.tabla-pesos-treetable .p-treetable-tbody > tr > td:first-child > .p-treetable-toggler,
+.p-treetable .p-treetable-tbody > tr > td:first-child > .p-treetable-toggler {
+  display: inline-flex !important;
+  vertical-align: middle !important;
+  margin-right: 0.5rem !important;
+  margin-bottom: 0 !important;
+  float: none !important;
+  flex-shrink: 0 !important;
+}
+
+.tabla-pesos-treetable .p-treetable-tbody > tr > td:first-child > .elemento-curricular-fila,
+.p-treetable .p-treetable-tbody > tr > td:first-child > .elemento-curricular-fila {
+  display: inline-flex !important;
+  vertical-align: middle !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  max-width: calc(100% - 3.5rem) !important;
+  min-width: 0 !important;
+}
+
+.tabla-pesos-treetable .p-treetable-tbody > tr > td:first-child > .elemento-curricular-fila .texto-truncado-curricular,
+.p-treetable .p-treetable-tbody > tr > td:first-child > .elemento-curricular-fila .texto-truncado-curricular {
+  display: inline-block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}

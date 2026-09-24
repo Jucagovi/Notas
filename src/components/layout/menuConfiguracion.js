@@ -211,5 +211,6 @@ export const NAV_ITEMS = [
     esDesplegable: true,
     subItems: ELEMENTOS_HERRAMIENTAS
   },
+  { label: 'Ayuda', icon: 'pi pi-question-circle', to: '/ayuda' },
   { label: 'Acerca de', icon: 'pi pi-info-circle', to: '/acercaDe' }
 ];

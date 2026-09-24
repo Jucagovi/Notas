@@ -3,14 +3,14 @@ import useDatos from './useDatos.js';
 import { supabase } from '../services/supabaseClient.js';
 
 /**
- * Custom Hook orquestador para la gestión del currículo de un módulo y curso académico.
+ * Custom Hook orquestador para la gestión del currículo de una clase y su módulo profesional.
  *
  * Responsabilidad Única: Centralizar la obtención y mutación de las Unidades de Trabajo
  * y de las Versiones de actividades asociadas, coordinando las asignaciones y desvinculaciones
- * necesarias para el espacio interactivo de arrastrar y soltar (Drag & Drop).
+ * necesarias para el espacio curricular en dos columnas.
  *
- * @param {string|null} idCurso - Identificador único del curso académico.
- * @param {string|null} idModulo - Identificador único del módulo profesional.
+ * @param {string|null} idCurso - Identificador único del curso académico asociado a la clase.
+ * @param {string|null} idModulo - Identificador único del módulo profesional asignado.
  */
 const useGestorCurriculo = (idCurso = null, idModulo = null) => {
   // Se inicializa el hook genérico useDatos para la tabla Unidades_Trabajo.
@@ -31,7 +31,6 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
     cargando: cargandoVersiones,
     error: errorVersiones,
     obtenerDatos: obtenerVersiones,
-    actualizar: actualizarVersionEnHook,
     setDatos: setVersiones
   } = useDatos('Versiones');
 
@@ -49,7 +48,7 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
     );
   }, [idModulo, obtenerUTs, setUnidadesTrabajo]);
 
-  // Consulta de las Versiones instanciadas para el curso y módulo indicados.
+  // Consulta de las Versiones instanciadas para la clase y módulo indicados.
   const cargarVersiones = useCallback(async () => {
     if (!idCurso || !idModulo) {
       setVersiones([]);
@@ -77,21 +76,21 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
     await Promise.all(tareas);
   }, [idModulo, idCurso, cargarUnidadesTrabajo, cargarVersiones]);
 
-  // Efecto para sincronizar las unidades de trabajo cuando cambia el módulo.
+  // Efecto para sincronizar las unidades de trabajo cuando cambia el módulo de la clase.
   useEffect(() => {
     cargarUnidadesTrabajo();
   }, [cargarUnidadesTrabajo]);
 
-  // Efecto para sincronizar las actividades cuando cambian el curso o el módulo.
+  // Efecto para sincronizar las actividades cuando cambian el curso o el módulo de la clase.
   useEffect(() => {
     cargarVersiones();
   }, [cargarVersiones]);
 
-  // Creación de una nueva Unidad de Trabajo vinculada al módulo activo.
+  // Creación de una nueva Unidad de Trabajo vinculada al módulo de la clase activa.
   const crearUnidadTrabajo = useCallback(
     async ({ numero, nombre, descripcion }) => {
       if (!idModulo) {
-        setErrorOperacion('Debe seleccionar un módulo para crear la unidad de trabajo.');
+        setErrorOperacion('Debe seleccionar una clase para crear la unidad de trabajo.');
         return null;
       }
       setCargandoOperacion(true);
@@ -233,7 +232,7 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
     [setVersiones]
   );
 
-  // Desvinculación ágil de una actividad para devolverla al panel de huérfanas.
+  // Desvinculación ágil de una actividad para devolverla al estado huérfano.
   const desvincularActividad = useCallback(
     async (idVersion) => {
       return await asignarActividadUT(idVersion, null);
@@ -264,6 +263,7 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
   return {
     unidades: unidadesConVersiones,
     unidadesBase: unidadesTrabajo || [],
+    versiones: versiones || [],
     actividadesHuerfanas,
     totalVersiones: (versiones || []).length,
     cargando: cargandoUTs || cargandoVersiones || cargandoOperacion,

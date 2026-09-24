@@ -128,3 +128,36 @@ Se ha implementado el **Caso de Uso 14: Taller de Prácticas (Gestión de Catál
       (NAV_ITEMS) y en el submenú de Evaluación (ELEMENTOS_EVALUACION).
   • App.jsx:
       • Se han registrado las rutas /taller-practicas y /taller.
+
+---
+
+## Revisión y Ajustes Finales
+
+Se han aplicado todas las revisiones solicitadas para afinar la experiencia de usuario y la coherencia del modelo conceptual:
+
+1. **Columna «Tipo» con solo Icono y Tooltip:**
+   * Se retiraron el texto y las etiquetas `<Tag>` de la columna «Tipo» en [`CatalogoPracticas.jsx`](file:///media/jucagovi/ALMAC%C3%89N/000C%C3%B3digo/Git/Notas/src/components/taller/CatalogoPracticas.jsx).
+   * Se muestra exclusivamente un icono representativo de PrimeIcons con color contextual (`pi pi-user text-blue-600` para Individual, `pi pi-users text-teal-600` para Grupal, `pi pi-file-edit text-orange-600` para Examen, `pi pi-briefcase text-purple-600` para Proyecto).
+   * Al posar el cursor sobre el icono se despliega el nombre del tipo mediante el componente unificado de `<Tooltip>` con selector `[data-pr-tooltip]`.
+
+2. **Filtro de Año Académico y Selector de Clase:**
+   * En [`FiltrosTaller.jsx`](file:///media/jucagovi/ALMAC%C3%89N/000C%C3%B3digo/Git/Notas/src/components/taller/FiltrosTaller.jsx) se incorporó delante del selector de clase un `<Dropdown>` con los años académicos en formato extendido (p. ej. `2026/2027`).
+   * Se reemplazó el selector de módulo por [`SelectorClase.jsx`](file:///media/jucagovi/ALMAC%C3%89N/000C%C3%B3digo/Git/Notas/src/components/common/SelectorClase.jsx), filtrando las clases que pertenecen al año escolar elegido.
+
+3. **Módulo Formativo Predefinido y Sin Duplicidad en Diálogos:**
+   * En [`DialogoPractica.jsx`](file:///media/jucagovi/ALMAC%C3%89N/000C%C3%B3digo/Git/Notas/src/components/taller/DialogoPractica.jsx), el módulo formativo ya no se solicita en un selector: se resuelve automáticamente a partir de la clase activa y se presenta como información de contexto.
+   * En [`DialogoVersion.jsx`](file:///media/jucagovi/ALMAC%C3%89N/000C%C3%B3digo/Git/Notas/src/components/taller/DialogoVersion.jsx), ni la clase ni el módulo se solicitan de nuevo.
+
+4. **Metadatos Curriculares de Solo Lectura en Versiones:**
+   * En [`DialogoVersion.jsx`](file:///media/jucagovi/ALMAC%C3%89N/000C%C3%B3digo/Git/Notas/src/components/taller/DialogoVersion.jsx), los selectores de Clase, UT y Evaluación se convirtieron en bloques informativos de solo lectura con iconos temáticos, sin desplegables y sin componentes `<Tag>`.
+   * En el campo `Número / Código de versión`, se sugiere automáticamente el año lectivo de la clase (p. ej. `2026/2027`).
+
+5. **Visualización de Versión en Tabla:**
+   * En [`PanelVersiones.jsx`](file:///media/jucagovi/ALMAC%C3%89N/000C%C3%B3digo/Git/Notas/src/components/taller/PanelVersiones.jsx), la columna de número de versión se presenta en texto plano sin etiquetas de fondo ni badges.
+
+6. **Manual de Uso Integrado:**
+   * Se implementó [`ManualUsoTaller.jsx`](file:///media/jucagovi/ALMAC%C3%89N/000C%C3%B3digo/Git/Notas/src/components/taller/ManualUsoTaller.jsx) al pie de página, a ancho completo (100%), desplegable y con explicación paso a paso del ciclo de vida del taller de prácticas.
+
+7. **Corrección de Error Postgres 22P02:**
+   * Se aseguraron los valores primitivos UUID / `null` en [`useTallerPracticas.js`](file:///media/jucagovi/ALMAC%C3%89N/000C%C3%B3digo/Git/Notas/src/hooks/useTallerPracticas.js), evitando el paso involuntario de objetos de opciones de PrimeReact.
+

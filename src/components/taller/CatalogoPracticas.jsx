@@ -32,17 +32,15 @@ export const CatalogoPracticas = ({
 }) => {
   // Plantilla para la columna de nombre con texto truncado en una línea y tooltip explicativo.
   const plantillaNombre = (fila) => {
-    const tooltipId = `tooltip-practica-${fila.id_practica}`;
     const textoTooltip = fila.descripcion
       ? `${fila.nombre} — ${fila.descripcion}`
       : fila.nombre;
 
     return (
       <div className="flex align-items-center gap-2 overflow-hidden">
-        <Tooltip target={`.${tooltipId}`} content={textoTooltip} position="top" />
         <span
-          className={`celda-texto-truncado font-medium text-900 ${tooltipId}`}
-          title=""
+          className="celda-texto-truncado font-medium text-900"
+          data-pr-tooltip={textoTooltip}
         >
           {fila.nombre}
         </span>
@@ -50,19 +48,27 @@ export const CatalogoPracticas = ({
     );
   };
 
-  // Plantilla para la columna de modalidad de práctica con insignias cromáticas.
+  // Configuración de iconos representativos para cada tipo de práctica (sin usar Tag)
+  const ICONOS_TIPO = {
+    Individual: { icono: 'pi pi-user', color: 'text-blue-600', etiqueta: 'Individual' },
+    Grupal: { icono: 'pi pi-users', color: 'text-teal-600', etiqueta: 'Grupal' },
+    Examen: { icono: 'pi pi-file-edit', color: 'text-orange-600', etiqueta: 'Examen' },
+    Proyecto: { icono: 'pi pi-briefcase', color: 'text-purple-600', etiqueta: 'Proyecto' }
+  };
+
+  // Plantilla para la columna de modalidad de práctica: solo icono con tooltip al pasar el ratón encima.
   const plantillaTipo = (fila) => {
     const tipo = fila.id_tipopractica || 'Individual';
-    let claseBadge = 'badge-tipo-individual';
-
-    if (tipo === 'Grupal') claseBadge = 'badge-tipo-grupal';
-    else if (tipo === 'Examen') claseBadge = 'badge-tipo-examen';
-    else if (tipo === 'Proyecto') claseBadge = 'badge-tipo-proyecto';
+    const conf = ICONOS_TIPO[tipo] || { icono: 'pi pi-file', color: 'text-500', etiqueta: tipo };
 
     return (
-      <span className={`badge-tipo-practica ${claseBadge}`}>
-        {tipo}
-      </span>
+      <div className="flex align-items-center justify-content-center">
+        <i
+          className={`${conf.icono} ${conf.color} text-lg cursor-pointer`}
+          data-pr-tooltip={conf.etiqueta}
+          aria-label={conf.etiqueta}
+        />
+      </div>
     );
   };
 
@@ -109,6 +115,9 @@ export const CatalogoPracticas = ({
 
   return (
     <div className="tarjeta-taller">
+      {/* Tooltip unificado para los elementos del catálogo con atributo data-pr-tooltip */}
+      <Tooltip target="[data-pr-tooltip]" position="top" />
+
       {/* Cabecera del catálogo con título y botón de acción */}
       <div className="tarjeta-taller-cabecera">
         <div className="flex align-items-center gap-2">
@@ -155,14 +164,15 @@ export const CatalogoPracticas = ({
               header="Nombre de la Práctica"
               body={plantillaNombre}
               sortable
-              style={{ width: '55%' }}
+              style={{ width: '65%' }}
             />
             <Column
               field="id_tipopractica"
               header="Tipo"
               body={plantillaTipo}
               sortable
-              style={{ width: '25%' }}
+              headerStyle={{ textAlign: 'center' }}
+              style={{ width: '15%', textAlign: 'center' }}
             />
             <Column
               body={plantillaAcciones}

@@ -2,38 +2,40 @@
 
 ## 1. Objetivo
 
-Proporcionar una interfaz visual e interactiva para que el docente defina el currículo de un módulo. Esto incluye el CRUD de Unidades de Trabajo (UT) asociadas a un curso académico específico, y la asignación ágil de las actividades planificadas (`Versiones`) a dichas unidades.
+Proporcionar una interfaz visual e interactiva para que el docente defina el currículo de una clase (la cual encapsula su módulo profesional correspondiente). Esto incluye el CRUD de Unidades de Trabajo (UT) asociadas a dicha clase, y la asignación ágil de las actividades planificadas (`Versiones`) a dichas unidades.
 
 ## 2. Modelo de Datos y Arquitectura
 
 La funcionalidad se apoya en el patrón Maestro-Detalle consolidado:
 
-* La tabla `Modulos` actúa como contenedor curricular genérico.
-* La tabla `Unidades_Trabajo` almacena el desglose curricular por año lectivo (`numero`, `nombre`, `descripcion`) vinculado a un `id_modulo` y un `id_curso`. Esto permite que la temporalización y el número de unidades varíen de un año a otro sin alterar el histórico.
-* La tabla `Versiones` (que representa las actividades instanciadas para ese curso) contiene el campo `id_ut`.
-* El sistema aprovechará la base de datos para el borrado en cascada o la desvinculación: al eliminar una UT, el campo `id_ut` de sus versiones asociadas pasará a `NULL` (ON DELETE SET NULL), dejándolas "huérfanas".
+* La tabla `Modulos` actúa como contenedor curricular genérico vinculado a la clase seleccionada.
+* La tabla `Unidades_Trabajo` almacena el desglose curricular (`numero`, `nombre`, `descripcion`) vinculado al `id_modulo` de la clase activa.
+* La tabla `Versiones` (que representa las actividades instanciadas para esa clase) contiene el campo `id_ut`.
+* El sistema aprovechará la base de datos para la desvinculación: al eliminar una UT, el campo `id_ut` de sus versiones asociadas pasará a `NULL`, dejándolas sin asignar.
 
 ## 3. Interfaz de Usuario (UI) y Flujos
 
 Toda la interfaz se construirá utilizando los componentes de PrimeReact y sus iconos (`primeicons`).
 
-* **Enrutamiento Principal:** En el menú principal izquierdo en su sección `Planificación`, crear la sección `Unidades de trabajo` que conducirá a la página `src/pages/UnidadesPagina.jsx`.
-* **Layout de Gestión (Drag & Drop):** La vista se dividirá en dos áreas interactivas utilizando la librería `swapy`:
-  * **Zona Curricular (UTs):** Un componente `DataView` o un diseño en Grid con tarjetas (`Card`) por cada Unidad de Trabajo del módulo seleccionado. Cada tarjeta actuará como una zona de destino (Drop Zone). Un botón principal permitirá abrir un `Dialog` para crear/editar una UT.
-  * **Panel de Actividades Huérfanas:** Un panel lateral o inferior fijo que mostrará las `Versiones` cuyo campo `id_ut` sea nulo.
-  * **Interacción:** El usuario arrastrará una actividad desde el panel de huérfanas y la soltará dentro de una UT. Esto disparará una actualización automática en la base de datos y refrescará la vista.
-* **Eliminación:** Borrar una UT requerirá confirmación mediante un `ConfirmDialog` de PrimeReact, advirtiendo que las actividades contenidas quedarán huérfanas.
-* Antes de la creación de algún componente, el agente **DEBE** reutilizar los ubicados en `src/components/common/` si es necesario (no se pueden modificar estos componentes).
+* **Enrutamiento Principal:** En el menú principal izquierdo en su sección `Planificación`, la sección `Unidades de trabajo` conduce a la página `src/pages/UnidadesPagina.jsx`.
+* **Layout de Gestión en Dos Columnas:** La vista se divide siempre en dos columnas paralelas y permanentes:
+  * **Columna Curricular (UTs):** Un listado tabular (`TablaBase`) con las Unidades de Trabajo de la clase seleccionada. Muestra la numeración formateada con cero a la izquierda si es menor a 10 (ej. `UT01`, `UT02`), el nombre, descripción, conteo de actividades y botones homogéneos de edición y borrado. Un botón en la barra superior permite abrir el `Dialog` para dar de alta nuevas UTs (cuyo campo de número no incluye botones de incremento/decremento +/-).
+  * **Columna de Versiones y Asignación:** Un listado tabular (`TablaBase`) con las actividades y versiones de la clase. En lugar de mostrar el contenido extenso de la versión, muestra la práctica, el número de versión, la UT a la que está asignada actualmente (con un botón dedicado para eliminar la versión de esa UT) y los números de las UTs disponibles (`UT01`, `UT02`...) para que, al pulsar cualquiera de ellos, se añada directamente a esa unidad de trabajo.
+* **Eliminación de la dependencia Swapy:** La interacción se realiza de forma directa y accesible mediante pulsación sobre los números de UT y botones de eliminación, prescindiendo por completo de la librería Swapy.
+* **Eliminación del selector de Módulo:** El filtro superior únicamente utiliza `<SelectorClase>`, ya que la clase seleccionada ya tiene asociado su módulo profesional correspondiente.
+* **Eliminación de UT:** Borrar una UT requiere confirmación mediante `ModalConfirmacion`, advirtiendo de que las actividades asociadas quedarán sin asignar.
+* Reutilización estricta de componentes ubicados en `src/components/common/` (sin modificarlos).
 
 ## 4. Obtención de Datos y Custom Hooks
 
-* **Evitar Hook Hell:** En lugar de crear `usePracticas.js` y `useUnidadesTrabajo.js` por separado (lo que complicaría el estado compartido del Drag & Drop), se creará un único hook orquestador `src/hooks/useGestorCurriculo.js`.
-* **Consumo de Datos:** Este hook utilizará internamente `useDatos` para implementar el CRUD en `Unidades_Trabajo` y la función de actualización (`UPDATE`) del campo `id_ut` en la tabla `Versiones`.
-* **Componentización:** Se creará el componente principal `src/components/GestorCurriculo.jsx` en formato `PascalCase`, exportando la función en la última línea y documentando con comentarios impersonales (ej. "Se actualiza el identificador de la unidad de trabajo."). Manejo de errores estricto a través de notificaciones `Toast`.
+* **Custom Hooks Especializados:**
+  * `src/hooks/useClases.js`: Encapsula la consulta y estructuración de clases para el `<SelectorClase>`, consumiendo el hook genérico `useDatos`.
+  * `src/hooks/useGestorCurriculo.js`: Orquesta de forma unificada el CRUD en `Unidades_Trabajo` y la asignación/desvinculación (`UPDATE`) del campo `id_ut` en la tabla `Versiones`.
+* **Componentización:** Se utiliza el componente orquestador `src/components/GestorCurriculo.jsx` en formato `PascalCase`, dividiendo la vista en subcomponentes especializados dentro de `src/components/unidades/` (`FiltrosCurriculo.jsx`, `TablaUnidadesTrabajo.jsx`, `TablaVersiones.jsx`, `DialogoUnidadTrabajo.jsx`). Documentación redactada en estilo impersonal y manejo de notificaciones mediante notificaciones `Toast`.
 
 ## 5. Tabla de Mantenimiento (CRUD Genérico)
 
-Para cumplir con los estándares del panel de administración, se generará una vista técnica de mantenimiento:
+Para cumplir con los estándares del panel de administración, se mantiene la vista técnica de mantenimiento:
 
-* En el menú lateral, dentro de `Herramientas -> MANTENIMIENTO`, añadir una nueva entrada para `Unidades de Trabajo`.
-* Conducirá a una página con un `DataTable` de PrimeReact estándar (con paginación, filtros y edición en celda/modal), idéntico al implementado para el resto de tablas maestras del sistema, permitiendo al administrador auditar o corregir registros directamente.
+* En el menú lateral, dentro de `Herramientas -> MANTENIMIENTO`, entrada para `Unidades de Trabajo`.
+* Conduce a una página con un `DataTable` de PrimeReact estándar con paginación superior, filtros y edición, permitiendo al administrador auditar registros directamente.

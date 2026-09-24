@@ -79,18 +79,18 @@ export const TarjetaResumenHorario = ({ resumen }) => {
         </div>
       </div>
 
-      {/* 4. Cursos / Grupos Atendidos */}
+      {/* 4. Clases / Grupos Atendidos */}
       <div className="col-12 sm:col-6 lg:col-3 p-2">
         <div className="surface-card p-3 border-round shadow-1 border-left-3 border-purple-500 flex align-items-center justify-content-between h-full">
           <div className="flex flex-column gap-1">
             <span className="text-xs text-color-secondary font-semibold uppercase">
-              Cursos Atendidos
+              Clases Atendidas
             </span>
             <span className="text-2xl font-bold text-900">
               {gruposDistintos}
             </span>
             <span className="text-xs text-500">
-              Grupos lectivos diferentes
+              Clases y grupos diferentes
             </span>
           </div>
           <div className="w-3rem h-3rem border-round bg-purple-50 flex align-items-center justify-content-center flex-shrink-0">

@@ -12,7 +12,7 @@ const PasoProgramacion = ({
   cursoOrigenId,
   onSeleccionarCursoOrigenId
 }) => {
-  // Cursos disponibles para clonar (excluyendo el curso actual si ya estuviera guardado).
+  // Clases o cursos disponibles para clonar (excluyendo la clase actual si ya estuviera guardada).
   const cursosDisponiblesOrigen = useMemo(() => {
     return cursos.filter((c) => c.id_curso !== cursoActualId);
   }, [cursos, cursoActualId]);
@@ -24,7 +24,7 @@ const PasoProgramacion = ({
       <div>
         <h3 className="m-0 text-xl font-bold text-800">Importación de Programación Didáctica</h3>
         <p className="text-secondary text-sm m-0 mt-1">
-          Indica si deseas reutilizar la configuración curricular y de prácticas de un año anterior.
+          Indica si deseas reutilizar la configuración curricular y de prácticas de una clase previa.
         </p>
       </div>
 
@@ -53,7 +53,7 @@ const PasoProgramacion = ({
           </label>
         </div>
 
-        {/* Opción 2: Heredar programación de un curso anterior */}
+        {/* Opción 2: Heredar programación de una clase anterior */}
         <div
           className={`flex align-items-start gap-3 p-3 border-1 border-round cursor-pointer transition-colors ${
             clonarProgramacion ? 'surface-100 border-primary' : 'surface-card surface-border'
@@ -69,27 +69,27 @@ const PasoProgramacion = ({
             className="mt-1"
           />
           <label htmlFor="opcionHeredar" className="cursor-pointer">
-            <span className="font-bold text-900 block text-base">Heredar programación de un curso anterior</span>
+            <span className="font-bold text-900 block text-base">Heredar programación de una clase anterior</span>
             <span className="text-secondary text-sm block mt-1 line-height-2">
-              Clona automáticamente las unidades de trabajo, temporizaciones, ponderaciones de RA/CE y versiones de prácticas registradas en un curso previo.
+              Clona automáticamente las unidades de trabajo, temporizaciones, ponderaciones de RA/CE y versiones de prácticas registradas en una clase previa.
             </span>
           </label>
         </div>
       </div>
 
-      {/* Dropdown condicional de cursos origen sin Tags */}
+      {/* Dropdown condicional de clases/cursos origen sin Tags */}
       {clonarProgramacion && (
         <div className="flex flex-column gap-3 mt-2">
           <div className="field mb-0">
             <label htmlFor="cursoOrigen" className="font-semibold text-sm mb-2 block">
-              Seleccionar Curso Origen para Clonar <span className="text-red-500">*</span>
+              Seleccionar Clase Origen para Clonar <span className="text-red-500">*</span>
             </label>
             <SelectorCurso
               id="cursoOrigen"
               value={cursoOrigenId}
               options={cursosDisponiblesOrigen}
               onChange={(e) => onSeleccionarCursoOrigenId(e.value)}
-              placeholder="Elige el curso del cual clonar la programación..."
+              placeholder="Elige la clase de la cual clonar la programación..."
               className="w-full"
             />
           </div>
@@ -102,7 +102,7 @@ const PasoProgramacion = ({
               </span>
               <ul className="m-0 pl-4 text-700 text-sm line-height-3">
                 <li>
-                  <strong>Versiones:</strong> Prácticas y enunciados configurados en el curso origen con sus ponderaciones.
+                  <strong>Versiones:</strong> Prácticas y enunciados configurados en la clase origen con sus ponderaciones.
                 </li>
                 <li>
                   <strong>Temporización:</strong> Unidades de trabajo planificadas con orden y fechas previstas.
@@ -117,7 +117,7 @@ const PasoProgramacion = ({
               {cursoOrigen && (
                 <div className="mt-2 text-sm text-green-700 bg-green-50 p-2 border-round">
                   <i className="pi pi-check mr-2" />
-                  Se clonará la programación del curso: <strong>{cursoOrigen.nombre} ({cursoOrigen.anyo})</strong>.
+                  Se clonará la programación de la clase: <strong>{cursoOrigen.nombre} ({cursoOrigen.anyo})</strong>.
                 </div>
               )}
             </div>

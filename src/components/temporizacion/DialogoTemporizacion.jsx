@@ -6,6 +6,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar';
 import BotonAccion from '../common/BotonAccion.jsx';
 import { parsearFechaISO, formatearFechaISO } from '../../utils/fechas.js';
+import { formatearNumeroUT } from '../../utils/formatoUT.js';
 
 // Opciones estándar para el estado de impartición de la unidad de trabajo.
 const OPCIONES_ESTADO = [
@@ -18,7 +19,7 @@ const OPCIONES_ESTADO = [
  * DialogoTemporizacion - Modal para la edición detallada de una unidad temporizada.
  *
  * Responsabilidad Única: Permitir al docente editar todos los campos temporales y descriptivos
- * específicos del curso escolar, incluyendo fechas previstas y reales, nombre alternativo y notas.
+ * específicos de la clase, incluyendo fechas previstas y reales, nombre alternativo y notas.
  *
  * @param {Object} props
  * @param {boolean} props.visible - Control de visibilidad del diálogo modal.
@@ -39,8 +40,6 @@ export const DialogoTemporizacion = ({
   const [estado, setEstado] = useState('Pendiente');
   const [fechaIniPrevista, setFechaIniPrevista] = useState(null);
   const [fechaFinPrevista, setFechaFinPrevista] = useState(null);
-  const [fechaIniReal, setFechaIniReal] = useState(null);
-  const [fechaFinReal, setFechaFinReal] = useState(null);
   const [observaciones, setObservaciones] = useState('');
   const [errorValidacion, setErrorValidacion] = useState('');
 
@@ -51,8 +50,6 @@ export const DialogoTemporizacion = ({
       setEstado(temporizacion.estado || 'Pendiente');
       setFechaIniPrevista(temporizacion.fecha_ini_prevista ? parsearFechaISO(temporizacion.fecha_ini_prevista) : null);
       setFechaFinPrevista(temporizacion.fecha_fin_prevista ? parsearFechaISO(temporizacion.fecha_fin_prevista) : null);
-      setFechaIniReal(temporizacion.fecha_ini_real ? parsearFechaISO(temporizacion.fecha_ini_real) : null);
-      setFechaFinReal(temporizacion.fecha_fin_real ? parsearFechaISO(temporizacion.fecha_fin_real) : null);
       setObservaciones(temporizacion.observaciones || '');
       setErrorValidacion('');
     } else {
@@ -60,8 +57,6 @@ export const DialogoTemporizacion = ({
       setEstado('Pendiente');
       setFechaIniPrevista(null);
       setFechaFinPrevista(null);
-      setFechaIniReal(null);
-      setFechaFinReal(null);
       setObservaciones('');
       setErrorValidacion('');
     }
@@ -77,19 +72,11 @@ export const DialogoTemporizacion = ({
       return;
     }
 
-    // Validación de concordancia en el rango de fechas reales de ejecución.
-    if (fechaIniReal && fechaFinReal && fechaIniReal > fechaFinReal) {
-      setErrorValidacion('La fecha real de inicio no puede ser posterior a la fecha real de finalización.');
-      return;
-    }
-
     const payload = {
       nombre_alternativo: nombreAlternativo.trim() ? nombreAlternativo.trim() : null,
       estado,
       fecha_ini_prevista: fechaIniPrevista ? formatearFechaISO(fechaIniPrevista) : null,
       fecha_fin_prevista: fechaFinPrevista ? formatearFechaISO(fechaFinPrevista) : null,
-      fecha_ini_real: fechaIniReal ? formatearFechaISO(fechaIniReal) : null,
-      fecha_fin_real: fechaFinReal ? formatearFechaISO(fechaFinReal) : null,
       observaciones: observaciones.trim() ? observaciones.trim() : null
     };
 
@@ -97,6 +84,7 @@ export const DialogoTemporizacion = ({
   };
 
   const ut = temporizacion?.unidad_trabajo;
+  const numFormateado = formatearNumeroUT(ut?.numero || temporizacion?.orden);
 
   // Botones del pie del diálogo modal.
   const pieDialogo = (
@@ -119,7 +107,7 @@ export const DialogoTemporizacion = ({
   return (
     <Dialog
       visible={visible}
-      header={`Temporización: UT ${ut?.numero || ''} - ${ut?.nombre || 'Unidad de Trabajo'}`}
+      header={`Temporización: ${numFormateado} - ${ut?.nombre || 'Unidad de Trabajo'}`}
       footer={pieDialogo}
       onHide={onOcultar}
       style={{ width: '90vw', maxWidth: '650px' }}
@@ -141,14 +129,14 @@ export const DialogoTemporizacion = ({
             Currículo Base Oficial
           </label>
           <div className="p-2 surface-100 border-round text-800 text-sm">
-            <strong>UT {ut?.numero}:</strong> {ut?.nombre}
+            <strong>{numFormateado}:</strong> {ut?.nombre}
           </div>
         </div>
 
-        {/* Nombre alternativo para este curso escolar */}
+        {/* Nombre alternativo para esta clase */}
         <div className="flex flex-column gap-1">
           <label htmlFor="temp-nombre-alt" className="font-semibold text-sm text-800">
-            Nombre Alternativo en el Curso (Opcional)
+            Nombre Alternativo en la Clase (Opcional)
           </label>
           <InputText
             id="temp-nombre-alt"
@@ -203,46 +191,6 @@ export const DialogoTemporizacion = ({
                 id="temp-fecha-fin-prev"
                 value={fechaFinPrevista}
                 onChange={(e) => setFechaFinPrevista(e.value)}
-                dateFormat="dd/mm/yy"
-                showIcon
-                firstDayOfWeek={1}
-                placeholder="dd/mm/aaaa"
-                showButtonBar
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Bloque de Fechas Reales de Ejecución */}
-        <div className="surface-50 p-3 border-round border-1 surface-border">
-          <span className="font-semibold text-sm text-blue-700 block mb-2">
-            <i className="pi pi-calendar-plus mr-2" />
-            Ejecución Real en el Aula
-          </span>
-          <div className="grid">
-            <div className="col-12 sm:col-6">
-              <label htmlFor="temp-fecha-ini-real" className="text-xs font-semibold text-700 mb-1 block">
-                Fecha Inicio Real
-              </label>
-              <Calendar
-                id="temp-fecha-ini-real"
-                value={fechaIniReal}
-                onChange={(e) => setFechaIniReal(e.value)}
-                dateFormat="dd/mm/yy"
-                showIcon
-                firstDayOfWeek={1}
-                placeholder="dd/mm/aaaa"
-                showButtonBar
-              />
-            </div>
-            <div className="col-12 sm:col-6">
-              <label htmlFor="temp-fecha-fin-real" className="text-xs font-semibold text-700 mb-1 block">
-                Fecha Fin Real
-              </label>
-              <Calendar
-                id="temp-fecha-fin-real"
-                value={fechaFinReal}
-                onChange={(e) => setFechaFinReal(e.value)}
                 dateFormat="dd/mm/yy"
                 showIcon
                 firstDayOfWeek={1}

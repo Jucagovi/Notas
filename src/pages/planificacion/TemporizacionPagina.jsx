@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import HeaderPagina from '../../components/common/HeaderPagina.jsx';
 import EstadoVacio from '../../components/common/EstadoVacio.jsx';
 import FiltrosTemporizacion from '../../components/temporizacion/FiltrosTemporizacion.jsx';
-import GestorTemporizacion from '../../components/GestorTemporizacion.jsx';
-import useCursos from '../../hooks/useCursos.js';
-import useModulos from '../../hooks/useModulos.js';
+import GestorTemporizacion from '../../components/temporizacion/GestorTemporizacion.jsx';
+import DialogoPropuestaTemporizacion from '../../components/temporizacion/DialogoPropuestaTemporizacion.jsx';
+import useAniosAcademicos from '../../hooks/useAniosAcademicos.js';
+import useClases from '../../hooks/useClases.js';
 import useTemporizacion from '../../hooks/useTemporizacion.js';
+import usePropuestaTemporizacion from '../../hooks/usePropuestaTemporizacion.js';
+import useCalendarioEscolar from '../../hooks/useCalendarioEscolar.js';
 import useGlobalToast from '../../hooks/useGlobalToast.js';
 import { confirmarBorrado } from '../../components/common/ModalConfirmacion.jsx';
 
@@ -13,45 +16,87 @@ import { confirmarBorrado } from '../../components/common/ModalConfirmacion.jsx'
  * TemporizacionPagina - Página orquestadora del caso de uso 19 (Temporización y Seguimiento de Unidades).
  *
  * Responsabilidad Única: Actuar como contenedor orquestador de datos y estados para la planificación
- * temporal de las Unidades de Trabajo de un módulo durante un curso escolar seleccionado.
+ * temporal de las Unidades de Trabajo de un módulo durante la clase seleccionada en el año académico activo.
  */
 const TemporizacionPagina = () => {
-  const { mostrarExito, mostrarError, mostrarInfo } = useGlobalToast();
+  const { mostrarExito, mostrarError } = useGlobalToast();
 
-  // Estados locales para la selección activa de curso y módulo.
-  const [cursoSeleccionadoId, setCursoSeleccionadoId] = useState(null);
-  const [moduloSeleccionadoId, setModuloSeleccionadoId] = useState(null);
+  // Consulta y control del selector de años académicos con denominación completa (ej. 2026/2027).
+  const {
+    anios,
+    anioSeleccionado,
+    setAnioSeleccionado,
+    cargando: cargandoAnios,
+    recargar: recargarAnios
+  } = useAniosAcademicos();
 
-  // Consulta de los cursos académicos y módulos profesionales disponibles.
-  const { datos: cursos, cargando: cargandoCursos } = useCursos();
-  const { datos: modulos, cargando: cargandoModulos } = useModulos();
+  // Estado local para la clase seleccionada.
+  const [claseSeleccionadaId, setClaseSeleccionadaId] = useState(null);
 
-  // Se autoselecciona el primer curso disponible cuando se completa la carga inicial.
+  // Consulta consolidada de clases filtradas por el año académico seleccionado en el primer desplegable.
+  const {
+    clases,
+    cargando: cargandoClases,
+    recargar: recargarClases
+  } = useClases(anioSeleccionado);
+
+  // Se autoselecciona la primera clase disponible cuando se actualiza el listado o cambia el año escolar.
   useEffect(() => {
-    if (!cursoSeleccionadoId && cursos && cursos.length > 0) {
-      setCursoSeleccionadoId(cursos[0].id_curso);
+    if (clases && clases.length > 0) {
+      const existeClase = clases.some((c) => c.id === claseSeleccionadaId);
+      if (!existeClase) {
+        setClaseSeleccionadaId(clases[0].id);
+      }
+    } else {
+      setClaseSeleccionadaId(null);
     }
-  }, [cursos, cursoSeleccionadoId]);
+  }, [clases, claseSeleccionadaId]);
 
-  // Se autoselecciona el primer módulo disponible cuando se completa la carga inicial.
-  useEffect(() => {
-    if (!moduloSeleccionadoId && modulos && modulos.length > 0) {
-      setModuloSeleccionadoId(modulos[0].id_modulo);
-    }
-  }, [modulos, moduloSeleccionadoId]);
+  // Se identifica la clase activa y se extraen los identificadores de curso y módulo asociados.
+  const claseActiva = useMemo(() => {
+    if (!claseSeleccionadaId || !clases) return null;
+    return clases.find((c) => c.id === claseSeleccionadaId) || null;
+  }, [clases, claseSeleccionadaId]);
 
-  // Hook orquestador principal para la lógica de temporización y seguimiento.
+  const cursoSeleccionadoId = claseActiva?.id_curso || null;
+  const moduloSeleccionadoId = claseActiva?.id_modulo || null;
+
+  // Hook orquestador principal para la lógica de temporización y seguimiento de la clase.
   const {
     temporizaciones,
+    setTemporizaciones,
     estadisticas,
     cargando: cargandoTemporizacion,
     guardando,
-    recargar,
+    recargar: recargarTemporizacion,
     actualizarTemporizacion,
     actualizarCampoEnLinea,
     reordenarTemporizaciones,
-    restablecerOrdenOriginal
+    restablecerOrdenOriginal,
+    aplicarPropuestaFechas,
+    borrarTemporizacionCompleta
   } = useTemporizacion(cursoSeleccionadoId, moduloSeleccionadoId);
+
+  // Hook especializado para la propuesta automática de temporización según pesos de RA y calendario.
+  const {
+    propuesta,
+    cargando: cargandoPropuesta,
+    error: errorPropuesta,
+    generarPropuesta
+  } = usePropuestaTemporizacion();
+
+  // Consulta especializada del calendario escolar del curso y cálculo de días lectivos.
+  const {
+    diasClase,
+    conjuntoNoLectivos,
+    anioInicio,
+    fechaInicioPeriodo,
+    fechaFinPeriodo,
+    recargar: recargarCalendario
+  } = useCalendarioEscolar(cursoSeleccionadoId, moduloSeleccionadoId, anioSeleccionado);
+
+  // Control de apertura del diálogo modal de la propuesta de temporización.
+  const [modalPropuestaVisible, setModalPropuestaVisible] = useState(false);
 
   // Manejo de la reordenación interactiva de filas mediante Drag & Drop nativo.
   const manejarReordenar = async (filasReordenadas) => {
@@ -61,6 +106,79 @@ const TemporizacionPagina = () => {
     } else {
       mostrarExito('Orden de impartición actualizado correctamente.');
     }
+  };
+
+  // Manejo de la apertura y cálculo de la propuesta de temporización.
+  const manejarAbrirPropuesta = async () => {
+    setModalPropuestaVisible(true);
+    const resultado = await generarPropuesta({
+      idCurso: cursoSeleccionadoId,
+      idModulo: moduloSeleccionadoId,
+      temporizaciones,
+      anioSeleccionado
+    });
+    if (!resultado && errorPropuesta) {
+      mostrarError(errorPropuesta);
+    }
+  };
+
+  // Manejo de la confirmación de la propuesta: traslada las fechas calculadas a las fechas previstas.
+  const manejarAceptarPropuesta = async (unidadesPropuestas) => {
+    const respuesta = await aplicarPropuestaFechas(unidadesPropuestas);
+    if (respuesta?.error) {
+      mostrarError(respuesta.error);
+    } else {
+      mostrarExito('Propuesta de temporización aplicada y guardada correctamente.');
+      setModalPropuestaVisible(false);
+    }
+  };
+
+  // Propagación reactiva instantánea de fechas modificadas desde el calendario interactivo.
+  const manejarCambioEnVivo = (unidadesModificadas) => {
+    const mapaNuevas = new Map();
+    unidadesModificadas.forEach((u) => {
+      mapaNuevas.set(u.id_temporizacion, {
+        fecha_ini_prevista: u.fecha_ini_prevista,
+        fecha_fin_prevista: u.fecha_fin_prevista
+      });
+    });
+
+    setTemporizaciones((prev) =>
+      prev.map((t) => {
+        const mod = mapaNuevas.get(t.id_temporizacion);
+        return mod ? { ...t, ...mod } : t;
+      })
+    );
+  };
+
+  // Manejo del guardado de fechas desde la sección integrada de calendario en la página.
+  const manejarGuardarFechasCalendario = async (unidadesModificadas) => {
+    const respuesta = await aplicarPropuestaFechas(unidadesModificadas);
+    if (respuesta?.error) {
+      mostrarError(respuesta.error);
+    } else {
+      mostrarExito('Fechas de temporización guardadas correctamente en la base de datos.');
+    }
+  };
+
+  // Manejo del borrado completo de la temporización con confirmación previa.
+  const manejarBorrarTemporizacion = () => {
+    confirmarBorrado({
+      header: 'Borrar Temporización Completa',
+      message: '¿Deseas eliminar por completo la temporización planificada para esta clase? Se borrarán todas las fechas previstas y el calendario quedará en blanco.',
+      acceptLabel: 'Borrar',
+      rejectLabel: 'Cancelar',
+      icon: 'pi pi-trash',
+      acceptClassName: 'p-button-danger',
+      onAceptar: async () => {
+        const respuesta = await borrarTemporizacionCompleta();
+        if (respuesta?.error) {
+          mostrarError(respuesta.error);
+        } else {
+          mostrarExito('Temporización eliminada por completo.');
+        }
+      }
+    });
   };
 
   // Manejo de la actualización en línea de un campo individual (fechas o estado).
@@ -84,6 +202,16 @@ const TemporizacionPagina = () => {
     return respuesta;
   };
 
+  // Recarga unificada de todos los orígenes de datos.
+  const manejarRecargar = async () => {
+    await Promise.all([
+      recargarAnios(),
+      recargarClases(),
+      recargarTemporizacion(),
+      recargarCalendario()
+    ]);
+  };
+
   // Solicitud de confirmación antes de restablecer el orden curricular original.
   const manejarRestablecerOrden = () => {
     confirmarBorrado({
@@ -104,7 +232,7 @@ const TemporizacionPagina = () => {
     });
   };
 
-  // Comprobación de que ambos selectores han sido determinados.
+  // Comprobación de que la clase activa se encuentra debidamente resuelta.
   const parametrosListos = Boolean(cursoSeleccionadoId && moduloSeleccionadoId);
 
   return (
@@ -112,21 +240,23 @@ const TemporizacionPagina = () => {
       {/* 1. Cabecera principal estandarizada de la página */}
       <HeaderPagina
         titulo="Temporización"
-        descripcion="Planificación temporal, estimación de fechas previstas y seguimiento de la ejecución real por curso académico."
+        descripcion="Planificación temporal, estimación de fechas previstas y seguimiento de la ejecución real por clase."
       />
 
-      {/* 2. Barra de filtros de curso y módulo con botones de control */}
+      {/* 2. Barra de filtros de año académico y clase con botones de control */}
       <FiltrosTemporizacion
-        cursoSeleccionadoId={cursoSeleccionadoId}
-        onCursoChange={setCursoSeleccionadoId}
-        cursos={cursos}
-        cargandoCursos={cargandoCursos}
-        moduloSeleccionadoId={moduloSeleccionadoId}
-        onModuloChange={setModuloSeleccionadoId}
-        modulos={modulos}
-        cargandoModulos={cargandoModulos}
-        onRecargar={recargar}
+        anios={anios}
+        anioSeleccionado={anioSeleccionado}
+        onAnioChange={setAnioSeleccionado}
+        cargandoAnios={cargandoAnios}
+        claseSeleccionadaId={claseSeleccionadaId}
+        onClaseChange={setClaseSeleccionadaId}
+        clases={clases}
+        cargandoClases={cargandoClases}
+        onRecargar={manejarRecargar}
         onRestablecerOrden={manejarRestablecerOrden}
+        onAbrirPropuesta={manejarAbrirPropuesta}
+        onBorrarTemporizacion={manejarBorrarTemporizacion}
         cargando={cargandoTemporizacion}
         guardando={guardando}
         totalUnidades={temporizaciones.length}
@@ -135,15 +265,15 @@ const TemporizacionPagina = () => {
       {/* 3. Contenedor principal de temporización o estados informativos */}
       {!parametrosListos ? (
         <EstadoVacio
-          mensaje="Selecciona un Curso y Módulo"
-          descripcion="Por favor, selecciona un curso académico y un módulo profesional en los desplegables superiores para comenzar la temporización."
+          mensaje="Selecciona un Año Académico y una Clase"
+          descripcion="Por favor, selecciona un año académico y una clase en los desplegables superiores para comenzar la temporización."
           icono="pi pi-filter"
           className="w-full my-4"
         />
       ) : temporizaciones.length === 0 && !cargandoTemporizacion ? (
         <EstadoVacio
-          mensaje="No hay Unidades de Trabajo en este Módulo"
-          descripcion="Este módulo profesional todavía no cuenta con unidades didácticas definidas en el currículo base. Dirígete a la sección de Unidades de Trabajo para agregarlas."
+          mensaje="No hay Unidades de Trabajo en esta Clase"
+          descripcion="Esta clase todavía no cuenta con unidades didácticas definidas en el currículo base. Dirígete a la sección de Unidades de Trabajo para agregarlas."
           icono="pi pi-folder-open"
           className="w-full my-4"
         />
@@ -151,13 +281,30 @@ const TemporizacionPagina = () => {
         <GestorTemporizacion
           temporizaciones={temporizaciones}
           estadisticas={estadisticas}
+          diasClase={diasClase}
+          conjuntoNoLectivos={conjuntoNoLectivos}
+          fechaInicioPeriodo={fechaInicioPeriodo}
+          fechaFinPeriodo={fechaFinPeriodo}
+          anioInicio={anioInicio}
           cargando={cargandoTemporizacion}
           guardando={guardando}
           onReordenar={manejarReordenar}
           onActualizarCampo={manejarActualizarCampo}
           onActualizarTemporizacion={manejarActualizarTemporizacion}
+          onGuardarFechas={manejarGuardarFechasCalendario}
+          onCambioEnVivo={manejarCambioEnVivo}
         />
       )}
+
+      {/* 4. Diálogo modal de la propuesta automática de temporización */}
+      <DialogoPropuestaTemporizacion
+        visible={modalPropuestaVisible}
+        onOcultar={() => setModalPropuestaVisible(false)}
+        propuesta={propuesta}
+        cargando={cargandoPropuesta}
+        guardando={guardando}
+        onAceptarPropuesta={manejarAceptarPropuesta}
+      />
     </div>
   );
 };

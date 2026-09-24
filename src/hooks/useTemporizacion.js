@@ -7,7 +7,7 @@ import useDatos from './useDatos.js';
  * Responsabilidad Única: Centralizar la consulta, ordenación secuencial, sincronización de
  * instancias de temporización y mutaciones de fechas y estados, consumiendo el hook genérico useDatos.
  *
- * @param {string|null} idCurso - Identificador único del curso académico.
+ * @param {string|null} idCurso - Identificador único de la clase / curso escolar.
  * @param {string|null} idModulo - Identificador único del módulo profesional.
  */
 const useTemporizacion = (idCurso = null, idModulo = null) => {
@@ -42,7 +42,7 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
     );
   }, [idModulo, obtenerUTs]);
 
-  // Consulta y sincronización de las instancias de temporización vinculando curso y módulo.
+  // Consulta y sincronización de las instancias de temporización vinculando la clase y el módulo.
   const cargarDatos = useCallback(async () => {
     if (!idCurso || !idModulo) {
       setTemporizaciones([]);
@@ -62,7 +62,7 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
 
       const listaIdsUT = unidades.map((u) => u.id_ut);
 
-      // 2. Se obtienen los registros existentes de temporización para el curso activo.
+      // 2. Se obtienen los registros existentes de temporización para la clase activa.
       const registrosTemporizacion = await obtenerTemporizacion('*', (consulta) =>
         consulta.eq('id_curso', idCurso).in('id_ut', listaIdsUT).order('orden', { ascending: true })
       );
@@ -72,7 +72,7 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
         mapaTemporizacionPorUt.set(reg.id_ut, reg);
       });
 
-      // 3. Se identifican unidades curriculares que carezcan de registro en el curso para crearlas.
+      // 3. Se identifican unidades curriculares que carezcan de registro en la clase para crearlas.
       const unidadesFaltantes = unidades.filter((u) => !mapaTemporizacionPorUt.has(u.id_ut));
 
       if (unidadesFaltantes.length > 0) {
@@ -136,7 +136,7 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
     }
   }, [idCurso, idModulo, cargarUnidadesBase, obtenerTemporizacion, insertarTemporizacion]);
 
-  // Recarga reactiva de datos al modificar los filtros de curso o módulo.
+  // Recarga reactiva de datos al modificar los filtros de la clase.
   useEffect(() => {
     cargarDatos();
   }, [cargarDatos]);
@@ -278,8 +278,107 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
     };
   }, [temporizaciones]);
 
+  // Aplica la propuesta de fechas estimadas actualizando todas las unidades de trabajo afectadas.
+  const aplicarPropuestaFechas = useCallback(
+    async (unidadesPropuestas = []) => {
+      if (!Array.isArray(unidadesPropuestas) || unidadesPropuestas.length === 0) {
+        return { error: 'No hay unidades en la propuesta para aplicar.', status: 400 };
+      }
+
+      setGuardando(true);
+      setErrorOperacion(null);
+
+      // Mapa de fechas propuestas por id_temporizacion.
+      const mapaPropuestas = new Map();
+      unidadesPropuestas.forEach((u) => {
+        if (u.id_temporizacion) {
+          mapaPropuestas.set(u.id_temporizacion, {
+            fecha_ini_prevista: u.fecha_ini_prevista,
+            fecha_fin_prevista: u.fecha_fin_prevista
+          });
+        }
+      });
+
+      // Se actualiza el estado local de forma optimista para una respuesta visual instantánea.
+      setTemporizaciones((prev) =>
+        prev.map((item) => {
+          const nuevasFechas = mapaPropuestas.get(item.id_temporizacion);
+          return nuevasFechas ? { ...item, ...nuevasFechas } : item;
+        })
+      );
+
+      try {
+        const promesas = unidadesPropuestas.map((u) => {
+          if (!u.id_temporizacion) return Promise.resolve(null);
+          return actualizarTemporizacionEnHook('id_temporizacion', u.id_temporizacion, {
+            fecha_ini_prevista: u.fecha_ini_prevista,
+            fecha_fin_prevista: u.fecha_fin_prevista
+          });
+        });
+
+        await Promise.all(promesas);
+        return { data: true, error: null, status: 200 };
+      } catch (err) {
+        console.error('Error al aplicar la propuesta de temporización:', err);
+        const mensaje = err?.message || 'Error al guardar las fechas de la propuesta en la base de datos.';
+        setErrorOperacion(mensaje);
+        await cargarDatos();
+        return { error: mensaje, status: 400 };
+      } finally {
+        setGuardando(false);
+      }
+    },
+    [actualizarTemporizacionEnHook, cargarDatos]
+  );
+
+  // Borra por completo la temporización de la clase restableciendo fechas y estados.
+  const borrarTemporizacionCompleta = useCallback(async () => {
+    if (!temporizaciones || temporizaciones.length === 0) {
+      return { error: 'No hay unidades de temporización para borrar en esta clase.', status: 400 };
+    }
+
+    setGuardando(true);
+    setErrorOperacion(null);
+
+    // Se limpia de inmediato el estado local para una respuesta visual instantánea.
+    setTemporizaciones((prev) =>
+      prev.map((item) => ({
+        ...item,
+        fecha_ini_prevista: null,
+        fecha_fin_prevista: null,
+        fecha_ini_real: null,
+        fecha_fin_real: null,
+        estado: 'Pendiente'
+      }))
+    );
+
+    try {
+      const promesas = temporizaciones.map((t) =>
+        actualizarTemporizacionEnHook('id_temporizacion', t.id_temporizacion, {
+          fecha_ini_prevista: null,
+          fecha_fin_prevista: null,
+          fecha_ini_real: null,
+          fecha_fin_real: null,
+          estado: 'Pendiente'
+        })
+      );
+
+      await Promise.all(promesas);
+      return { data: true, error: null, status: 200 };
+    } catch (err) {
+      console.error('Error al borrar la temporización:', err);
+      const mensaje = err?.message || 'Error al eliminar las fechas de temporización en la base de datos.';
+      setErrorOperacion(mensaje);
+      await cargarDatos();
+      return { error: mensaje, status: 400 };
+    } finally {
+      setGuardando(false);
+    }
+  }, [temporizaciones, actualizarTemporizacionEnHook, cargarDatos]);
+
   return {
     temporizaciones,
+    setTemporizaciones,
     estadisticas,
     cargando: cargandoTemporizacion || cargandoUTs,
     guardando,
@@ -288,7 +387,9 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
     actualizarTemporizacion,
     actualizarCampoEnLinea,
     reordenarTemporizaciones,
-    restablecerOrdenOriginal
+    restablecerOrdenOriginal,
+    aplicarPropuestaFechas,
+    borrarTemporizacionCompleta
   };
 };
 

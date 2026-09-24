@@ -55,26 +55,27 @@ export const PanelVersiones = ({
     );
   }
 
-  // Plantilla para la columna de número de versión.
+  // Plantilla para la columna de número de versión mostrada como texto plano.
   const plantillaNumero = (fila) => {
     return (
-      <span className="font-semibold text-900 bg-blue-50 text-blue-700 px-2 py-1 border-round text-xs border-1 border-blue-200 white-space-nowrap">
-        {fila.numero || 'v1.0'}
+      <span className="font-medium text-900 text-sm">
+        {fila.numero || ''}
       </span>
     );
   };
 
-  // Plantilla para la columna de curso escolar con texto truncado.
-  const plantillaCurso = (fila) => {
-    const curso = fila.Cursos;
-    const textoCurso = curso ? `${curso.nombre || ''} (${curso.anyo || ''})` : 'Sin curso';
-    const tooltipId = `tooltip-curso-${fila.id_version}`;
+  // Plantilla para la columna de clase académica con texto truncado.
+  const plantillaClase = (fila) => {
+    const clase = fila.Cursos;
+    const textoClase = clase ? `${clase.nombre || ''} (${clase.anyo || ''})` : 'Sin clase';
 
     return (
       <div className="overflow-hidden">
-        <Tooltip target={`.${tooltipId}`} content={textoCurso} position="top" />
-        <span className={`celda-texto-truncado text-sm text-800 ${tooltipId}`}>
-          {textoCurso}
+        <span
+          className="celda-texto-truncado text-sm text-800"
+          data-pr-tooltip={textoClase}
+        >
+          {textoClase}
         </span>
       </div>
     );
@@ -88,12 +89,13 @@ export const PanelVersiones = ({
     }
 
     const textoUT = `UT ${ut.numero}: ${ut.nombre}`;
-    const tooltipId = `tooltip-ut-${fila.id_version}`;
 
     return (
       <div className="overflow-hidden">
-        <Tooltip target={`.${tooltipId}`} content={textoUT} position="top" />
-        <span className={`celda-texto-truncado text-sm text-800 ${tooltipId}`}>
+        <span
+          className="celda-texto-truncado text-sm text-800"
+          data-pr-tooltip={textoUT}
+        >
           {textoUT}
         </span>
       </div>
@@ -167,6 +169,9 @@ export const PanelVersiones = ({
 
   return (
     <div className="tarjeta-taller">
+      {/* Tooltip unificado para los elementos del panel de versiones con atributo data-pr-tooltip */}
+      <Tooltip target="[data-pr-tooltip]" position="top" />
+
       {/* Cabecera dinámica con el título de la práctica activa y botón de creación */}
       <div className="tarjeta-taller-cabecera">
         <div className="flex flex-column gap-1">
@@ -174,8 +179,19 @@ export const PanelVersiones = ({
             <span className="text-xs uppercase font-bold text-500 tracking-wider">
               Práctica Activa
             </span>
-            <span className="badge-tipo-practica badge-tipo-individual text-xs">
-              {practicaSeleccionada.id_tipopractica || 'Individual'}
+            <span className="inline-flex align-items-center gap-1 text-xs text-700 font-medium">
+              <i
+                className={
+                  practicaSeleccionada.id_tipopractica === 'Grupal'
+                    ? 'pi pi-users text-teal-600'
+                    : practicaSeleccionada.id_tipopractica === 'Examen'
+                    ? 'pi pi-file-edit text-orange-600'
+                    : practicaSeleccionada.id_tipopractica === 'Proyecto'
+                    ? 'pi pi-briefcase text-purple-600'
+                    : 'pi pi-user text-blue-600'
+                }
+              />
+              <span>{practicaSeleccionada.id_tipopractica || 'Individual'}</span>
             </span>
           </div>
           <h2 className="text-xl font-bold text-900 m-0">
@@ -202,7 +218,7 @@ export const PanelVersiones = ({
         {versiones.length === 0 && !cargando ? (
           <EstadoVacio
             mensaje="Aún no hay versiones para esta práctica"
-            descripcion="Crea la primera versión para redactar el enunciado con el editor enriquecido y vincularlo a un curso académico."
+            descripcion="Crea la primera versión para redactar el enunciado con el editor enriquecido y vincularlo a una clase."
             icono="pi pi-code"
             botonLabel="Crear Nueva Versión"
             onAccion={onCrearVersion}
@@ -227,8 +243,8 @@ export const PanelVersiones = ({
               style={{ width: '15%' }}
             />
             <Column
-              header="Curso Académico"
-              body={plantillaCurso}
+              header="Clase"
+              body={plantillaClase}
               style={{ width: '25%' }}
             />
             <Column

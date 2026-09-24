@@ -22,6 +22,9 @@ const useHorarios = (cursoId, autoCargar = true) => {
   const [todasSesiones, setTodasSesiones] = useState([]);
   const [horarios, setHorarios] = useState([]);
   const [modulos, setModulos] = useState([]);
+  const [evaluaciones, setEvaluaciones] = useState([]);
+  const [imparte, setImparte] = useState([]);
+  const [ciclos, setCiclos] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
@@ -46,6 +49,18 @@ const useHorarios = (cursoId, autoCargar = true) => {
   const {
     obtenerDatos: obtenerModulosDb
   } = useDatos('Modulos');
+
+  const {
+    obtenerDatos: obtenerEvaluacionesDb
+  } = useDatos('Evaluaciones');
+
+  const {
+    obtenerDatos: obtenerImparteDb
+  } = useDatos('imparte');
+
+  const {
+    obtenerDatos: obtenerCiclosDb
+  } = useDatos('Ciclos');
 
   // Carga inicial y sincronización de sesiones, horarios y módulos.
   const recargar = useCallback(async () => {
@@ -81,13 +96,27 @@ const useHorarios = (cursoId, autoCargar = true) => {
         )
       }));
       setHorarios(horariosNormalizados);
+
+      // 4. Se obtienen evaluaciones, matrículas y ciclos para asociar clases a sus módulos y ciclo.
+      try {
+        const [datosEvaluaciones, datosImparte, datosCiclos] = await Promise.all([
+          obtenerEvaluacionesDb('id_curso, id_modulo'),
+          obtenerImparteDb('id_curso, id_modulo'),
+          obtenerCiclosDb('*')
+        ]);
+        setEvaluaciones(datosEvaluaciones || []);
+        setImparte(datosImparte || []);
+        setCiclos(datosCiclos || []);
+      } catch (errRel) {
+        console.warn('Advertencia al consultar relaciones de clase y módulos:', errRel);
+      }
     } catch (err) {
       console.error('Error al cargar la información de horarios:', err);
       mostrarError('No se pudo cargar la información de los horarios.', 'Error de carga');
     } finally {
       setCargando(false);
     }
-  }, [cursoId, obtenerModulosDb, obtenerSesionesDb, obtenerHorariosDb, mostrarError]);
+  }, [cursoId, obtenerModulosDb, obtenerSesionesDb, obtenerHorariosDb, obtenerEvaluacionesDb, obtenerImparteDb, obtenerCiclosDb, mostrarError]);
 
   useEffect(() => {
     if (autoCargar) {
@@ -130,20 +159,70 @@ const useHorarios = (cursoId, autoCargar = true) => {
     return mapa;
   }, [todasSesiones]);
 
+  // Mapa asociativo de relación id_curso -> id_modulo vinculado a la clase.
+  const mapaCursosModulos = useMemo(() => {
+    const mapa = new Map();
+    // 1. Evaluaciones curriculares registradas para cada curso
+    (evaluaciones || []).forEach((ev) => {
+      if (ev.id_curso && ev.id_modulo && !mapa.has(ev.id_curso)) {
+        mapa.set(ev.id_curso, ev.id_modulo);
+      }
+    });
+    // 2. Matrículas de discentes en imparte
+    (imparte || []).forEach((imp) => {
+      if (imp.id_curso && imp.id_modulo && !mapa.has(imp.id_curso)) {
+        mapa.set(imp.id_curso, imp.id_modulo);
+      }
+    });
+    // 3. Asignaciones lectivas previas en Horarios
+    (horarios || []).forEach((h) => {
+      if (h.id_curso && h.id_modulo && !mapa.has(h.id_curso)) {
+        mapa.set(h.id_curso, h.id_modulo);
+      }
+    });
+    return mapa;
+  }, [evaluaciones, imparte, horarios]);
+
+  // Identificador del módulo curricular vinculado a la clase seleccionada.
+  const moduloClaseId = useMemo(() => {
+    if (!cursoId) return null;
+    return mapaCursosModulos.get(cursoId) || null;
+  }, [cursoId, mapaCursosModulos]);
+
+  // Objeto completo del módulo vinculado a la clase seleccionada.
+  const moduloClase = useMemo(() => {
+    if (!moduloClaseId || !mapaModulos) return null;
+    return mapaModulos.get(moduloClaseId) || null;
+  }, [moduloClaseId, mapaModulos]);
+
+  // Módulos curriculares filtrados que pertenecen al ciclo formativo de la clase actual.
+  const modulosCiclo = useMemo(() => {
+    if (!moduloClase?.id_ciclo) {
+      return modulos;
+    }
+    const filtrados = modulos.filter((m) => m.id_ciclo === moduloClase.id_ciclo);
+    return filtrados.length > 0 ? filtrados : modulos;
+  }, [moduloClase, modulos]);
+
   // Determina si un registro de horario pertenece al horario del docente titular (clase o tarea no lectiva).
   const esClaseDelDocente = useCallback((item) => {
     if (!item) return false;
     // Si no tiene id_curso vinculado, es una tarea no lectiva propia del docente (Guardia, Reunión, Tutoría).
     if (item.id_curso === null || !item.id_curso) return true;
-    // Si tiene un id_modulo vinculado, se considera clase impartida por el docente titular.
-    if (item.id_modulo) return true;
-    // Si el texto del profesor hace referencia explícita al docente titular.
+
+    // Si tiene profesor especificado y NO es docente titular, es de un compañero.
     if (item.profesor && typeof item.profesor === 'string') {
       const texto = item.profesor.trim().toLowerCase();
+      if (texto && !texto.includes('docente') && texto !== 'yo' && texto !== 'titular') {
+        return false;
+      }
       if (texto.includes('docente') || texto === 'yo' || texto === 'titular') {
         return true;
       }
     }
+
+    // Si tiene un id_modulo vinculado y no se ha especificado que sea de otro compañero:
+    if (item.id_modulo && (!item.profesor || item.profesor.trim() === '')) return true;
     return false;
   }, []);
 
@@ -318,6 +397,42 @@ const useHorarios = (cursoId, autoCargar = true) => {
     [eliminarSesionDb, mostrarExito, mostrarError]
   );
 
+  // Eliminación masiva de todos los tramos horarios de la clase actual y limpieza reactiva en memoria.
+  const eliminarTodosLosTramos = useCallback(
+    async () => {
+      if (!cursoId) {
+        mostrarAdvertencia('Selecciona primero una clase.', 'Validación');
+        return false;
+      }
+      if (sesiones.length === 0) {
+        mostrarAdvertencia('No hay tramos horarios que eliminar en esta clase.', 'Información');
+        return false;
+      }
+
+      setGuardando(true);
+      try {
+        const idsSesionesAEliminar = new Set(sesiones.map((s) => s.id_sesion));
+
+        for (const s of sesiones) {
+          await eliminarSesionDb('id_sesion', s.id_sesion);
+        }
+
+        setSesiones([]);
+        setTodasSesiones((prev) => prev.filter((s) => !idsSesionesAEliminar.has(s.id_sesion)));
+        setHorarios((prev) => prev.filter((h) => !idsSesionesAEliminar.has(h.id_sesion)));
+        mostrarExito('Se han eliminado todos los tramos horarios de la clase correctamente.');
+        return true;
+      } catch (err) {
+        console.error('Error al eliminar los tramos horarios:', err);
+        mostrarError('No se pudieron eliminar los tramos horarios.', 'Error');
+        return false;
+      } finally {
+        setGuardando(false);
+      }
+    },
+    [cursoId, sesiones, eliminarSesionDb, mostrarAdvertencia, mostrarExito, mostrarError]
+  );
+
   // Generación de tramos predeterminados o personalizados a partir de un rango horario.
   const generarSesionesPredeterminadas = useCallback(
     async (tramosPersonalizados = null) => {
@@ -472,9 +587,9 @@ const useHorarios = (cursoId, autoCargar = true) => {
           id_sesion,
           dia_semana: Number(dia_semana),
           grupo: grupoNormalizado,
-          id_modulo: es_mi_clase ? id_modulo || null : null,
+          id_modulo: id_modulo || null,
           modulo_alt: es_mi_clase ? null : (modulo_alt ? String(modulo_alt).trim() : null),
-          profesor: es_mi_clase ? 'Docente titular' : (profesor ? String(profesor).trim() : null),
+          profesor: es_mi_clase ? 'Docente titular' : (profesor ? String(profesor).trim() : 'Compañero'),
           aula: aula ? String(aula).trim() : null
         };
 
@@ -691,6 +806,10 @@ const useHorarios = (cursoId, autoCargar = true) => {
     horarios,
     horariosCurso,
     modulos,
+    modulosCiclo,
+    moduloClaseId,
+    moduloClase,
+    mapaCursosModulos,
     grupos,
     mapaModulos,
     mapaSesiones,
@@ -702,6 +821,7 @@ const useHorarios = (cursoId, autoCargar = true) => {
     crearSesion,
     actualizarSesion,
     eliminarSesion,
+    eliminarTodosLosTramos,
     generarSesionesPredeterminadas,
     clonarSesionesDeCurso,
     guardarClaseHorario,

@@ -13,8 +13,10 @@ const EVALUACIONES_ESTANDAR = [
   { orden: 5, nombre: 'Extraordinaria', descripcion: 'Convocatoria de evaluación extraordinaria' }
 ];
 
-// Paso 4: Presentación y preparación de las 5 evaluaciones automáticas para el curso y módulo.
-const PasoEvaluaciones = ({ cursoNombre, moduloNombre }) => {
+// Paso 4: Presentación y preparación de las 5 evaluaciones automáticas para la clase y módulo.
+const PasoEvaluaciones = ({ claseNombre, cursoNombre, moduloNombre }) => {
+  const nombreClaseActiva = claseNombre || cursoNombre || 'seleccionada';
+
   return (
     <div className="flex flex-column gap-3 py-2">
       <div>
@@ -26,7 +28,7 @@ const PasoEvaluaciones = ({ cursoNombre, moduloNombre }) => {
 
       <Message
         severity="info"
-        text={`Al confirmar el asistente, se generarán silenciosamente 5 registros en la tabla Evaluaciones vinculados al curso "${cursoNombre || 'seleccionado'}" y módulo "${moduloNombre || 'seleccionado'}".`}
+        text={`Al confirmar el asistente, se generarán silenciosamente 5 registros en la tabla Evaluaciones vinculados a la clase "${nombreClaseActiva}" y módulo "${moduloNombre || 'seleccionado'}".`}
         className="w-full justify-content-start"
       />
 

@@ -134,10 +134,10 @@ export const TablaTramosHorarios = ({
     return (
       <div className="flex align-items-center gap-2 text-overflow-ellipsis white-space-nowrap overflow-hidden">
         <i
-          className={`pi ${esRecreo ? 'pi-coffee text-orange-500' : 'pi-clock text-primary'}`}
+          className={`pi ${esRecreo ? 'pi-coffee text-500' : 'pi-clock text-primary'}`}
         />
         <span
-          className={`font-semibold ${esRecreo ? 'text-orange-700' : 'text-900'}`}
+          className={`font-semibold ${esRecreo ? 'text-700' : 'text-900'}`}
           data-pr-tooltip={fila.descripcion}
         >
           {fila.descripcion || `Tramo ${fila.numero}`}

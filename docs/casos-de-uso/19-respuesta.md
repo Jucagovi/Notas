@@ -1,54 +1,32 @@
-Se ha implementado el espacio para estimar y realizar el seguimiento de la Temporización de las Unidades de Trabajo de un módulo
-  conforme al caso de uso 19, el esquema de la base de datos en ESQUEMA.sql y las reglas de diseño y arquitectura en
-  CONVENCIONES.md.
-  ──────
-  ### 1. Custom Hook de Datos: useTemporizacion.js
+Se ha completado la refactorización e implementación integral del espacio de Temporización de Unidades de Trabajo de un módulo conforme al caso de uso 19, el esquema en ESQUEMA.sql y las convenciones del proyecto.
+──────
+### 1. Reorganización Estricta de Secciones en Pantalla
 
-  • **Aislamiento con useDatos**: consume el hook genérico para consultar y mutar las tablas Temporizacion y Unidades_Trabajo sin
-  invocar Supabase directamente desde los componentes.
-  • Sincronización automática de UTs: al seleccionar un curso y un módulo, si existen unidades curriculares que aún no cuentan con
-  registro en Temporizacion, se inicializan en la base de datos con su número de orden por defecto y estado 'Pendiente'.
-  • Reordenación por arrastre (RowReorder): recalcula el campo orden secuencialmente (1, 2, 3...) y persiste las posiciones
-  modificadas en Supabase.
-  • Manejo estricto de errores: devuelve objetos estructurados ({ error: string, status: 400 }) en caso de fallo para permitir la
-  emisión de avisos precisos a través del sistema global de notificaciones.
-  ──────
-  ### 2. Estructura de Subcomponentes en src/components/temporizacion/
+Siguiendo el orden exacto solicitado:
+1. **Filtros de Cabecera y Barra de Acciones (`FiltrosTemporizacion.jsx`)**:
+   - Fila superior: Selectores con ancho contenido (`Dropdown` de Año Académico con nombre completo tipo `2026/2027` y `SelectorClase` filtrado por dicho año).
+   - Fila inferior: Botones estándar alineados a la derecha: `Propuesta` (asistente automático), `Actualizar`, `Restablecer` (orden curricular) y el nuevo botón `Borrar Temporización` (con confirmación modal para limpiar la planificación por completo).
+2. **Resumen de Seguimiento (`ResumenTemporizacion.jsx`)**:
+   - Tarjetas KPI con total de UTs, pendientes, en curso y completadas, más la barra de progreso global.
+3. **Calendario Escolar Anual de 12 Meses (`SeccionCalendarioTemporizacion.jsx`)**:
+   - Cuadrícula de septiembre a agosto con días lectivos y festivos escolares.
+   - Si no existe temporización (o tras pulsar Borrar), se presenta sin fechas marcadas y con aviso orientativo.
+   - Permite seleccionar cualquier UT y ajustar fechas mediante arrastre con ratón, clics en días o micro-ajustes (+/- 1 día), propagando los cambios en vivo al resto de la pantalla.
+4. **Diagrama de Gantt del Curso Escolar (`DiagramaGanttTemporizacion.jsx`)**:
+   - Cronograma visual organizado por columnas mensuales que posiciona las barras de las unidades planificadas con tooltips explicativos.
+5. **Listado de Unidades de Trabajo de Planificación (`TablaTemporizacion.jsx`)**:
+   - Exclusivamente dedicado a la planificación prevista (`fecha_ini_prevista` y `fecha_fin_prevista`), excluyendo la introducción de datos reales.
+   - Formato estandarizado con ceros a la izquierda (`UT01`, `UT02`...).
+   - Reordenación nativa por arrastre (`RowReorder`) y botón modal de observaciones por unidad.
 
-  Siguiendo el principio de responsabilidad única (SRP) y manteniendo los componentes por debajo de 150-200 líneas de código:
+──────
+### 2. Sincronización e Interconexión Reactiva en Tiempo Real
 
-  1. **FiltrosTemporizacion.jsx**:
-      • Reutiliza los selectores oficiales SelectorCurso y SelectorModulo sin alterarlos.
-      • Proporciona botones para refrescar la consulta y para restablecer el orden curricular original.
-  2. **ResumenTemporizacion.jsx**:
-      • Muestra tarjetas KPI con el total de UTs, las pendientes, las que están en curso y las completadas.
-      • Integra una barra de progreso porcentual (ProgressBar) sobre la ejecución del currículo.
-  3. **CeldaFechaTemporizacion.jsx**:
-      • Control Calendar de PrimeReact para la edición en celda con formato español dd/mm/yy y semana iniciada en lunes
-      (firstDayOfWeek={1}).
-      • Maneja el aislamiento de eventos de ratón para no interferir con el arrastre de filas.
-  4. **TablaTemporizacion.jsx**:
-      • DataTable configurado con reorderableRows y la columna asidero <Column rowReorder /> para la modificación visual del orden.
-      • Edición en línea de las cuatro fechas clave (fecha_ini_prevista, fecha_fin_prevista, fecha_ini_real, fecha_fin_real).
-      • Selector Dropdown en línea para alternar el estado ('Pendiente', 'En Curso', 'Completada') sin usar etiquetas Tag internas,
-      cumpliendo las convenciones.
-      • Textos en una sola línea con truncado automático y Tooltip emergente al pasar el ratón.
-      • Paginador superior configurable en 5, 10, 15, 20 y 25 filas.
-  5. **DialogoTemporizacion.jsx**:
-      • Diálogo modal de edición detallada para modificar el nombre alternativo anual, fechas previstas y reales, estado y
-      observaciones.
-      • Valida la coherencia cronológica (fecha de inicio menor o igual a fecha de fin).
-      • Incorpora BotonAccion para guardar y cancelar.
-  6. **GestorTemporizacion.jsx**:
-      • Componente visual orquestador principal que une el resumen, la tabla y el diálogo modal.
-      • Disponible y exportado como GestorTemporizacion cumpliendo la especificación del caso de uso.
-  7. **index.js**:
-      • Barril de exportación limpia de todos los subcomponentes.
+- Todas las secciones se alimentan del estado centralizado de `useTemporizacion.js`.
+- El callback `onCambioEnVivo` del calendario escolar interactivo actualiza instantáneamente las fechas en la tabla de UTs y en las barras del Diagrama de Gantt conforme el usuario arrastra o ajusta días, sin necesidad de recargar la página.
 
-  ──────
-  ### 3. Página Orquestadora: TemporizacionPagina.jsx
+──────
+### 3. Borrado Completo y Persistencia Segura
 
-  • Coordina el estado de curso y módulo, la integración con useGlobalToast y la confirmación modal previa al restablecimiento de
-  orden.
-  • Emplea HeaderPagina y EstadoVacio para los estados sin selección o sin unidades.
-  • Se añade alias en TemporizacionPagina.jsx para garantizar la compatibilidad con todas las rutas y accesos de navegación.
+- El hook `useTemporizacion.js` incorpora la función `borrarTemporizacionCompleta()`, la cual reinicia las fechas previstas y reales a `null` y el estado a `'Pendiente'` en la base de datos a través de `useDatos.actualizar`, reflejando el vaciado de forma optimista en la UI.
+- La acción está protegida por un diálogo de confirmación `confirmarBorrado` para evitar eliminaciones accidentales.

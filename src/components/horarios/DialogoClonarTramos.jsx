@@ -96,11 +96,11 @@ export const DialogoClonarTramos = ({
   // Manejador de confirmación para disparar la clonación.
   const manejarConfirmar = () => {
     if (!cursoOrigenId) {
-      setErrorValidacion('Debes seleccionar un curso de origen.');
+      setErrorValidacion('Debes seleccionar una clase de origen.');
       return;
     }
     if (sesionesOrigen.length === 0) {
-      setErrorValidacion('El curso de origen no posee tramos para clonar.');
+      setErrorValidacion('La clase de origen no posee tramos para clonar.');
       return;
     }
 
@@ -131,34 +131,34 @@ export const DialogoClonarTramos = ({
     <Dialog
       visible={visible}
       onHide={onHide}
-      header="Clonar Tramos de Curso Anterior"
+      header="Clonar Tramos de Otra Clase"
       footer={pieDialogo}
       style={{ width: '90vw', maxWidth: '580px' }}
       modal
       className="p-fluid"
     >
       <div className="flex flex-column gap-3 pt-1">
-        {/* Aviso de reemplazo de tramos si el curso de destino ya tiene configuración */}
+        {/* Aviso de reemplazo de tramos si la clase de destino ya tiene configuración */}
         {tieneTramosActuales && (
           <div className="p-3 bg-orange-50 border-round border-left-3 border-orange-500 flex align-items-center gap-2 text-sm text-orange-900">
             <i className="pi pi-exclamation-triangle text-orange-600 text-lg" />
             <span>
-              Atención: Los tramos actuales del curso serán reemplazados por los del curso clonado.
+              Atención: Los tramos actuales de la clase serán reemplazados por los de la clase clonada.
             </span>
           </div>
         )}
 
-        {/* Desplegable para seleccionar el curso académico de origen */}
+        {/* Desplegable para seleccionar la clase de origen */}
         <div className="field flex flex-column gap-1 m-0">
           <label htmlFor="selector-curso-origen" className="font-semibold text-sm">
-            Curso académico de origen <span className="text-red-500">*</span>
+            Clase de origen <span className="text-red-500">*</span>
           </label>
           <SelectorCurso
             id="selector-curso-origen"
             value={cursoOrigenId}
             options={cursosDisponibles}
             onChange={(e) => setCursoOrigenId(e.value)}
-            placeholder="Selecciona el curso a replicar..."
+            placeholder="Selecciona la clase a replicar..."
             disabled={guardando || cursosDisponibles.length === 0}
           />
         </div>
@@ -178,13 +178,13 @@ export const DialogoClonarTramos = ({
           {cargandoSesiones ? (
             <div className="p-3 text-center surface-100 border-round text-color-secondary text-sm flex align-items-center justify-content-center gap-2">
               <i className="pi pi-spin pi-spinner text-primary" />
-              <span>Consultando tramos del curso...</span>
+              <span>Consultando tramos de la clase...</span>
             </div>
           ) : sesionesOrigen.length === 0 ? (
             <div className="p-3 text-center surface-100 border-round text-color-secondary text-sm">
               {cursosDisponibles.length === 0
-                ? 'No existen otros cursos académicos registrados en el sistema.'
-                : 'El curso seleccionado no tiene tramos horarios definidos.'}
+                ? 'No existen otras clases registradas en el sistema.'
+                : 'La clase seleccionada no tiene tramos horarios definidos.'}
             </div>
           ) : (
             <div
@@ -206,14 +206,11 @@ export const DialogoClonarTramos = ({
                       <tr
                         key={s.id_sesion || s.numero}
                         className={`border-bottom-1 surface-border ${
-                          esDescanso ? 'bg-orange-50 font-semibold' : ''
+                          esDescanso ? 'celda-recreo font-semibold' : ''
                         }`}
                       >
                         <td className="p-2 text-center text-700">{s.numero}</td>
                         <td className="p-2 text-900">
-                          {esDescanso && (
-                            <i className="pi pi-coffee text-orange-500 mr-2" />
-                          )}
                           {s.descripcion || `${s.numero}ª Hora`}
                         </td>
                         <td className="p-2 text-center font-medium text-700">

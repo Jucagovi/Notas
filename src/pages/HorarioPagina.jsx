@@ -3,7 +3,6 @@ import { TabView, TabPanel } from 'primereact/tabview';
 import CargadorSeccion from '../components/common/CargadorSeccion.jsx';
 import EstadoVacio from '../components/common/EstadoVacio.jsx';
 import CabeceraHorarios from '../components/horarios/CabeceraHorarios.jsx';
-import TablaTramosHorarios from '../components/horarios/TablaTramosHorarios.jsx';
 import CuadriculaHorarioGrupo from '../components/horarios/CuadriculaHorarioGrupo.jsx';
 import CuadriculaMiHorario from '../components/horarios/CuadriculaMiHorario.jsx';
 import useCursos from '../hooks/useCursos.js';
@@ -13,9 +12,8 @@ import { extraerAnioInicioCurso } from '../utils/fechas.js';
 /**
  * HorarioPagina - Página orquestadora del caso de uso 30 (Gestión de Horarios y Disponibilidad).
  *
- * Responsabilidad Única: Actuar como orquestador contenedor de datos y vistas para coordinar la
- * definición de tramos horarios, la plantilla semanal por cursos y el horario consolidado
- * del docente titular filtrado por año académico mediante un Dropdown en la cabecera general.
+ * Responsabilidad Única: Actuar como orquestador contenedor de datos y vistas para coordinar
+ * el horario consolidado del docente titular y la plantilla semanal por clases filtrados por año académico.
  */
 const HorarioPagina = () => {
   const [anioSeleccionado, setAnioSeleccionado] = useState(null);
@@ -89,14 +87,16 @@ const HorarioPagina = () => {
     todasSesiones,
     horariosCurso,
     modulos,
+    modulosCiclo,
+    moduloClaseId,
+    mapaCursosModulos,
     mapaModulos,
     mapaSesiones,
     horarioDocente,
     cargando: cargandoHorarios,
     guardando,
     crearSesion,
-    actualizarSesion,
-    eliminarSesion,
+    eliminarTodosLosTramos,
     generarSesionesPredeterminadas,
     clonarSesionesDeCurso,
     guardarClaseHorario,
@@ -159,8 +159,6 @@ const HorarioPagina = () => {
     };
   }, [horarioDocenteFiltrado]);
 
-  const estaCargando = cargandoCursos || cargandoHorarios;
-
   return (
     <div className="flex flex-column w-full gap-4 pb-5">
       {/* Cabecera general de la página con Dropdown de año académico */}
@@ -176,12 +174,12 @@ const HorarioPagina = () => {
         <CargadorSeccion tipo="formulario" filas={2} />
       ) : cursos.length === 0 ? (
         <EstadoVacio
-          mensaje="No existen cursos académicos"
-          descripcion="Para configurar la plantilla horaria es necesario registrar previamente un curso académico en el sistema."
+          mensaje="No existen clases registradas"
+          descripcion="Para configurar la plantilla horaria es necesario registrar previamente una clase en el sistema."
           icono="pi pi-calendar-times"
         />
       ) : (
-        /* Layout principal estructurado en 3 pestañas funcionales */
+        /* Layout principal estructurado en 2 pestañas funcionales */
         <div className="surface-card border-round shadow-1">
           <TabView
             activeIndex={pestanyaActiva}
@@ -201,14 +199,13 @@ const HorarioPagina = () => {
                 onGuardarTareaNoLectiva={guardarTareaNoLectiva}
                 onEliminarTareaNoLectiva={eliminarTareaNoLectiva}
                 onIrAGrupos={() => setPestanyaActiva(1)}
-                onIrATramos={() => setPestanyaActiva(2)}
                 guardando={guardando}
               />
             </TabPanel>
 
-            {/* Pestaña 2: Horario por Cursos */}
+            {/* Pestaña 2: Horario por Clases */}
             <TabPanel
-              header="Horario por Cursos"
+              header="Horario por Clases"
               leftIcon="pi pi-th-large mr-2"
             >
               <CuadriculaHorarioGrupo
@@ -218,29 +215,16 @@ const HorarioPagina = () => {
                 sesiones={sesiones}
                 horarios={horariosCurso}
                 modulos={modulos}
+                modulosCiclo={modulosCiclo}
+                moduloDefectoId={moduloClaseId}
+                mapaCursosModulos={mapaCursosModulos}
                 mapaModulos={mapaModulos}
                 onGuardarClase={guardarClaseHorario}
                 onEliminarClase={eliminarClaseHorario}
-                onIrATramos={() => setPestanyaActiva(2)}
-                guardando={guardando}
-              />
-            </TabPanel>
-
-            {/* Pestaña 3: Configuración de Tramos */}
-            <TabPanel
-              header="Configuración de Tramos"
-              leftIcon="pi pi-clock mr-2"
-            >
-              <TablaTramosHorarios
-                sesiones={sesiones}
                 onCrearTramo={crearSesion}
-                onActualizarTramo={actualizarSesion}
-                onEliminarTramo={eliminarSesion}
-                onGenerarPredeterminados={generarSesionesPredeterminadas}
+                onGenerarTramos={generarSesionesPredeterminadas}
                 onClonarTramos={clonarSesionesDeCurso}
-                cursos={cursosFiltrados}
-                cursoId={cursoSeleccionadoId}
-                cargando={estaCargando}
+                onEliminarTodosLosTramos={eliminarTodosLosTramos}
                 guardando={guardando}
               />
             </TabPanel>

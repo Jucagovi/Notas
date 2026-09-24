@@ -3,8 +3,9 @@ import { Card } from 'primereact/card';
 import { Divider } from 'primereact/divider';
 import BotonAccion from '../common/BotonAccion.jsx';
 
-// Paso 6: Informe resumen previo a la confirmación (sin Tag para Año y Siglas, y con listado vertical de discentes en texto plano).
+// Paso 6: Informe resumen previo a la confirmación de la clase (sin componentes Tag para año y siglas).
 const PasoConfirmacion = ({
+  clase,
   curso,
   ciclo,
   modulo,
@@ -15,6 +16,9 @@ const PasoConfirmacion = ({
   onGuardar,
   onCancelar
 }) => {
+  // Soportar tanto prop clase como curso para máxima resiliencia.
+  const claseActual = clase || curso;
+
   return (
     <div className="flex flex-column gap-3 py-2">
       <div>
@@ -25,19 +29,24 @@ const PasoConfirmacion = ({
       </div>
 
       <div className="grid">
-        {/* Resumen del Curso y Módulo (Año y Siglas en texto plano, sin Tag) */}
+        {/* Resumen de la Clase y Módulo (Año y Siglas en texto plano, sin Tag) */}
         <div className="col-12 md:col-6">
-          <Card title="Curso y Módulo" className="h-full border-1 surface-border shadow-none">
+          <Card title="Clase y Módulo" className="h-full border-1 surface-border shadow-none">
             <div className="flex flex-column gap-2 text-sm">
               <div>
-                <span className="text-500 font-semibold block">Curso Académico:</span>
-                <span className="text-900 font-bold text-base">{curso?.nombre || 'No seleccionado'}</span>
+                <span className="text-500 font-semibold block">Nombre de la Clase:</span>
+                <span className="text-900 font-bold text-base">{claseActual?.nombre || 'No asignada'}</span>
                 <div className="text-secondary mt-1">
-                  Año lectivo: <strong className="text-900">{curso?.anyo || '-'}</strong>
+                  Año lectivo: <strong className="text-900">{claseActual?.anyo || '-'}</strong>
                 </div>
                 <div className="text-secondary mt-1">
-                  Centro educativo: <strong className="text-900">{curso?.centro || '-'}</strong>
+                  Centro educativo: <strong className="text-900">{claseActual?.centro || '-'}</strong>
                 </div>
+                {(claseActual?.fecha_inicio || claseActual?.fecha_fin) && (
+                  <div className="text-secondary mt-1">
+                    Período lectivo: <strong className="text-900">{claseActual?.fecha_inicio || '-'}</strong> al <strong className="text-900">{claseActual?.fecha_fin || '-'}</strong>
+                  </div>
+                )}
               </div>
 
               <Divider className="my-2" />
@@ -83,7 +92,7 @@ const PasoConfirmacion = ({
                   <span className="font-semibold block text-900">Programación Didáctica:</span>
                   <span className="text-secondary text-xs">
                     {clonarProgramacion && cursoOrigen
-                      ? `Clonado desde ${cursoOrigen.nombre} (${cursoOrigen.anyo})`
+                      ? `Clonada desde ${cursoOrigen.nombre} (${cursoOrigen.anyo})`
                       : 'Inicio desde cero sin clonación'}
                   </span>
                 </div>

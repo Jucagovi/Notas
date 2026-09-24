@@ -162,7 +162,7 @@ export const DialogoGenerarTramos = ({
           <div className="p-3 bg-orange-50 border-round border-left-3 border-orange-500 flex align-items-center gap-2 text-sm text-orange-900">
             <i className="pi pi-exclamation-triangle text-orange-600 text-lg" />
             <span>
-              Este curso ya cuenta con tramos configurados. Al generar la nueva plantilla, se reemplazarán los tramos actuales.
+              Esta clase ya cuenta con tramos configurados. Al generar la nueva plantilla, se reemplazarán los tramos actuales.
             </span>
           </div>
         )}
@@ -374,14 +374,11 @@ export const DialogoGenerarTramos = ({
                       <tr
                         key={t.numero}
                         className={`border-bottom-1 surface-border ${
-                          esDescanso ? 'bg-orange-50 font-semibold' : ''
+                          esDescanso ? 'celda-recreo font-semibold' : ''
                         }`}
                       >
                         <td className="p-2 text-center text-700">{t.numero}</td>
                         <td className="p-2 text-900">
-                          {esDescanso && (
-                            <i className="pi pi-coffee text-orange-500 mr-2" />
-                          )}
                           {t.descripcion}
                         </td>
                         <td className="p-2 text-center font-medium text-700">

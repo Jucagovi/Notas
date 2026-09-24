@@ -31,6 +31,7 @@ import CopiasSeguridad from "./pages/CopiasSeguridad.jsx";
 import ImportacionPagina from "./pages/ImportacionPagina.jsx";
 import ClonadoCurso from "./pages/ClonadoCurso.jsx";
 import AcercaDePagina from './pages/AcercaDePagina.jsx';
+import AyudaPagina from './pages/ayuda/AyudaPagina.jsx';
 import NotFoundPagina from './pages/NotFoundPagina.jsx';
 import LoginPagina from './pages/LoginPagina.jsx';
 import RutaPrivada from './components/autenticacion/RutaPrivada.jsx';
@@ -197,7 +198,7 @@ const App = () => {
 
           {/* Acerca de y Ayuda */}
           <Route path='acercaDe' element={<AcercaDePagina />} />
-          <Route path='ayuda' element={<AcercaDePagina />} />
+          <Route path='ayuda' element={<AyudaPagina />} />
 
           {/* Página 404 */}
           <Route path='*' element={<NotFoundPagina />} />

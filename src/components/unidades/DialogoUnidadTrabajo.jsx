@@ -4,6 +4,7 @@ import { InputNumber } from 'primereact/inputnumber';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import BotonAccion from '../common/BotonAccion.jsx';
+import { formatearNumeroUT } from '../../utils/formatoUT.js';
 
 /**
  * DialogoUnidadTrabajo - Diálogo modal para la creación y edición de Unidades de Trabajo.
@@ -77,7 +78,7 @@ const DialogoUnidadTrabajo = ({
     }
   };
 
-  // Pie del diálogo con botones de acción estándar.
+  // Pie del diálogo con botones de acción estándar y separación adecuada.
   const pieDialogo = (
     <div className="flex justify-content-end gap-2">
       <BotonAccion
@@ -96,6 +97,7 @@ const DialogoUnidadTrabajo = ({
   );
 
   const esEdicion = Boolean(unidad);
+  const etiquetaUT = formatearNumeroUT(numero);
 
   return (
     <Dialog
@@ -105,7 +107,9 @@ const DialogoUnidadTrabajo = ({
         <div className="flex align-items-center gap-2">
           <i className="pi pi-folder text-primary text-xl" />
           <span className="font-bold text-lg">
-            {esEdicion ? 'Editar Unidad de Trabajo' : 'Nueva Unidad de Trabajo'}
+            {esEdicion
+              ? `Editar Unidad de Trabajo (${formatearNumeroUT(unidad?.numero)})`
+              : 'Nueva Unidad de Trabajo'}
           </span>
         </div>
       }
@@ -115,7 +119,7 @@ const DialogoUnidadTrabajo = ({
       className="p-fluid"
     >
       <form onSubmit={manejarGuardar} className="flex flex-column gap-3 pt-2">
-        {/* Campo Número de UT */}
+        {/* Campo Número de UT sin botones + y - */}
         <div className="field m-0">
           <label htmlFor="numero_ut" className="font-semibold text-sm text-900 block mb-1">
             Número de Unidad <span className="text-red-500">*</span>
@@ -126,12 +130,6 @@ const DialogoUnidadTrabajo = ({
             onValueChange={(e) => setNumero(e.value || 1)}
             min={1}
             max={99}
-            showButtons
-            buttonLayout="horizontal"
-            decrementButtonClassName="p-button-secondary"
-            incrementButtonClassName="p-button-secondary"
-            incrementButtonIcon="pi pi-plus"
-            decrementButtonIcon="pi pi-minus"
             className={errores.numero ? 'p-invalid' : ''}
             disabled={guardando}
           />
@@ -149,7 +147,7 @@ const DialogoUnidadTrabajo = ({
             id="nombre_ut"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            placeholder="Ej: UT 1. Introducción al entorno de desarrollo"
+            placeholder={`Ej: ${etiquetaUT}. Introducción al entorno de desarrollo`}
             className={errores.nombre ? 'p-invalid' : ''}
             disabled={guardando}
             autoFocus

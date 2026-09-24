@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Dropdown } from 'primereact/dropdown';
 import BotonAccion from '../common/BotonAccion.jsx';
-import SelectorModulo from '../common/SelectorModulo.jsx';
 
 // Opciones estándar para la tipología de prácticas
 const OPCIONES_TIPO_PRACTICA = [
@@ -17,23 +16,25 @@ const OPCIONES_TIPO_PRACTICA = [
 /**
  * DialogoPractica - Diálogo modal para la creación y edición de prácticas base en el catálogo.
  *
- * Responsabilidad Única: Capturar y validar los campos requeridos (nombre, tipo de práctica,
- * módulo profesional y descripción breve) antes de delegar la persistencia en el orquestador.
+ * Responsabilidad Única: Capturar y validar los campos requeridos (nombre, tipo de práctica y descripción)
+ * asociando automáticamente el módulo formativo conocido a partir de la clase activa seleccionada.
  *
  * @param {Object} props
  * @param {boolean} props.visible - Controla la visibilidad del modal.
  * @param {Function} props.onHide - Manejador para cerrar el diálogo.
  * @param {Object|null} props.practica - Práctica en modo edición o null para nueva alta.
- * @param {string|null} props.idModuloPorDefecto - Identificador del módulo a preseleccionar.
- * @param {Array<Object>} props.modulos - Lista de módulos disponibles en el sistema.
+ * @param {string|null} props.idModuloPorDefecto - Identificador del módulo asociado a la clase activa.
+ * @param {Object|null} props.moduloActual - Objeto completo del módulo formativo activo.
+ * @param {Array<Object>} [props.modulos=[]] - Lista de módulos disponibles de respaldo.
  * @param {Function} props.onGuardar - Callback para persistir los datos introducidos.
- * @param {boolean} [props.guardando=false] - Indicador de estado de persistencia en curso.
+ * @param {boolean} [props.guardando=false] - Indicador de estado de persistencia en proceso.
  */
 export const DialogoPractica = ({
   visible,
   onHide,
   practica = null,
   idModuloPorDefecto = null,
+  moduloActual = null,
   modulos = [],
   onGuardar,
   guardando = false
@@ -60,6 +61,16 @@ export const DialogoPractica = ({
     setErrorNombre(false);
   }, [practica, idModuloPorDefecto, visible]);
 
+  // Resolución del objeto del módulo para visualización informativa
+  const moduloMostrado = useMemo(() => {
+    if (moduloActual) return moduloActual;
+    const moduloIdEfectivo = idModulo || idModuloPorDefecto;
+    if (moduloIdEfectivo && modulos && modulos.length > 0) {
+      return modulos.find((m) => m.id_modulo === moduloIdEfectivo) || null;
+    }
+    return null;
+  }, [moduloActual, idModulo, idModuloPorDefecto, modulos]);
+
   // Manejador del envío del formulario con validación de obligatoriedad.
   const manejarGuardar = async () => {
     if (!nombre.trim()) {
@@ -71,7 +82,7 @@ export const DialogoPractica = ({
       nombre: nombre.trim(),
       descripcion: descripcion.trim() || null,
       id_tipopractica: idTipoPractica,
-      id_modulo: idModulo
+      id_modulo: idModulo || idModuloPorDefecto || moduloMostrado?.id_modulo
     };
 
     const exito = await onGuardar(payload);
@@ -131,19 +142,18 @@ export const DialogoPractica = ({
           )}
         </div>
 
-        {/* Campo Módulo Profesional */}
+        {/* Módulo Formativo: ya conocido puesto que cada clase está asociada a un módulo */}
         <div className="flex flex-column gap-1">
-          <label htmlFor="modulo-practica" className="font-semibold text-sm text-800">
-            Módulo Formativo <span className="text-red-500">*</span>
+          <label className="font-semibold text-sm text-800">
+            Módulo Formativo (Asociado a la clase)
           </label>
-          <SelectorModulo
-            id="modulo-practica"
-            value={idModulo}
-            options={modulos}
-            onChange={(e) => setIdModulo(e.value)}
-            placeholder="Seleccione el módulo..."
-            className="w-full"
-          />
+          <div className="surface-100 border-1 surface-border border-round p-2 flex align-items-center gap-2">
+            <i className="pi pi-book text-primary text-base" />
+            <span className="text-sm font-semibold text-900">
+              {moduloMostrado?.siglas ? `${moduloMostrado.siglas} — ` : ''}
+              {moduloMostrado?.nombre || 'Módulo asignado a la clase activa'}
+            </span>
+          </div>
         </div>
 
         {/* Campo Tipo de Práctica */}
@@ -180,3 +190,4 @@ export const DialogoPractica = ({
 };
 
 export default DialogoPractica;
+

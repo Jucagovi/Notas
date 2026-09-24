@@ -6,25 +6,30 @@ import CatalogoPracticas from '../components/taller/CatalogoPracticas.jsx';
 import PanelVersiones from '../components/taller/PanelVersiones.jsx';
 import DialogoPractica from '../components/taller/DialogoPractica.jsx';
 import DialogoVersion from '../components/taller/DialogoVersion.jsx';
+import ManualUsoTaller from '../components/taller/ManualUsoTaller.jsx';
 import useTallerPracticas from '../hooks/useTallerPracticas.js';
 import useModulos from '../hooks/useModulos.js';
 import useCursos from '../hooks/useCursos.js';
 import useEvaluaciones from '../hooks/useEvaluaciones.js';
+import useImparte from '../hooks/useImparte.js';
 import useGlobalToast from '../hooks/useGlobalToast.js';
 import exportarPracticaPDF from '../utils/exportadorPracticaPdf.js';
+import { extraerAnioInicioCurso } from '../utils/fechas.js';
 import '../components/taller/taller.css';
 
 /**
  * TallerPracticas - Página orquestadora del caso de uso 14 (Taller de Prácticas: Catálogo y Versiones).
  *
  * Responsabilidad Única: Actuar como contenedor orquestador de datos y vistas para gestionar el catálogo
- * maestro de prácticas y el historial de versiones con editor enriquecido y exportación a PDF.
+ * maestro de prácticas y el historial de versiones con editor enriquecido y exportación a PDF,
+ * contextualizado por año académico y clase (donde cada clase encapsula su módulo profesional correspondiente).
  */
 export const TallerPracticas = () => {
   const { mostrarExito, mostrarError, mostrarInfo } = useGlobalToast();
 
-  // Estados locales para filtros y búsquedas
-  const [moduloSeleccionadoId, setModuloSeleccionadoId] = useState(null);
+  // Estados locales para filtros por año lectivo, clase y buscador
+  const [anioSeleccionado, setAnioSeleccionado] = useState(null);
+  const [claseSeleccionadaId, setClaseSeleccionadaId] = useState(null);
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
 
   // Estados locales para el control de modales
@@ -39,19 +44,118 @@ export const TallerPracticas = () => {
 
   const [exportandoPdf, setExportandoPdf] = useState(false);
 
-  // Consulta de entidades complementarias de referencia
+  // Consulta de entidades maestras y relacionales para construir las clases y contextualizar el módulo
   const { datos: modulos, cargando: cargandoModulos } = useModulos();
-  const { datos: cursos } = useCursos();
+  const { datos: cursos, cargando: cargandoCursos } = useCursos();
   const { datos: evaluaciones } = useEvaluaciones();
+  const { datos: imparte } = useImparte();
 
-  // Se preselecciona el primer módulo disponible cuando se completa la carga inicial.
-  useEffect(() => {
-    if (!moduloSeleccionadoId && modulos && modulos.length > 0) {
-      setModuloSeleccionadoId(modulos[0].id_modulo);
+  // Se calculan los años académicos únicos con formato completo visual YYYY/YYYY+1 (ej. 2026 -> "2026/2027").
+  const opcionesAnios = useMemo(() => {
+    const aniosRegistrados = new Set();
+    const lista = [];
+
+    (cursos || []).forEach((c) => {
+      const anioInicio = extraerAnioInicioCurso(c);
+      if (anioInicio && !aniosRegistrados.has(anioInicio)) {
+        aniosRegistrados.add(anioInicio);
+        lista.push({
+          label: `${anioInicio}/${anioInicio + 1}`,
+          value: anioInicio
+        });
+      }
+    });
+
+    lista.sort((a, b) => b.value - a.value);
+
+    // En caso de que no existan cursos dados de alta todavía, se provee el año escolar actual como respaldo.
+    if (lista.length === 0) {
+      const hoy = new Date();
+      const anioBase = hoy.getMonth() < 8 ? hoy.getFullYear() - 1 : hoy.getFullYear();
+      lista.push(
+        { label: `${anioBase}/${anioBase + 1}`, value: anioBase },
+        { label: `${anioBase + 1}/${anioBase + 2}`, value: anioBase + 1 }
+      );
     }
-  }, [modulos, moduloSeleccionadoId]);
 
-  // Hook orquestador de la lógica de datos del taller de prácticas
+    return lista;
+  }, [cursos]);
+
+  // Se preselecciona el primer año académico disponible si no hay ninguno activo.
+  useEffect(() => {
+    if (!anioSeleccionado && opcionesAnios.length > 0) {
+      setAnioSeleccionado(opcionesAnios[0].value);
+    }
+  }, [opcionesAnios, anioSeleccionado]);
+
+  // Mapa asociativo id_curso -> id_modulo derivado de las tablas Evaluaciones e imparte
+  const mapaCursosModulos = useMemo(() => {
+    const mapa = new Map();
+    (evaluaciones || []).forEach((ev) => {
+      if (ev.id_curso && ev.id_modulo && !mapa.has(ev.id_curso)) {
+        mapa.set(ev.id_curso, ev.id_modulo);
+      }
+    });
+    (imparte || []).forEach((imp) => {
+      if (imp.id_curso && imp.id_modulo && !mapa.has(imp.id_curso)) {
+        mapa.set(imp.id_curso, imp.id_modulo);
+      }
+    });
+    return mapa;
+  }, [evaluaciones, imparte]);
+
+  // Lista de clases filtradas que pertenecen estrictamente al año académico seleccionado
+  const clasesDelAnio = useMemo(() => {
+    if (!cursos || cursos.length === 0) return [];
+
+    return (cursos || [])
+      .filter((c) => {
+        if (!anioSeleccionado) return true;
+        return extraerAnioInicioCurso(c) === anioSeleccionado;
+      })
+      .map((c) => {
+        const idModulo = mapaCursosModulos.get(c.id_curso) || null;
+        const moduloObj = (modulos || []).find((m) => m.id_modulo === idModulo) || null;
+        const siglaModulo = moduloObj?.siglas || '';
+        const nombreModulo = moduloObj?.nombre || '';
+
+        return {
+          id: c.id_curso,
+          id_curso: c.id_curso,
+          id_modulo: idModulo,
+          moduloObj: moduloObj,
+          cursoNombre: c.nombre,
+          cursoAnyo: c.anyo,
+          cursoCentro: c.centro,
+          moduloSiglas: siglaModulo,
+          moduloNombre: nombreModulo,
+          etiqueta: `${c.nombre} (${c.anyo || ''})${siglaModulo ? ` — ${siglaModulo}: ` : ' — '}${nombreModulo || 'Sin módulo'}`
+        };
+      });
+  }, [cursos, anioSeleccionado, mapaCursosModulos, modulos]);
+
+  // Sincronización automática de la clase activa al cambiar de año escolar o actualizar clases.
+  useEffect(() => {
+    if (clasesDelAnio.length > 0) {
+      const existe = clasesDelAnio.some((c) => c.id_curso === claseSeleccionadaId);
+      if (!existe) {
+        setClaseSeleccionadaId(clasesDelAnio[0].id_curso);
+      }
+    } else {
+      setClaseSeleccionadaId(null);
+    }
+  }, [clasesDelAnio, claseSeleccionadaId]);
+
+  // Detección de la clase activa y su módulo curricular correspondiente
+  const claseActiva = useMemo(() => {
+    if (!claseSeleccionadaId) return null;
+    return clasesDelAnio.find((c) => c.id_curso === claseSeleccionadaId) || null;
+  }, [clasesDelAnio, claseSeleccionadaId]);
+
+  const moduloSeleccionadoId = claseActiva?.id_modulo || null;
+  const moduloActivo = claseActiva?.moduloObj || (modulos || []).find((m) => m.id_modulo === moduloSeleccionadoId) || null;
+
+  // Hook orquestador de la lógica de datos del taller de prácticas conectado al módulo de la clase activa
   const {
     practicas,
     cargandoPracticas,
@@ -166,10 +270,10 @@ export const TallerPracticas = () => {
     try {
       const moduloAsociado = modulos.find(
         (m) => m.id_modulo === practicaSeleccionada.id_modulo
-      );
-      const cursoAsociado = version.Cursos || cursos.find((c) => c.id_curso === version.id_curso);
+      ) || moduloActivo;
+      const cursoAsociado = version.Cursos || (cursos || []).find((c) => c.id_curso === version.id_curso) || claseActiva;
       const utAsociada = version.Unidades_Trabajo || unidadesTrabajo.find((u) => u.id_ut === version.id_ut);
-      const evaluacionAsociada = version.Evaluaciones || evaluaciones.find((e) => e.id_evaluacion === version.id_evaluacion);
+      const evaluacionAsociada = version.Evaluaciones || (evaluaciones || []).find((e) => e.id_evaluacion === version.id_evaluacion);
 
       await exportarPracticaPDF({
         practica: practicaSeleccionada,
@@ -240,12 +344,15 @@ export const TallerPracticas = () => {
         descripcion="Repositorio histórico de prácticas y banco de enunciados con control de versiones y exportación a PDF."
       />
 
-      {/* Barra superior de filtrado por módulo y buscador */}
+      {/* Barra superior de filtrado por año académico, clase y buscador */}
       <FiltrosTaller
-        modulos={modulos}
-        moduloSeleccionadoId={moduloSeleccionadoId}
-        onCambioModulo={setModuloSeleccionadoId}
-        cargandoModulos={cargandoModulos}
+        anios={opcionesAnios}
+        anioSeleccionado={anioSeleccionado}
+        onCambioAnio={setAnioSeleccionado}
+        clases={clasesDelAnio}
+        claseSeleccionadaId={claseSeleccionadaId}
+        onCambioClase={setClaseSeleccionadaId}
+        cargandoClases={cargandoCursos || cargandoModulos}
         terminoBusqueda={terminoBusqueda}
         onCambioBusqueda={setTerminoBusqueda}
         totalPracticas={practicasFiltradas.length}
@@ -283,24 +390,30 @@ export const TallerPracticas = () => {
         </div>
       </div>
 
-      {/* Modal para crear o editar práctica base */}
+      {/* Manual explicativo sobre el uso del Taller de Prácticas que ocupa todo el ancho de la página */}
+      <ManualUsoTaller />
+
+      {/* Modal para crear o editar práctica base (el módulo se conoce automáticamente a partir de la clase) */}
       <DialogoPractica
         visible={modalPracticaVisible}
         onHide={() => setModalPracticaVisible(false)}
         practica={practicaEdicion}
         idModuloPorDefecto={moduloSeleccionadoId}
+        moduloActual={moduloActivo}
         modulos={modulos}
         onGuardar={manejarGuardarPractica}
         guardando={guardando}
       />
 
-      {/* Modal para crear o editar versión con editor enriquecido */}
+      {/* Modal para crear o editar versión con editor enriquecido y datos contextuales de la clase */}
       <DialogoVersion
         visible={modalVersionVisible}
         onHide={() => setModalVersionVisible(false)}
         version={versionEdicion}
         practica={practicaSeleccionada}
-        cursos={cursos}
+        claseActiva={claseActiva}
+        moduloActivo={moduloActivo}
+        anioAcademicoNombre={anioSeleccionado ? `${anioSeleccionado}/${anioSeleccionado + 1}` : ''}
         unidadesTrabajo={unidadesTrabajo}
         evaluaciones={evaluaciones}
         onGuardar={manejarGuardarVersion}
@@ -327,3 +440,4 @@ export const TallerPracticas = () => {
 };
 
 export default TallerPracticas;
+

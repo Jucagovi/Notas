@@ -9,14 +9,17 @@ import PasoEvaluaciones from './PasoEvaluaciones.jsx';
 import PasoProgramacion from './PasoProgramacion.jsx';
 import PasoConfirmacion from './PasoConfirmacion.jsx';
 
-// Datos iniciales para el formulario integrado de creación de un curso nuevo.
-const DATOS_CURSO_INICIALES = {
+// Obtención del año en curso para los valores sugeridos por defecto.
+const anioActual = new Date().getFullYear().toString();
+
+// Datos iniciales para el formulario de creación de una nueva clase.
+const DATOS_CLASE_INICIALES = {
   nombre: '',
-  anyo: '2024/2025',
-  centro: '',
-  descripcion: '',
+  anyo: anioActual,
+  centro: 'IES Poeta Paco Mollà (Petrer)',
   fecha_inicio: '',
-  fecha_fin: ''
+  fecha_fin: '',
+  descripcion: ''
 };
 
 // Componente orquestador del asistente por pasos para crear una nueva clase.
@@ -32,53 +35,50 @@ const CrearClaseStepper = ({
   const stepperRef = useRef(null);
   const [pasoActivo, setPasoActivo] = useState(0);
 
-  // Estados del asistente
-  const [modoCurso, setModoCurso] = useState('existente'); // 'existente' | 'nuevo'
-  const [cursoSeleccionadoId, setCursoSeleccionadoId] = useState(null);
-  const [datosNuevoCurso, setDatosNuevoCurso] = useState(DATOS_CURSO_INICIALES);
+  // Estados de los datos de la nueva clase y selecciones del asistente
+  const [datosClase, setDatosClase] = useState(DATOS_CLASE_INICIALES);
   const [cicloSeleccionadoId, setCicloSeleccionadoId] = useState(null);
   const [moduloSeleccionadoId, setModuloSeleccionadoId] = useState(null);
   const [discentesSeleccionados, setDiscentesSeleccionados] = useState([]);
   const [clonarProgramacion, setClonarProgramacion] = useState(false);
   const [cursoOrigenId, setCursoOrigenId] = useState(null);
 
-  // Búsqueda o construcción del objeto de curso seleccionado para visualización
-  const cursoSeleccionado = useMemo(() => {
-    if (modoCurso === 'existente') {
-      return cursos.find((c) => c.id_curso === cursoSeleccionadoId) || null;
-    }
-    return {
-      nombre: datosNuevoCurso.nombre || 'Nuevo Curso',
-      anyo: datosNuevoCurso.anyo || '2024/2025',
-      centro: datosNuevoCurso.centro || 'Sin centro asignado',
-      descripcion: datosNuevoCurso.descripcion,
-      fecha_inicio: datosNuevoCurso.fecha_inicio,
-      fecha_fin: datosNuevoCurso.fecha_fin,
-      esNuevo: true
-    };
-  }, [modoCurso, cursos, cursoSeleccionadoId, datosNuevoCurso]);
+  // Objeto reactivo representativo de la clase en proceso de creación
+  const claseSeleccionada = useMemo(() => ({
+    nombre: datosClase.nombre || 'Nueva Clase',
+    anyo: datosClase.anyo || anioActual,
+    centro: datosClase.centro || 'IES Poeta Paco Mollà (Petrer)',
+    fecha_inicio: datosClase.fecha_inicio,
+    fecha_fin: datosClase.fecha_fin,
+    descripcion: datosClase.descripcion,
+    esNuevo: true
+  }), [datosClase]);
 
   const cicloSeleccionado = ciclos.find((c) => c.id_ciclo === cicloSeleccionadoId) || null;
   const moduloSeleccionado = modulos.find((m) => m.id_modulo === moduloSeleccionadoId) || null;
   const cursoOrigenSeleccionado = cursos.find((c) => c.id_curso === cursoOrigenId) || null;
 
-  // Actualización de campos individuales del nuevo curso en edición integrada
-  const manejarCambioDatosNuevoCurso = (campo, valor) => {
-    setDatosNuevoCurso((prev) => ({ ...prev, [campo]: valor }));
+  // Actualización de campos individuales del formulario de la clase
+  const manejarCambioDatosClase = (campo, valor) => {
+    setDatosClase((prev) => ({ ...prev, [campo]: valor }));
   };
 
-  // Validación y avance al siguiente paso
+  // Validación rigurosa de cada paso antes de permitir avanzar
   const avanzarPaso = (indiceActual) => {
     if (indiceActual === 0) {
-      if (modoCurso === 'existente' && !cursoSeleccionadoId) {
-        mostrarAviso('Debes seleccionar un curso académico antes de continuar.');
+      if (
+        !datosClase.nombre.trim() ||
+        !datosClase.anyo.trim() ||
+        !datosClase.centro.trim() ||
+        !datosClase.fecha_inicio ||
+        !datosClase.fecha_fin
+      ) {
+        mostrarAviso('Completa todos los campos obligatorios de la clase (Nombre, Año lectivo, Centro educativo, Fecha de inicio y Fecha de fin).');
         return;
       }
-      if (modoCurso === 'nuevo') {
-        if (!datosNuevoCurso.nombre.trim() || !datosNuevoCurso.anyo.trim() || !datosNuevoCurso.centro.trim()) {
-          mostrarAviso('Completa los campos obligatorios del nuevo curso (Nombre, Año y Centro).');
-          return;
-        }
+      if (datosClase.fecha_inicio > datosClase.fecha_fin) {
+        mostrarAviso('La fecha de inicio de la clase no puede ser posterior a la fecha de fin.');
+        return;
       }
     }
 
@@ -94,7 +94,7 @@ const CrearClaseStepper = ({
     }
 
     if (indiceActual === 4 && clonarProgramacion && !cursoOrigenId) {
-      mostrarAviso('Selecciona el curso origen del cual heredar la programación.');
+      mostrarAviso('Selecciona la clase o curso origen del cual heredar la programación.');
       return;
     }
 
@@ -110,11 +110,9 @@ const CrearClaseStepper = ({
     }
   };
 
-  // Reiniciar todos los campos del asistente
+  // Reiniciar todos los campos del asistente a sus valores predeterminados
   const reiniciarAsistente = () => {
-    setModoCurso('existente');
-    setCursoSeleccionadoId(null);
-    setDatosNuevoCurso(DATOS_CURSO_INICIALES);
+    setDatosClase(DATOS_CLASE_INICIALES);
     setCicloSeleccionadoId(null);
     setModuloSeleccionadoId(null);
     setDiscentesSeleccionados([]);
@@ -129,8 +127,8 @@ const CrearClaseStepper = ({
   // Confirmación y guardado completo en la base de datos
   const manejarGuardadoCompleto = async () => {
     const datos = {
-      cursoId: modoCurso === 'existente' ? cursoSeleccionadoId : null,
-      cursoNuevo: modoCurso === 'nuevo' ? datosNuevoCurso : null,
+      cursoId: null,
+      cursoNuevo: datosClase,
       moduloId: moduloSeleccionadoId,
       discentesSeleccionados,
       clonarProgramacion,
@@ -143,10 +141,14 @@ const CrearClaseStepper = ({
     }
   };
 
-  const paso1Valido =
-    modoCurso === 'existente'
-      ? Boolean(cursoSeleccionadoId)
-      : Boolean(datosNuevoCurso.nombre.trim() && datosNuevoCurso.anyo.trim() && datosNuevoCurso.centro.trim());
+  const paso1Valido = Boolean(
+    datosClase.nombre.trim() &&
+    datosClase.anyo.trim() &&
+    datosClase.centro.trim() &&
+    datosClase.fecha_inicio &&
+    datosClase.fecha_fin &&
+    datosClase.fecha_inicio <= datosClase.fecha_fin
+  );
 
   return (
     <div className="surface-card border-round shadow-1 p-4 border-1 surface-border">
@@ -156,16 +158,11 @@ const CrearClaseStepper = ({
         onChangeStep={(e) => setPasoActivo(e.index)}
         linear
       >
-        {/* Paso 1: Cursos */}
-        <StepperPanel header="Curso">
+        {/* Paso 1: Clase */}
+        <StepperPanel header="Clase">
           <PasoCursos
-            cursos={cursos}
-            modoCurso={modoCurso}
-            onCambiarModoCurso={setModoCurso}
-            cursoSeleccionadoId={cursoSeleccionadoId}
-            onSeleccionarCursoId={setCursoSeleccionadoId}
-            datosNuevoCurso={datosNuevoCurso}
-            onCambiarDatosNuevoCurso={manejarCambioDatosNuevoCurso}
+            datosClase={datosClase}
+            onCambiarDatosClase={manejarCambioDatosClase}
           />
           <div className="flex pt-4 justify-content-end">
             <Button
@@ -228,10 +225,10 @@ const CrearClaseStepper = ({
           </div>
         </StepperPanel>
 
-        {/* Paso 4: Auto-Evaluaciones */}
+        {/* Paso 4: Evaluaciones */}
         <StepperPanel header="Evaluaciones">
           <PasoEvaluaciones
-            cursoNombre={cursoSeleccionado?.nombre}
+            claseNombre={claseSeleccionada?.nombre}
             moduloNombre={moduloSeleccionado?.nombre}
           />
           <div className="flex pt-4 justify-content-between">
@@ -250,11 +247,11 @@ const CrearClaseStepper = ({
           </div>
         </StepperPanel>
 
-        {/* Paso 5: Importar Programación */}
+        {/* Paso 5: Programación */}
         <StepperPanel header="Programación">
           <PasoProgramacion
             cursos={cursos}
-            cursoActualId={cursoSeleccionadoId}
+            cursoActualId={null}
             clonarProgramacion={clonarProgramacion}
             onCambiarClonarProgramacion={setClonarProgramacion}
             cursoOrigenId={cursoOrigenId}
@@ -280,7 +277,7 @@ const CrearClaseStepper = ({
         {/* Paso 6: Confirmación */}
         <StepperPanel header="Confirmación">
           <PasoConfirmacion
-            curso={cursoSeleccionado}
+            clase={claseSeleccionada}
             ciclo={cicloSeleccionado}
             modulo={moduloSeleccionado}
             discentesSeleccionados={discentesSeleccionados}

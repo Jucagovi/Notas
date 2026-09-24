@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Checkbox } from 'primereact/checkbox';
 import SelectorModulo from '../common/SelectorModulo.jsx';
 import BotonAccion from '../common/BotonAccion.jsx';
-import { formatearHoraParaMostrar } from './constantesHorarios.js';
+import { formatearHoraParaMostrar, esSesionRecreo } from './constantesHorarios.js';
 
 /**
  * DialogoClaseHorario - Diálogo modal presentacional para asignar o editar una clase en el horario.
  *
  * Responsabilidad Única: Gestionar la captura de datos de la sesión lectiva en función de si es impartida
- * por el docente titular (módulo oficial) o por otro compañero (módulo alternativo y nombre del profesor).
+ * por el docente titular (módulo oficial) o por otro compañero (módulo curricular del mismo ciclo y nombre del profesor).
  *
  * @param {Object} props
  * @param {boolean} props.visible - Controla la visibilidad del diálogo modal.
@@ -18,7 +18,9 @@ import { formatearHoraParaMostrar } from './constantesHorarios.js';
  * @param {Function} props.onGuardar - Callback al confirmar el guardado de la asignación.
  * @param {Function} props.onEliminar - Callback opcional para desasignar la hora lectiva.
  * @param {Object|null} props.celdaActiva - Información del día, sesión y clase existente en la celda.
- * @param {Array<Object>} props.modulos - Listado de módulos curriculares disponibles.
+ * @param {Array<Object>} [props.modulos=[]] - Listado general de módulos curriculares.
+ * @param {Array<Object>} [props.modulosCiclo=[]] - Módulos filtrados por el ciclo formativo de la clase.
+ * @param {number|null} [props.moduloDefectoId=null] - Identificador del módulo asociado por defecto a la clase.
  * @param {string} props.grupo - Nombre del grupo al que pertenece la cuadrícula.
  * @param {boolean} [props.guardando=false] - Indicador de guardado en curso.
  */
@@ -29,6 +31,8 @@ export const DialogoClaseHorario = ({
   onEliminar,
   celdaActiva,
   modulos = [],
+  modulosCiclo = [],
+  moduloDefectoId = null,
   grupo = '',
   guardando = false
 }) => {
@@ -38,21 +42,49 @@ export const DialogoClaseHorario = ({
   const [aula, setAula] = useState('');
   const [errorValidacion, setErrorValidacion] = useState('');
 
+  // Opciones de módulos filtrados estrictamente por el ciclo formativo del módulo vinculado a la clase.
+  const opcionesModulos = useMemo(() => {
+    if (Array.isArray(modulosCiclo) && modulosCiclo.length > 0) {
+      return modulosCiclo;
+    }
+    if (moduloDefectoId && Array.isArray(modulos) && modulos.length > 0) {
+      const mod = modulos.find((m) => m.id_modulo === moduloDefectoId);
+      if (mod?.id_ciclo) {
+        const filtrados = modulos.filter((m) => m.id_ciclo === mod.id_ciclo);
+        if (filtrados.length > 0) return filtrados;
+      }
+    }
+    return modulos;
+  }, [modulosCiclo, moduloDefectoId, modulos]);
+
+  // Identificador de módulo por defecto: el asociado a la clase o el primero del ciclo formativo.
+  const idModuloPorDefecto = useMemo(() => {
+    if (moduloDefectoId && opcionesModulos.some((m) => m.id_modulo === moduloDefectoId)) {
+      return moduloDefectoId;
+    }
+    return opcionesModulos.length > 0 ? opcionesModulos[0].id_modulo : null;
+  }, [moduloDefectoId, opcionesModulos]);
+
   // Se inicializa el formulario con los datos de la celda activa al abrirse el diálogo.
   useEffect(() => {
     if (visible && celdaActiva) {
       const claseActual = celdaActiva.clase;
       if (claseActual) {
         const esPropia = Boolean(
-          claseActual.id_modulo ||
-          (claseActual.profesor && claseActual.profesor.toLowerCase().includes('docente'))
+          (claseActual.profesor && claseActual.profesor.toLowerCase().includes('docente')) ||
+          (!claseActual.profesor && claseActual.id_modulo)
         );
         setEsMiClase(esPropia);
 
         // Se localiza el id_modulo correspondiente tanto para clases propias como de compañeros.
         let moduloEncontradoId = claseActual.id_modulo;
         if (!moduloEncontradoId && claseActual.modulo_alt) {
-          const mod = modulos.find(
+          const mod = opcionesModulos.find(
+            (m) =>
+              m.siglas === claseActual.modulo_alt ||
+              m.nombre === claseActual.modulo_alt ||
+              (m.siglas && claseActual.modulo_alt.includes(m.siglas))
+          ) || modulos.find(
             (m) =>
               m.siglas === claseActual.modulo_alt ||
               m.nombre === claseActual.modulo_alt ||
@@ -61,7 +93,7 @@ export const DialogoClaseHorario = ({
           if (mod) moduloEncontradoId = mod.id_modulo;
         }
 
-        setIdModulo(moduloEncontradoId || (modulos.length > 0 ? modulos[0].id_modulo : null));
+        setIdModulo(moduloEncontradoId || idModuloPorDefecto);
         setProfesor(
           claseActual.profesor && !claseActual.profesor.toLowerCase().includes('docente')
             ? claseActual.profesor
@@ -71,22 +103,27 @@ export const DialogoClaseHorario = ({
       } else {
         // Valores predeterminados para una nueva asignación en celda vacía.
         setEsMiClase(true);
-        setIdModulo(modulos.length > 0 ? modulos[0].id_modulo : null);
+        setIdModulo(idModuloPorDefecto);
         setProfesor('');
         setAula('');
       }
       setErrorValidacion('');
     }
-  }, [visible, celdaActiva, modulos]);
+  }, [visible, celdaActiva, opcionesModulos, idModuloPorDefecto, modulos]);
 
   // Manejador del guardado con validación de campos obligatorios.
   const manejarGuardar = () => {
+    if (celdaActiva?.sesion && esSesionRecreo(celdaActiva.sesion.descripcion)) {
+      setErrorValidacion('No se pueden asignar clases en períodos de recreo.');
+      return;
+    }
+
     if (!idModulo) {
       setErrorValidacion('Debes seleccionar un módulo curricular.');
       return;
     }
 
-    const moduloSeleccionado = modulos.find((m) => m.id_modulo === idModulo);
+    const moduloSeleccionado = opcionesModulos.find((m) => m.id_modulo === idModulo) || modulos.find((m) => m.id_modulo === idModulo);
     const nombreModuloAlt = moduloSeleccionado
       ? moduloSeleccionado.siglas || moduloSeleccionado.nombre
       : '';
@@ -98,7 +135,7 @@ export const DialogoClaseHorario = ({
       dia_semana: celdaActiva.dia.dia,
       grupo,
       es_mi_clase: esMiClase,
-      id_modulo: esMiClase ? idModulo : null,
+      id_modulo: idModulo,
       modulo_alt: esMiClase ? null : nombreModuloAlt,
       profesor: esMiClase ? 'Docente titular' : (profesor.trim() || 'Compañero'),
       aula: aula.trim()
@@ -174,6 +211,9 @@ export const DialogoClaseHorario = ({
             onChange={(e) => {
               setEsMiClase(e.checked);
               setErrorValidacion('');
+              if (!idModulo) {
+                setIdModulo(idModuloPorDefecto);
+              }
             }}
           />
           <label htmlFor="es-mi-clase" className="font-semibold text-900 cursor-pointer ml-2">
@@ -190,7 +230,7 @@ export const DialogoClaseHorario = ({
             <SelectorModulo
               id="selector-modulo"
               value={idModulo}
-              options={modulos}
+              options={opcionesModulos}
               onChange={(e) => setIdModulo(e.value)}
               placeholder="Seleccionar módulo impartido..."
             />
@@ -204,7 +244,7 @@ export const DialogoClaseHorario = ({
               <SelectorModulo
                 id="selector-modulo-companero"
                 value={idModulo}
-                options={modulos}
+                options={opcionesModulos}
                 onChange={(e) => setIdModulo(e.value)}
                 placeholder="Seleccionar módulo impartido..."
               />

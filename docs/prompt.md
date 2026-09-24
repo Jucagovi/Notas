@@ -78,6 +78,14 @@ Regla estricta de Componentización: no escribas toda la interfaz en el archivo 
 
 Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
 
+## 04 revisión
+
+Se ha cambiado el concepto de la tabla `Cursos` aunque no la estructura: ahora los cursos académicos serán tratados como clases (aunque la tabla sea Cursos). La idea es que se pueda repetir un módulo en el mismo curso (por ejemplo impartir SOM a 1SMR A y a 1 SMR B). No hay que hacer cambios tñecnicos pero sí metodológicos:
+
+- en todos los pasos del <Stepper> cambia las referencias curso académico, curso o cosas así por la de `Clase`.
+- en el paso 1, ya no existe la posibilidad de selccionar un curso/clase existente: hay que crearla siempre desde cero, por lo que muestra siempre el formulario para su creación,
+- en ese formulario sugiere los valores a los siguientes inputs: el año actual en `Año lectivo` (por ejemplo 2026 para este año), el texto `IES Poeta PAco Mollà (Petrer)` en el input `Centro Educativo`. Las fechas de inicio y fin ya no son opcionales.
+
 ### Revisión 04
 
 Hay que cambiar cosas:
@@ -227,6 +235,15 @@ expand)
       a una insignia distintiva Lectiva, manteniendo el estilo anaranjado para las actividades complementarias o no
       lectivas.
   
+## 30 revisión horarios 3
+
+Hay que hacer cambios:
+
+- cambio de enfoque: los cursos ahora son tratados como clases conceptualmente. Esto no representa ningún cambio arquitectónico, solo de concepto. Cambia todas las referencias a `Curso` por las de `Clase` en los texto de este caso de uso,
+- en la pestaña `Horarios por cursos` (o clases si ya has cambiado el texto) deben aparecer siempre las clases independientemente si se han establecido sus tramos o no. De hecho, al pulsar sobre el botón `Configurar tramos` aparecerá el popup para generar los tramos de igual modo que aparece al pulsar en el botón `Generar tramos predeterminados`. Una vez generados los tramos aparecerá el horario para ese grupo,
+- añade un botoón para eliminar todos los tramos y el botón `Añadir manualmente` en la pestaña `Horarios por cursos/claes`,
+- elimina la pestaña `Configuración de tramos` ya que no se utilizará a partir de ahora.
+
 ## 18 Gestión de unidades de trabajo
 
 ¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. El proyecto ya está inicializado con Vite, PrimeReact y React-Router.
@@ -236,6 +253,26 @@ Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la b
 Nuestra tarea de hoy es crear un espacio para asignar prácticas (versiones) a las unidades de trabajo. Lee detalladamente el caso de uso en @docs/casos-de-uso/18-gestion-unidades-trabajo.md.
 
 Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 18 revisión (se hizo en Asus y esta revisión en Ryzen)
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es revisar el estado de un espacio para estimar la temporización de los contenidos de un módulo. Lee detalladamente el caso de uso en @docs/casos-de-uso/18-gestor-unidades-trabajo.md. ya está construido pero hay que revisar algunas cosas.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Hay que revisar:
+
+- cambio de enfoque: los cursos ahora son tratados como clases conceptualmente. Esto no representa ningún cambio arquitectónico, solo de concepto. Cambia todas las referencias a `Curso` por las de `Clase` en los texto de este caso de uso,
+- elimina el <DropDown> de `Modulo` ya que la clase elegida ya está asiganda a un módulo y será a es módulo al que se le asignen las UT,
+- asigna el mismo margin a los botones de la derecha ya que algunos están pegados,
+- en el popup para la creación de unidade de trabajo: quita los botones + y - para modificar el valor del input,
+- cuando se muestra unidad de trabajo como UT1 hay que incluir un cero para delante si el valor de la unidad es menor a 10 (por ejemplo UT01),
+- de esta sección, elimina el uso de la biblioteca Swapy y, en lugar de mostrar el contenido de la versión, añadel el número de la UT para que, al pulsarla, se añada a esa unidad de trabajo (así se ahorra el uso de Swapy),
+- hay que rediseñar este apartado para que se muesntren siempre dos columnas: una con el listado tabular de UT y otro con el de las versiones que se añadirán pulsando sobre el número de la UT. Para eliminar una verisón de una UT existirá un botón que relizará esa tarea.
 
 Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
 
@@ -249,6 +286,39 @@ Regla estricta de Componentización: no escribas toda la interfaz en el archivo 
 
 Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
 
+## 19 revisión (se hizo en Asus y esta revisión en Ryzen)
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es revisar el estado de un espacio para estimar la temporización de los contenidos de un módulo. Lee detalladamente el caso de uso en @docs/casos-de-uso/19-temporizacion.md. Ya está construido pero hay que revisar algunas cosas.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Hay que revisar:
+
+- cambio de enfoque: los cursos ahora son tratados como clases conceptualmente. Esto no representa ningún cambio arquitectónico, solo de concepto. Cambia todas las referencias a `Curso` por las de `Clase` en los texto de este caso de uso,
+- crea un <DropDown> delante del que ya existe con el listado de  los años académicos para poder filtrar las clases. Se deben mostrar los años con el nombre completo (por ejemplo, para el año 2026 debe mostrar `2026/2027`),
+- sustituye el <DropDown> `Módulo formativo` por `Clase` y filtra los cursos que sólo pertenezcan al curso actual (seleccionado en el anterior <DropDown>),
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 19 revisión de la revisión
+
+Hay que cambiar algunas cosas:
+
+- el <DropDown> de `Clase` muestra un listado erróneo: debe mostrar las clases del año académico seleccinado,
+- al cambiar de orden una UT se desactiva la opción de cambiar de fecha (<DatePicker> desactivado) y no debería suceder,
+- en el listado de UT elimina las columnas de `Nombre de la Clase`, `Estado` y `Observaciones` (que será mostrado como un <TextArea> al pulsar un botón en la columna acciones),
+- ajusta el andho de las columnas para que se vea toda la información en el espacio de la tabla,
+- los input para las fechas no muestran las fechas elegidas (por el problema de las columnas),
+- debería existir un botón parab realizar una propuesta de temporización (que aparecerá en una ventana popup) teniendo en cuenta el peso de los RA (si un RA estña asociado a una UT y es RA pesa el 20 % de la nota, el 20% de las horas denen ser para esta UT. Su temporización se calculará en función del calendario de año académico y del horario del discente). Si se acepta la propuesta, las fechas pasarán a los inputs de fechas previstas (en esa venta popup parecerá un calendario escolar de doce meses (de septiembre a agosto) con los dias lectivos y los días marcados para cada unidad en diferente colores para cada una. Al pasar el rató por encima aparecerá el nombre de la UT q¡a la que atañe),
+- los botones de `Prouesta` y siguinetes deben estar en un fial debajo de los <DroopDown> de `Año académico` y `Clase` (alineado a la derecha tal y como están),
+- se debe implementar alguna manera para poder editar la propuesta que se realiza (moviendo fechas en el calendario con el ratón, por ejemplo (plantea una forma de
+  hacerlo)).
+- las unidade de trabajo deben mostrarse con un cero delante para los número menores de 10 (UT01 en lugar de UT1). Existe una funcinonalidad programada en el caso de uso 18-gestion-unidades-trabajo.md. Usa la misma función.
+- los elementos de las dos filas superiores (<DropDown> y botones) ocupan todo el ancho de la columna y deberían tener un tamaño normal como en el resto de elemntos de la app. Revisa esos tamaños,
+- debe existir, debajo del listado de las UT un diagram de Grant con la temporización del curso escolar dibujando las diferentes unidades. Debajo de ese gráfico existirá el calendario que se ha mostrado en el popup con la configuración final de la temporización con la posibilidad de modificarla (de igual modo que en  el popup de `Propuesta`).
+
 ## 14 Taller de prácticas
 
 ¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
@@ -258,3 +328,64 @@ Nuestra tarea de hoy es crear un espacio para estimar la temporización de los c
 Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
 
 Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 14 revisión (se hizo en Asus y esta revisión en Ryzen)
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es revisar el estado de un espacio para estimar la temporización de los contenidos de un módulo. Lee detalladamente el caso de uso en @docs/casos-de-uso/14-creacion-taller-practicas.md. ya está construido pero hay que revisar algunas cosas.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Hay que revisar:
+
+- cambio de enfoque: los cursos ahora son tratados como clases conceptualmente. Esto no representa ningún cambio arquitectónico, solo de concepto. Cambia todas las referencias a `Curso` por las de `Clase` en los texto de este caso de uso,
+- crea un <DropDown> delante del que ya existe con el listado de  los años académicos para poder filtrar las clases. Se deben mostrar los años con el nombre completo (por ejemplo, para el año 2026 debe mostrar `2026/2027`),
+- sustituye el <DropDown> `Módulo formativo` por `Clase` y filtra los cursos que sólo pertenezcan al curso actual (seleccionado en el anterior <DropDown>),
+- en la parte inferior en un espacio que ocupe todo el ancho de la página, debería existir un pequeño manual de cómo utilizar esta herramienta,
+- al crear una nueva práctica (popup de creación) el módulo ya se conoce puesto que cada curso está asociado a un módulo.
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 14 revisión de la revisión en Ryzen
+
+Hay que hacer algunos cambios:
+
+- al crear una nueva versión no se debe preguntar a qué módulo pertenece ya que está asociada a una clase y esta a un módulo,
+- la columna `Tipo` se debe mostrar a través de un icono y no con un <Tag>. Elige los iconos que mejor represneten a cada tipo de práctica,
+- el taller de prácticas está concebido para la creación de las prácticas, por lo que su modificación no debe ponerse aquí (en el popup de creación de versión) y mostrar tan sólo esos datos de solo lectura (si existen). Por tanto convierte los <DropDown> en texto informativo (sin usar <Tag)>)
+- en ese mismo popup, en el input `Número / Código de versión` recomienda siempre el nombre del año académico al que pertenece la clase,
+- no debe preguntar la clase ya que está seleccionada de antemano antes de llegar a este paso,
+- en la tabla que lista las versiones, muesta la versión como texto
+
+## 31 Centro de ayuda
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es proporcionar al usuario un manual integrado en la aplicación que explique el flujo exacto de configuración inicial. Lee detalladamente el caso de uso en @docs/casos-de-uso/31-centro-ayuda.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 16 Pesos RA y CE
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es crear un espacio para ponderar los pesos de los RA y CE que intervendrán en la evaluación. Lee detalladamente el caso de uso en @docs/casos-de-uso/16-pesos-ra-ce.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 16 revisión
+
+Hay que implementar algunos cambios:
+
+- cambio de enfoque: los cursos ahora son tratados como clases conceptualmente. Esto no representa ningún cambio arquitectónico, solo de concepto. Cambia todas las referencias a `Curso` por las de `Clase` en los texto de este caso de uso,
+- los botones de la primera sección se muestran enormes (ocupan la mitad del espacio disponible y en columnas). Muestra esos botones de un tamaño acorde al estilo de la app y en una sola fila a la redecha del <DropDown> para seleccionar la clase,
+- el selector de clase no funciona de forma adecuada: debe mostrar sólo los módulos que tienen alguna clase creada durante el curso académico actual (en este caso los creados entre en septiembre de 2026 y agosto de 2027),
+- los desplegables deben aparecer por defecto plegados para ver el listado de RA disponibles,
+- Cada RA y CE debe mostrar los campos `Enunciado` y `Descripción` truncando el texto para que se vea en una sola línea (si se trunca, aparecerá el texto completo a modo de tooltip al dejar el ratón un tiempo encima),
+- en el listado de RA y CE quita la columna `Nivel`: no aporta nada
+- los botones para modificar el porcentaje de los inputs deben tener un margen para que respiren y, además, deben tener la misma altura que el input que acompañan,
