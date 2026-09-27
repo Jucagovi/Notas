@@ -307,12 +307,14 @@ export const TABLAS_RELACIONES = {
       { tabla: 'RA', clave: 'id_ra', campoTexto: 'nombre', campoAlternativo: 'numero' }
     ],
     columnas: [
-      { campo: 'id_ut', encabezado: 'Unidad de Trabajo', ancho: '300px', tipo: 'relacion', tablaReferencia: 'Unidades_Trabajo', ordenar: true },
-      { campo: 'id_ra', encabezado: 'Resultado de Aprendizaje', ancho: '300px', tipo: 'relacion', tablaReferencia: 'RA', ordenar: true }
+      { campo: 'id_ut', encabezado: 'Unidad de Trabajo', ancho: '260px', tipo: 'relacion', tablaReferencia: 'Unidades_Trabajo', ordenar: true },
+      { campo: 'id_ra', encabezado: 'Resultado de Aprendizaje', ancho: '260px', tipo: 'relacion', tablaReferencia: 'RA', ordenar: true },
+      { campo: 'porcentaje', encabezado: 'Porcentaje (%)', ancho: '140px', tipo: 'numero', ordenar: true }
     ],
     camposFormulario: [
       { campo: 'id_ut', etiqueta: 'Unidad de Trabajo', tipo: 'desplegable', requerido: true, tablaReferencia: 'Unidades_Trabajo' },
-      { campo: 'id_ra', etiqueta: 'Resultado de Aprendizaje', tipo: 'desplegable', requerido: true, tablaReferencia: 'RA' }
+      { campo: 'id_ra', etiqueta: 'Resultado de Aprendizaje', tipo: 'desplegable', requerido: true, tablaReferencia: 'RA' },
+      { campo: 'porcentaje', etiqueta: 'Porcentaje cubierto en la UT (%)', tipo: 'numero', requerido: true, min: 0, max: 100 }
     ]
   },
   versiones: {

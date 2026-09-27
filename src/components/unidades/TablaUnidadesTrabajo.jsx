@@ -61,23 +61,40 @@ const TablaUnidadesTrabajo = ({
     );
   }
 
-  // Plantilla fusionada para 'Unidad de trabajo' concatenando número (UT01) y nombre.
+  // Plantilla fusionada para 'Unidad de trabajo' concatenando número (UT01), nombre y etiquetas de RAs.
   const plantillaUnidadTrabajo = (fila) => {
     const etiquetaUT = formatearNumeroUT(fila.numero);
     const textoCompleto = `${etiquetaUT} ${fila.nombre}`;
 
     return (
       <div
-        className="flex align-items-center gap-2 overflow-hidden cursor-pointer py-1"
+        className="flex flex-column py-1 cursor-pointer overflow-hidden"
         title={`${textoCompleto} (Pulsa para expandir o colapsar prácticas)`}
         onClick={() => alternarFila(fila.id_ut)}
       >
-        <span className="font-bold text-primary font-mono flex-shrink-0">
-          {etiquetaUT}
-        </span>
-        <span className="font-semibold text-900 linea-truncada">
-          {fila.nombre}
-        </span>
+        <div className="flex align-items-center gap-2 overflow-hidden">
+          <span className="font-bold text-primary font-mono flex-shrink-0">
+            {etiquetaUT}
+          </span>
+          <span className="font-semibold text-900 linea-truncada">
+            {fila.nombre}
+          </span>
+        </div>
+
+        {fila.ras && fila.ras.length > 0 && (
+          <div className="flex align-items-center gap-1 flex-wrap mt-1">
+            {fila.ras.map((r) => (
+              <span
+                key={r.id_ra}
+                className="text-xs px-2 py-0 border-round bg-blue-50 text-blue-900 border-1 border-blue-200 font-mono inline-flex align-items-center gap-1"
+                title={`RA${r.ra_numero}: ${r.ra_nombre || ''} (${r.porcentaje}%)`}
+              >
+                <span>RA{r.ra_numero}</span>
+                <span className="text-blue-600 font-bold">({r.porcentaje}%)</span>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     );
   };

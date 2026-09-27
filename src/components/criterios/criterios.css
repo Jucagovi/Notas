@@ -1,0 +1,119 @@
+/* Estilos específicos para los componentes de Mapeo Curricular de Criterios (CU 11) */
+
+/* Contenedor del control unificado de Slider e InputText según especificación de diseño */
+.control-slider-input {
+  display: inline-flex;
+  flex-direction: column;
+  width: 140px;
+  position: relative;
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+.control-slider-input--deshabilitado {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Caja superior que contiene el número editable */
+.control-slider-input__caja {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: var(--surface-card, #ffffff);
+  border: 1px solid var(--surface-border, #dee2e6);
+  border-radius: 6px;
+  height: 38px;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  padding: 0;
+  overflow: hidden;
+}
+
+.control-slider-input__caja--enfocado {
+  border-color: var(--primary-color, #1174c0);
+  box-shadow: 0 0 0 1px var(--primary-color, #1174c0);
+}
+
+/* InputText transparente y centrado horizontalmente */
+.control-slider-input__input {
+  width: 100% !important;
+  height: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 0.5rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  color: var(--text-color, #343a3f) !important;
+  text-align: center !important;
+}
+
+/* Contenedor del slider adherido a la base de la caja */
+.control-slider-input__slider-contenedor {
+  width: 100%;
+  margin-top: 0;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+  height: 4px;
+}
+
+/* Barra del Slider PrimeReact */
+.control-slider-input__slider.p-slider {
+  width: 100% !important;
+  height: 4px !important;
+  background-color: var(--surface-border, #dee2e6) !important;
+  border: none !important;
+  border-radius: 2px !important;
+  margin: 0 !important;
+  position: relative !important;
+}
+
+/* Rango activo coloreado con el color primario de la app */
+.control-slider-input__slider.p-slider .p-slider-range {
+  background-color: var(--primary-color, #1174c0) !important;
+  border-radius: 2px 0 0 2px !important;
+}
+
+/* Tirador / Handle circular con fondo blanco y borde primario centrado sobre la barra */
+.control-slider-input__slider.p-slider .p-slider-handle {
+  width: 16px !important;
+  height: 16px !important;
+  background-color: var(--surface-card, #ffffff) !important;
+  border: 2px solid var(--primary-color, #1174c0) !important;
+  border-radius: 50% !important;
+  margin-top: -6px !important;
+  margin-left: -8px !important;
+  box-sizing: border-box !important;
+  transition: transform 0.1s ease, box-shadow 0.2s ease !important;
+  cursor: pointer !important;
+  outline: none !important;
+}
+
+.control-slider-input__slider.p-slider .p-slider-handle:hover,
+.control-slider-input__slider.p-slider .p-slider-handle:focus {
+  box-shadow: 0 0 0 3px var(--primary-light, rgba(17, 116, 192, 0.25)) !important;
+}
+
+/* Compatibilidad con tema oscuro */
+html.dark-theme .control-slider-input__caja,
+html.app-dark .control-slider-input__caja,
+[data-theme='dark'] .control-slider-input__caja {
+  background-color: var(--surface-card, #1e293b);
+  border-color: var(--surface-border, #334155);
+}
+
+html.dark-theme .control-slider-input__slider.p-slider,
+html.app-dark .control-slider-input__slider.p-slider,
+[data-theme='dark'] .control-slider-input__slider.p-slider {
+  background-color: var(--surface-border, #334155) !important;
+}
+
+html.dark-theme .control-slider-input__slider.p-slider .p-slider-handle,
+html.app-dark .control-slider-input__slider.p-slider .p-slider-handle,
+[data-theme='dark'] .control-slider-input__slider.p-slider .p-slider-handle {
+  background-color: var(--surface-card, #1e293b) !important;
+  border-color: var(--primary-color, #38bdf8) !important;
+}

@@ -1,4 +1,4 @@
-# 🗺️ Caso de uso 12.6: Mapa de Calor Curricular (Heatmap de Puntos Ciegos)
+# Caso de uso 12.6: Mapa de Calor Curricular (Heatmap de Puntos Ciegos)
 
 ## 1. Objetivo
 
@@ -8,9 +8,11 @@ Proporcionar al docente una matriz visual de alto contraste que cruce a todos lo
 
 * **Nueva entrada en el menú:** Habilitar un submenú final en la sección `Informes` con el nombre `Mapa de Calor`, que conducirá a la nueva página `src/pages/informes/InformeMapaCalor.jsx`.
 * **Filtros Contextuales (Header):**
-* Componentes `Dropdown` (PrimeReact) para seleccionar Curso y Módulo.
+* **Cambio de enfoque:** los cursos ahora son tratados como clases conceptualmente. Esto no representa ningún cambio arquitectónico, solo de concepto. Cambia todas las referencias a `Curso` por las de `Clase` en los textos de este caso de uso.
+* **Filtros Contextuales:** componentes `Dropdown` (PrimeReact) para elegir `Año académico` (obtenida de la tabla cursos y mostrada coo 2026/2027 para el año 2026) que filtrará los Cursos/Clases de ese año académico (la clase ya lleva asociado un módulo). El Dropdown de `Año académico` seleccionará el año más reciente por defecto; el de Curso/Clase.
+  * *Nota de ordenación:* El Dropdown de Cursos debe listar los registros ordenados del más reciente al más antiguo.
+  * Solo se habilitará el siguiente Dropdown cuando el usuario seleccione un valor en el anterior.
 * Un componente `SelectButton` o `ToggleButton` de PrimeReact para alternar el nivel de detalle de las columnas: "Vista por RA" (resumen) o "Vista por CE" (análisis microscópico).
-
 
 * **Visualización de la Matriz (Main):**
 * Un `DataTable` de PrimeReact configurado con alta densidad de datos (propiedad `size="small"`).
@@ -21,8 +23,6 @@ Proporcionar al docente una matriz visual de alto contraste que cruce a todos lo
 * **Renderizado de Celdas (Regla Estricta):**
 * La celda completa debe adoptar como color de fondo el resultado del helper `getColorNota(nota)` (`src/utils/coloresNota.js`).
 * El valor numérico de la nota (0-100) se mostrará centrado con una tipografía pequeña y de alto contraste (blanco/negro dependiendo de la oscuridad del fondo). Si no hay datos, mostrar celda en blanco o gris claro.
-
-
 
 ## 3. Lógica de Análisis Visual
 

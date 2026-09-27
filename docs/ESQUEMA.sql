@@ -9,13 +9,13 @@ nombre character varying NOT NULL DEFAULT ''::character varying,
   id_ciclo uuid NOT NULL DEFAULT gen_random_uuid(),
   CONSTRAINT Ciclos_pkey PRIMARY KEY (id_ciclo)
 );
-CREATE TABLE public.Discentes ( nombre text NOT NULL,
-apellidos text NOT NULL,
-correo text,
-fecha_nac date,
-localidad text,
-id_discente uuid NOT NULL DEFAULT gen_random_uuid (),
-imagen text,
+CREATE TABLE public.Discentes (
+  nombre text NOT NULL,
+  apellidos text NOT NULL,
+  correo text,
+  fecha_nac date,
+  localidad text,
+id_discente uuid NOT NULL DEFAULT gen_random_uuid (), imagen text,
 created_at timestamp
 with
     time zone DEFAULT now(),
@@ -32,6 +32,15 @@ nombre character varying NOT NULL DEFAULT ''::character varying,
   id_ciclo uuid,
   CONSTRAINT Modulos_pkey PRIMARY KEY (id_modulo),
   CONSTRAINT Modulos_id_ciclo_fkey FOREIGN KEY (id_ciclo) REFERENCES public.Ciclos(id_ciclo)
+);
+CREATE TABLE public.cesta_compra (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  nombre text NOT NULL,
+  created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+  cantidad smallint,
+  listado boolean,
+  supermercado text,
+  CONSTRAINT cesta_compra_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.RA (
   id_ra uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -53,7 +62,6 @@ nombre character varying NOT NULL,
   CONSTRAINT CE_pkey PRIMARY KEY (id_ce),
   CONSTRAINT CE_id_ra_fkey FOREIGN KEY (id_ra) REFERENCES public.RA(id_ra)
 );
-
 CREATE TABLE public.Unidades_Trabajo (
   id_ut uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
@@ -68,6 +76,7 @@ CREATE TABLE public.desarrollan (
   id_desarrollan uuid NOT NULL DEFAULT gen_random_uuid(),
   id_ut uuid NOT NULL,
   id_ra uuid NOT NULL,
+  porcentaje smallint NOT NULL DEFAULT 100 CHECK (porcentaje >= 0 AND porcentaje <= 100),
   CONSTRAINT desarrollan_pkey PRIMARY KEY (id_desarrollan),
   CONSTRAINT desarrollan_id_ut_fkey FOREIGN KEY (id_ut) REFERENCES public.Unidades_Trabajo(id_ut),
   CONSTRAINT desarrollan_id_ra_fkey FOREIGN KEY (id_ra) REFERENCES public.RA(id_ra)
@@ -78,6 +87,7 @@ CREATE TABLE public.Practicas (
 nombre text NOT NULL, descripcion text,
   id_tipopractica text NOT NULL,
 id_modulo uuid NOT NULL,
+es_activa boolean DEFAULT true,
 CONSTRAINT Practicas_pkey PRIMARY KEY (id_practica),
 CONSTRAINT Practicas_id_modulo_fkey FOREIGN KEY (id_modulo) REFERENCES public.Modulos (id_modulo)
 );
@@ -177,7 +187,7 @@ CREATE TABLE public.evaluan (
   id_evaluan uuid NOT NULL DEFAULT gen_random_uuid(),
   nota integer CHECK (nota >= 0 AND nota <= 100),
 id_version uuid NOT NULL,
-id_evaluacion uuid NOT NULL,
+id_evaluacion uuid,
 id_discente uuid NOT NULL,
 CONSTRAINT evaluan_pkey PRIMARY KEY (id_evaluan),
 CONSTRAINT evaluan_id_version_fkey FOREIGN KEY (id_version) REFERENCES public.Versiones (id_version),
@@ -216,7 +226,17 @@ CREATE TABLE public.Horarios (
   profesor text,
   aula text,
 CONSTRAINT Horarios_pkey PRIMARY KEY (id_horario),
-CONSTRAINT Horarios_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos (id_curso),
-CONSTRAINT Horarios_id_sesion_fkey FOREIGN KEY (id_sesion) REFERENCES public.Sesiones (id_sesion),
-CONSTRAINT Horarios_id_modulo_fkey FOREIGN KEY (id_modulo) REFERENCES public.Modulos (id_modulo)
+CONSTRAINT Horarios_id_curso_fkey FOREIGN KEY (id_curso) REFERENCES public.Cursos(id_curso),
+  CONSTRAINT Horarios_id_sesion_fkey FOREIGN KEY (id_sesion) REFERENCES public.Sesiones(id_sesion),
+  CONSTRAINT Horarios_id_modulo_fkey FOREIGN KEY (id_modulo) REFERENCES public.Modulos(id_modulo)
+);
+
+CREATE TABLE public.ra_evaluacion (
+  id_ra_evaluacion uuid NOT NULL DEFAULT gen_random_uuid(),
+  id_ra uuid NOT NULL,
+  id_evaluacion uuid NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT ra_evaluacion_pkey PRIMARY KEY (id_ra_evaluacion),
+  CONSTRAINT ra_evaluacion_id_ra_fkey FOREIGN KEY (id_ra) REFERENCES public.RA(id_ra),
+  CONSTRAINT ra_evaluacion_id_evaluacion_fkey FOREIGN KEY (id_evaluacion) REFERENCES public.Evaluaciones(id_evaluacion)
 );

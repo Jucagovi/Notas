@@ -3056,6 +3056,127 @@ html.dark-theme .p-treetable .p-treetable-tbody > tr:hover,
   }
 }
 
+/* ==========================================================================
+   Acordeón adaptado al tema Nano y diseño general de la aplicación
+   ========================================================================== */
+.acordeon-cobertura.p-accordion,
+.acordeon-pendientes.p-accordion,
+.acordeon-curriculo.p-accordion {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+}
 
+.acordeon-cobertura .p-accordion-tab,
+.acordeon-pendientes .p-accordion-tab,
+.acordeon-curriculo .p-accordion-tab {
+  border-radius: var(--border-radius, 8px) !important;
+  overflow: hidden !important;
+  border: 1px solid var(--surface-border, #dee2e6) !important;
+  background-color: var(--surface-card, #ffffff) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
 
+.acordeon-cobertura .p-accordion-tab:hover,
+.acordeon-pendientes .p-accordion-tab:hover,
+.acordeon-curriculo .p-accordion-tab:hover {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08) !important;
+  border-color: var(--primary-200, #cfd9ed) !important;
+}
+
+.acordeon-cobertura .p-accordion-header .p-accordion-header-link,
+.acordeon-pendientes .p-accordion-header .p-accordion-header-link,
+.acordeon-curriculo .p-accordion-header .p-accordion-header-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  position: relative !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background-color: var(--surface-card, #ffffff) !important;
+  color: var(--text-color, #343a3f) !important;
+  padding: 0.85rem 1.25rem !important;
+  border: none !important;
+  font-weight: 600 !important;
+  border-radius: 0 !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.acordeon-cobertura .p-accordion-header .p-accordion-header-link:hover,
+.acordeon-pendientes .p-accordion-header .p-accordion-header-link:hover,
+.acordeon-curriculo .p-accordion-header .p-accordion-header-link:hover {
+  background-color: var(--surface-hover, #f4f6fb) !important;
+}
+
+.acordeon-cobertura .p-accordion-header .p-accordion-header-link:focus,
+.acordeon-pendientes .p-accordion-header .p-accordion-header-link:focus,
+.acordeon-curriculo .p-accordion-header .p-accordion-header-link:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.acordeon-cobertura .p-accordion-header .p-accordion-header-link .p-accordion-toggle-icon,
+.acordeon-pendientes .p-accordion-header .p-accordion-header-link .p-accordion-toggle-icon,
+.acordeon-curriculo .p-accordion-header .p-accordion-header-link .p-accordion-toggle-icon {
+  flex-shrink: 0 !important;
+  min-width: 1.25rem !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  color: var(--primary-color, #1174c0) !important;
+  margin-right: 0.75rem !important;
+  font-size: 0.9rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.acordeon-cobertura .p-accordion-header .p-accordion-header-link .p-accordion-header-text,
+.acordeon-pendientes .p-accordion-header .p-accordion-header-link .p-accordion-header-text,
+.acordeon-curriculo .p-accordion-header .p-accordion-header-link .p-accordion-header-text {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  width: auto !important;
+  line-height: normal !important;
+}
+
+.acordeon-cobertura .p-accordion-tab-active > .p-accordion-header .p-accordion-header-link,
+.acordeon-pendientes .p-accordion-tab-active > .p-accordion-header .p-accordion-header-link,
+.acordeon-curriculo .p-accordion-tab-active > .p-accordion-header .p-accordion-header-link {
+  background-color: var(--surface-card, #ffffff) !important;
+  border-bottom: 1px solid var(--surface-border, #dee2e6) !important;
+}
+
+.acordeon-cobertura .p-accordion-content,
+.acordeon-pendientes .p-accordion-content,
+.acordeon-curriculo .p-accordion-content {
+  background-color: var(--surface-ground, #f8fafc) !important;
+  padding: 1rem 1.25rem !important;
+  border: none !important;
+}
+
+/* ==========================================================================
+   Etiquetas con fondo transparente en acordeones del informe de pendientes
+   ========================================================================== */
+.acordeon-pendientes .p-tag,
+.acordeon-pendientes .p-tag.p-tag-warning,
+.acordeon-pendientes .p-tag.p-tag-danger,
+.acordeon-pendientes .p-tag.p-tag-info,
+.acordeon-pendientes .p-tag.p-tag-success,
+.p-tag.tag-transparente {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+html.dark-theme .acordeon-pendientes .p-tag,
+html.dark-theme .acordeon-pendientes .p-tag.p-tag-warning,
+html.dark-theme .acordeon-pendientes .p-tag.p-tag-danger,
+html.dark-theme .p-tag.tag-transparente,
+[data-theme='dark'] .acordeon-pendientes .p-tag,
+[data-theme='dark'] .acordeon-pendientes .p-tag.p-tag-warning,
+[data-theme='dark'] .acordeon-pendientes .p-tag.p-tag-danger,
+[data-theme='dark'] .p-tag.tag-transparente {
+  background-color: transparent !important;
+  background: transparent !important;
+}
 

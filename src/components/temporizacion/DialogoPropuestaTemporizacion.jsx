@@ -270,22 +270,57 @@ export const DialogoPropuestaTemporizacion = ({
             </div>
           </div>
 
+          {/* Banner informativo sobre el cálculo de ponderación aplicado */}
+          {!propuesta.hayVinculosDesarrollan ? (
+            <div className="surface-50 border-round-lg border-1 border-orange-300 p-2 px-3 text-xs text-800 flex align-items-center gap-2">
+              <i className="pi pi-info-circle text-orange-600 text-sm flex-shrink-0" />
+              <span>
+                <strong>Reparto uniforme por defecto:</strong> No se han detectado Resultados de Aprendizaje asociados a las Unidades de Trabajo de este módulo. Para calcular la propuesta ponderando los pesos de los RAs y sus porcentajes, configúralos en el <em>Gestor de Unidades de Trabajo</em>.
+              </span>
+            </div>
+          ) : (
+            <div className="surface-50 border-round-lg border-1 border-teal-300 p-2 px-3 text-xs text-800 flex align-items-center gap-2">
+              <i className="pi pi-check-circle text-teal-600 text-sm flex-shrink-0" />
+              <span>
+                <strong>Ponderación curricular activa:</strong> Los días lectivos se han calculado ponderando los pesos de cada Resultado de Aprendizaje y el porcentaje de cobertura asignado a cada Unidad de Trabajo.
+              </span>
+            </div>
+          )}
+
           {/* 2. Barra interactiva de control para edición con el ratón */}
           <div className="surface-card border-round-lg border-1 surface-border p-3 shadow-1 flex flex-column gap-2">
             <div className="flex align-items-center justify-content-between flex-wrap gap-2">
-              <div className="flex align-items-center gap-2">
-                <span className="font-bold text-xs uppercase text-color-secondary">
-                  Unidad activa para edición:
-                </span>
-                {utActiva && (
-                  <span
-                    className="inline-flex align-items-center gap-2 px-3 py-1 border-round-lg text-xs font-bold text-white shadow-1"
-                    style={{ backgroundColor: utActiva.color?.fondo || '#2563eb' }}
-                  >
-                    <span>{formatearNumeroUT(utActiva.unidad_trabajo?.numero || utActiva.orden)}</span>
-                    <span className="font-normal opacity-90">• {utActiva.unidad_trabajo?.nombre || 'Unidad'}</span>
-                    <Badge value={`${utActiva.numDias} días`} severity="info" className="ml-1" />
+              <div className="flex flex-column gap-1">
+                <div className="flex align-items-center gap-2">
+                  <span className="font-bold text-xs uppercase text-color-secondary">
+                    Unidad activa para edición:
                   </span>
+                  {utActiva && (
+                    <span
+                      className="inline-flex align-items-center gap-2 px-3 py-1 border-round-lg text-xs font-bold text-white shadow-1"
+                      style={{ backgroundColor: utActiva.color?.fondo || '#2563eb' }}
+                    >
+                      <span>{formatearNumeroUT(utActiva.unidad_trabajo?.numero || utActiva.orden)}</span>
+                      <span className="font-normal opacity-90">• {utActiva.unidad_trabajo?.nombre || 'Unidad'}</span>
+                      <Badge value={`${utActiva.numDias} días`} severity="info" className="ml-1" />
+                    </span>
+                  )}
+                </div>
+
+                {utActiva?.rasDesarrollados && utActiva.rasDesarrollados.length > 0 && (
+                  <div className="flex align-items-center gap-1 flex-wrap mt-1">
+                    <span className="text-xs text-color-secondary font-semibold">RAs desarrollados:</span>
+                    {utActiva.rasDesarrollados.map((r) => (
+                      <span
+                        key={r.id_ra}
+                        className="text-xs px-2 py-0 border-round bg-blue-50 text-blue-900 border-1 border-blue-200 font-mono inline-flex align-items-center gap-1"
+                        title={`RA${r.numero}: ${r.nombre || ''} (Cubre el ${r.porcentaje}% del RA, peso RA en el curso: ${r.pesoRa}%)`}
+                      >
+                        <span>RA{r.numero}</span>
+                        <span className="text-blue-600 font-bold">({r.porcentaje}%)</span>
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
 
@@ -353,7 +388,11 @@ export const DialogoPropuestaTemporizacion = ({
                       boxShadow: esActiva ? '0 0 0 2px #ffffff, 0 0 0 4px #10b981' : undefined,
                       transform: esActiva ? 'scale(1.04)' : undefined
                     }}
-                    title={`Hacer clic para activar UT ${u.unidad_trabajo?.numero || u.orden}: ${nombreCorto} (${u.numDias} días lectivos)`}
+                    title={`Hacer clic para activar UT ${u.unidad_trabajo?.numero || u.orden}: ${nombreCorto} (${u.numDias} días lectivos, ${u.porcentaje}%)${
+                      u.rasDesarrollados && u.rasDesarrollados.length > 0
+                        ? ' • RAs: ' + u.rasDesarrollados.map((r) => `RA${r.numero} (${r.porcentaje}%)`).join(', ')
+                        : ''
+                    }`}
                   >
                     {esActiva && <i className="pi pi-check-circle text-xs" />}
                     <span>{formatearNumeroUT(u.unidad_trabajo?.numero || u.orden)}</span>

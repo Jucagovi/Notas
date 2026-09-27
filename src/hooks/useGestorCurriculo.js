@@ -34,6 +34,11 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
     setDatos: setVersiones
   } = useDatos('Versiones');
 
+  const { obtenerDatos: obtenerRAs } = useDatos('RA');
+  const { obtenerDatos: obtenerDesarrollan } = useDatos('desarrollan');
+
+  const [listaRAs, setListaRAs] = useState([]);
+  const [relacionesDesarrollan, setRelacionesDesarrollan] = useState([]);
   const [cargandoOperacion, setCargandoOperacion] = useState(false);
   const [errorOperacion, setErrorOperacion] = useState(null);
 
@@ -47,6 +52,27 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
       consulta.eq('id_modulo', idModulo).order('numero', { ascending: true })
     );
   }, [idModulo, obtenerUTs, setUnidadesTrabajo]);
+
+  // Consulta de los Resultados de Aprendizaje del módulo y sus vínculos en desarrollan.
+  const cargarRAsYDesarrollan = useCallback(async () => {
+    if (!idModulo) {
+      setListaRAs([]);
+      setRelacionesDesarrollan([]);
+      return;
+    }
+    try {
+      const [rasData, desarrollanData] = await Promise.all([
+        obtenerRAs('*', (consulta) =>
+          consulta.eq('id_modulo', idModulo).order('numero', { ascending: true })
+        ),
+        obtenerDesarrollan('*')
+      ]);
+      setListaRAs(rasData || []);
+      setRelacionesDesarrollan(desarrollanData || []);
+    } catch (err) {
+      console.error('Error al cargar RAs o relaciones desarrollan:', err);
+    }
+  }, [idModulo, obtenerRAs, obtenerDesarrollan]);
 
   // Consulta de las Versiones instanciadas para la clase y módulo indicados.
   const cargarVersiones = useCallback(async () => {
@@ -69,26 +95,28 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
     const tareas = [];
     if (idModulo) {
       tareas.push(cargarUnidadesTrabajo());
+      tareas.push(cargarRAsYDesarrollan());
     }
     if (idCurso && idModulo) {
       tareas.push(cargarVersiones());
     }
     await Promise.all(tareas);
-  }, [idModulo, idCurso, cargarUnidadesTrabajo, cargarVersiones]);
+  }, [idModulo, idCurso, cargarUnidadesTrabajo, cargarVersiones, cargarRAsYDesarrollan]);
 
-  // Efecto para sincronizar las unidades de trabajo cuando cambia el módulo de la clase.
+  // Efecto para sincronizar las unidades de trabajo y RAs cuando cambia el módulo de la clase.
   useEffect(() => {
     cargarUnidadesTrabajo();
-  }, [cargarUnidadesTrabajo]);
+    cargarRAsYDesarrollan();
+  }, [cargarUnidadesTrabajo, cargarRAsYDesarrollan]);
 
   // Efecto para sincronizar las actividades cuando cambian el curso o el módulo de la clase.
   useEffect(() => {
     cargarVersiones();
   }, [cargarVersiones]);
 
-  // Creación de una nueva Unidad de Trabajo vinculada al módulo de la clase activa.
+  // Creación de una nueva Unidad de Trabajo vinculada al módulo de la clase activa y a sus RAs en desarrollan.
   const crearUnidadTrabajo = useCallback(
-    async ({ numero, nombre, descripcion }) => {
+    async ({ numero, nombre, descripcion, ras = [] }) => {
       if (!idModulo) {
         setErrorOperacion('Debe seleccionar una clase para crear la unidad de trabajo.');
         return null;
@@ -108,8 +136,28 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
           throw new Error('No se pudo insertar la unidad de trabajo.');
         }
 
+        const nuevoIdUt = Array.isArray(resultado) ? resultado[0]?.id_ut : resultado?.id_ut;
+
+        // Inserción de relaciones en desarrollan con sus porcentajes
+        if (nuevoIdUt && Array.isArray(ras) && ras.length > 0) {
+          const filasDesarrollan = ras
+            .filter((r) => r.id_ra)
+            .map((r) => ({
+              id_ut: nuevoIdUt,
+              id_ra: r.id_ra,
+              porcentaje: Math.min(100, Math.max(0, Number(r.porcentaje) || 100))
+            }));
+
+          if (filasDesarrollan.length > 0) {
+            const { error: errInsert } = await supabase.from('desarrollan').insert(filasDesarrollan);
+            if (errInsert) {
+              console.error('Error al insertar RAs en desarrollan:', errInsert);
+            }
+          }
+        }
+
         // Se refresca el listado para preservar el orden curricular ascendente.
-        await cargarUnidadesTrabajo();
+        await Promise.all([cargarUnidadesTrabajo(), cargarRAsYDesarrollan()]);
         return resultado;
       } catch (err) {
         console.error('Error al crear la unidad de trabajo:', err);
@@ -119,12 +167,12 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
         setCargandoOperacion(false);
       }
     },
-    [idModulo, insertarUT, cargarUnidadesTrabajo]
+    [idModulo, insertarUT, cargarUnidadesTrabajo, cargarRAsYDesarrollan]
   );
 
-  // Modificación de los datos descriptivos o numéricos de una Unidad de Trabajo existente.
+  // Modificación de los datos de una Unidad de Trabajo y de sus vínculos en desarrollan.
   const actualizarUnidadTrabajo = useCallback(
-    async (idUt, { numero, nombre, descripcion }) => {
+    async (idUt, { numero, nombre, descripcion, ras = [] }) => {
       if (!idUt) return false;
       setCargandoOperacion(true);
       setErrorOperacion(null);
@@ -140,7 +188,28 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
           throw new Error('No se pudo actualizar la unidad de trabajo.');
         }
 
-        await cargarUnidadesTrabajo();
+        // Sincronización de relaciones en desarrollan: primero eliminar las existentes de esta UT
+        await supabase.from('desarrollan').delete().eq('id_ut', idUt);
+
+        // Inserción de las nuevas asociaciones de RAs con sus porcentajes
+        if (Array.isArray(ras) && ras.length > 0) {
+          const filasDesarrollan = ras
+            .filter((r) => r.id_ra)
+            .map((r) => ({
+              id_ut: idUt,
+              id_ra: r.id_ra,
+              porcentaje: Math.min(100, Math.max(0, Number(r.porcentaje) || 100))
+            }));
+
+          if (filasDesarrollan.length > 0) {
+            const { error: errInsert } = await supabase.from('desarrollan').insert(filasDesarrollan);
+            if (errInsert) {
+              console.error('Error al actualizar RAs en desarrollan:', errInsert);
+            }
+          }
+        }
+
+        await Promise.all([cargarUnidadesTrabajo(), cargarRAsYDesarrollan()]);
         return true;
       } catch (err) {
         console.error('Error al actualizar la unidad de trabajo:', err);
@@ -150,16 +219,19 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
         setCargandoOperacion(false);
       }
     },
-    [actualizarUT, cargarUnidadesTrabajo]
+    [actualizarUT, cargarUnidadesTrabajo, cargarRAsYDesarrollan]
   );
 
-  // Eliminación de una Unidad de Trabajo garantizando la desvinculación previa de sus actividades.
+  // Eliminación de una Unidad de Trabajo garantizando la desvinculación de actividades y relaciones desarrollan.
   const eliminarUnidadTrabajo = useCallback(
     async (idUt) => {
       if (!idUt) return false;
       setCargandoOperacion(true);
       setErrorOperacion(null);
       try {
+        // Se eliminan los vínculos en desarrollan
+        await supabase.from('desarrollan').delete().eq('id_ut', idUt);
+
         // Se desvinculan las versiones asociadas fijando id_ut en null para dejarlas huérfanas.
         const { error: errorDesvincular } = await supabase
           .from('Versiones')
@@ -181,7 +253,7 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
           prev.map((v) => (v.id_ut === idUt ? { ...v, id_ut: null } : v))
         );
 
-        await cargarUnidadesTrabajo();
+        await Promise.all([cargarUnidadesTrabajo(), cargarRAsYDesarrollan()]);
         return true;
       } catch (err) {
         console.error('Error al eliminar la unidad de trabajo:', err);
@@ -191,7 +263,7 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
         setCargandoOperacion(false);
       }
     },
-    [eliminarUT, setVersiones, cargarUnidadesTrabajo]
+    [eliminarUT, setVersiones, cargarUnidadesTrabajo, cargarRAsYDesarrollan]
   );
 
   // Asignación de una versión de práctica a una Unidad de Trabajo o desvinculación (id_ut = null).
@@ -240,13 +312,38 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
     [asignarActividadUT]
   );
 
-  // Agrupación reactiva de versiones por cada Unidad de Trabajo.
+  // Mapa auxiliar para relacionar datos informativos de los RAs
+  const mapaRAsPorId = useMemo(() => {
+    const mapa = new Map();
+    (listaRAs || []).forEach((ra) => mapa.set(ra.id_ra, ra));
+    return mapa;
+  }, [listaRAs]);
+
+  // Agrupación reactiva de versiones y RAs asociados por cada Unidad de Trabajo.
   const unidadesConVersiones = useMemo(() => {
-    return (unidadesTrabajo || []).map((ut) => ({
-      ...ut,
-      versiones: (versiones || []).filter((v) => v.id_ut === ut.id_ut)
-    }));
-  }, [unidadesTrabajo, versiones]);
+    return (unidadesTrabajo || []).map((ut) => {
+      const rasDeEstaUt = (relacionesDesarrollan || [])
+        .filter((d) => d.id_ut === ut.id_ut)
+        .map((d) => {
+          const info = mapaRAsPorId.get(d.id_ra);
+          return {
+            id_desarrollan: d.id_desarrollan,
+            id_ra: d.id_ra,
+            id_ut: d.id_ut,
+            porcentaje: d.porcentaje !== null && d.porcentaje !== undefined ? Number(d.porcentaje) : 100,
+            ra_numero: info?.numero,
+            ra_nombre: info?.nombre
+          };
+        })
+        .sort((a, b) => (a.ra_numero || 0) - (b.ra_numero || 0));
+
+      return {
+        ...ut,
+        versiones: (versiones || []).filter((v) => v.id_ut === ut.id_ut),
+        ras: rasDeEstaUt
+      };
+    });
+  }, [unidadesTrabajo, versiones, relacionesDesarrollan, mapaRAsPorId]);
 
   // Identificación reactiva de las versiones no asignadas a ninguna Unidad de Trabajo.
   const actividadesHuerfanas = useMemo(() => {
@@ -264,6 +361,8 @@ const useGestorCurriculo = (idCurso = null, idModulo = null) => {
     unidades: unidadesConVersiones,
     unidadesBase: unidadesTrabajo || [],
     versiones: versiones || [],
+    listaRAs,
+    relacionesDesarrollan,
     actividadesHuerfanas,
     totalVersiones: (versiones || []).length,
     cargando: cargandoUTs || cargandoVersiones || cargandoOperacion,

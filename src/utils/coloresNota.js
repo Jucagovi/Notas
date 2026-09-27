@@ -1,11 +1,11 @@
 // Función auxiliar para obtener la clase CSS y el color hexadecimal asociado a una calificación (0-100).
-export const getColorNota = (nota) => {
+export const getColorNota = (nota, esOscuro = false) => {
   const valor = Number(nota);
 
   if (Number.isNaN(valor)) {
     return {
       clase: 'text-color-secondary',
-      hex: '#6c757d',
+      hex: esOscuro ? '#94a3b8' : '#6c757d',
       etiqueta: 'Sin calificar'
     };
   }
@@ -13,7 +13,7 @@ export const getColorNota = (nota) => {
   if (valor < 50) {
     return {
       clase: 'text-red-500',
-      hex: '#ef4444',
+      hex: esOscuro ? '#f87171' : '#ef4444',
       etiqueta: 'Suspenso'
     };
   }
@@ -21,7 +21,7 @@ export const getColorNota = (nota) => {
   if (valor < 60) {
     return {
       clase: 'text-orange-500',
-      hex: '#f97316',
+      hex: esOscuro ? '#fb923c' : '#f97316',
       etiqueta: 'Suficiente'
     };
   }
@@ -29,7 +29,7 @@ export const getColorNota = (nota) => {
   if (valor < 70) {
     return {
       clase: 'text-yellow-500',
-      hex: '#eab308',
+      hex: esOscuro ? '#facc15' : '#eab308',
       etiqueta: 'Bien'
     };
   }
@@ -37,14 +37,14 @@ export const getColorNota = (nota) => {
   if (valor < 90) {
     return {
       clase: 'text-green-500',
-      hex: '#22c55e',
+      hex: esOscuro ? '#4ade80' : '#22c55e',
       etiqueta: 'Notable'
     };
   }
 
   return {
     clase: 'text-blue-500',
-    hex: '#3b82f6',
+    hex: esOscuro ? '#60a5fa' : '#3b82f6',
     etiqueta: 'Sobresaliente'
   };
 };

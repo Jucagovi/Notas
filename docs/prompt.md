@@ -389,3 +389,276 @@ Hay que implementar algunos cambios:
 - Cada RA y CE debe mostrar los campos `Enunciado` y `Descripción` truncando el texto para que se vea en una sola línea (si se trunca, aparecerá el texto completo a modo de tooltip al dejar el ratón un tiempo encima),
 - en el listado de RA y CE quita la columna `Nivel`: no aporta nada
 - los botones para modificar el porcentaje de los inputs deben tener un margen para que respiren y, además, deben tener la misma altura que el input que acompañan,
+
+## 11 Mapeo de prácticas (asignación a los CE)
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es permitir al docente vincular rápidamente una practicas a Criterios de Evaluación (CE) y definir qué porcentaje del CE se cubre. Lee detalladamente el caso de uso en @docs/casos-de-uso/11-mapeo-practicas.md.
+
+Recuerda que se ha producido un cambio de enfoque: los cursos ahora son tratados como clases conceptualmente. Esto no representa ningún cambio arquitectónico, solo de concepto. Cambia todas las referencias a `Curso` por las de `Clase` en los texto de este caso de uso.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 11 revisión
+
+Hay que cambiar cosas:
+
+- al cambiar de clase los datos se ven en la pantalla hasta que se cargan los nuevos sin una ventana de carga. Lo ideal es que al cambiar de clase apareciera una forma de espera hasta que estñen los datos cargados en pantalla,
+- en las tarjetas de las prácticas no muestres el enunciado (no tiene sentido)
+- en la tabla de los RA y CE:
+  - el acordeón debe mostrarse colapsado desde el inicio,
+  - añade un código de colores a la columna `Cobertura Global CE` blanco si es 0, naranja si su valor está entre 1 y 99, verde si es 100 y rojo si es mayor a 100.
+  - ni los RA ni los CE se muestran adecuadamente: se debe mostrar el nombre + descripción (por ejemplo "RA1 Selecciona...") truncando el texto si no cabe en la cilumna y utilizanod `title` para mostrar el texto entero (como un tooltip),
+  - si un CE ya tiene su cobertura al 100%, se debe desactivar en el resto de CE para evitar la sobrecobertura,
+  - no me terminan de convencer los spiners para la modificación de los porcentajes ¿podrías intentar algo que no sean spinners ni botones para incrementar los valores?
+
+Más cambios:
+
+- conecta el slider con los Input que tienen al lado (using two-way binding) añadiendo pasos de 5 en 5 al slider,
+- los RA y los CE siguen si verse de forma adecuada: tanto el icono como el texto deben verse en una sola línea,
+- quita las líneas entre el nombre y descripción de los nombres de los RA y CE. Por ejemplo, cambia `RA1 -- Selecciona...` por `RA1 Selecciona...`,
+- cuando todos los CE de un RA están asignados desactiva el check para que no se pueda volver a asignar,
+- el código de colores no funciona de forma correcta: todos los textos están en blanco, además no hay que aplicar esos colores al fondo, sino al texto y al borde que lo rodea.
+- en la barra de `Grado de asignación...` el texto debe mostrarse siempre en el centro de la barra.
+
+Un par de cosas:
+
+- cambia el color de fondo de todos los indicadores de la columna `Cobertura Global CE` a transparente (o el mismo color que el fondo de la celda en el que está teniendo en cuenta si está con el tema claro/oscuro),
+- quiero que cambies los slider y los Input para establecer los porcentajes por un <Slider> unido a un <InputText> situándose el slider debajo del input.
+
+## 06 Calificador
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es proporcionar una interfaz rápida y tabular para introducir las notas numéricas. Lee detalladamente el caso de uso en @docs/casos-de-uso/06-calificar-practicas.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 05 Creación de evaluación
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es proporcionar flujo de trabajo del docente para preparar las evaluaciones de un curso lectivo. Lee detalladamente el caso de uso en @docs/casos-de-uso/05-creacion-evaluacion.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 05 reedición
+
+Actúa como un desarrollador experto en React, PrimeReact y Supabase.
+Necesitamos refactorizar completamente el Caso de Uso 05 (Gestión de Evaluaciones) porque hemos cambiado el paradigma para usar un sistema manual de "Bandeja de Pendientes" (Inbox).
+
+TAREA 1: LIMPIEZA DE CÓDIGO ANTIGUO
+
+1. Localiza los archivos actuales relacionados con la gestión de evaluaciones relacionada con el caso de uso anterior (@docs/casos-de-uso/05-creacion-evaluacion.md).
+2. Elimina estrictamente cualquier lógica que intente asignar Resultados de Aprendizaje (RAs) a una Evaluación de forma directa. Elimina dependencias de fechas para la asignación de prácticas.
+
+TAREA 2: NUEVA IMPLEMENTACIÓN (Manual por Bandeja de Pendientes)
+Basándote en el documento @docs/casos-de-uso/05-evaluacion-nueva.md , implementa el nuevo flujo:
+
+1. Interfaz Principal: Renderiza el componente `<SelectorCurso>`. Debajo, muestra un `DataTable` listando las evaluaciones de la clase seleccionada.
+2. Dialog de Creación/Edición:
+   - `InputText` para el nombre de la evaluación.
+   - Selector de Prácticas Huérfanas: Usa un `PickList` (o un `DataTable` con selección por checkbox) de PrimeReact.
+3. Lógica de Selección: El hook debe consultar en Supabase todas las `Versiones` de ese curso que NO estén ya vinculadas a otra evaluación en la tabla `evalua`. Muestra estas prácticas disponibles para que el docente las asigne.
+4. Resumen Curricular: Crea un helper que analice los RAs/CEs de las versiones movidas a la lista de "Seleccionadas", mostrando al usuario un resumen visual (ej. "RA1: 100%").
+5. Guardado: Al confirmar, el sistema debe insertar/actualizar la tabla `Evaluaciones` y hacer una operación batch en la tabla `evalua` para vincular los IDs.
+
+Mantén el patrón contenedor-presentacional y el uso de PrimeFlex así como todas las normas y restricciones del caso anterior.
+
+## 05 reedición revisión
+
+Hay que hacer cambios:
+
+- no se pueden crear más evaluaciones de las establecidas durante el proeceso de creación del curso, asíq eu elimina esa funcionalidad de esta sección,
+- el botñon de actualizar datos (junto al botón `Nueva Evaluación` debe ser un poco más grande y centrar horizontal y verticalmente el icono de la flecha),
+- en la columna acciones elimina el botón de eliminar evaluaciones ya que no es posible hacer eso desde aquí,
+- en la columna acciones, elimina el botón como todo el código que lo acomapaña (vamos a asugnar prácticas de otro modo)
+- el orden de las evaluaciones simpre debe ser Primera, Segunda, Tercera, Final/Ordinaria y Extraordinaria,
+- implementa un nuevo sistema de asignación de proácticas a evaluaciones:
+  - al seleccionar una clase aparecen las versiones que todavía no tienen evaluación (en un área nueva justo encima  de <DataTable> de las evaluaciones</DataTable>),
+  - se mostrarán como tarjetas con su nombre y versión y debajo las evaluaciones a las que pueden asignarse (todas),
+  - al pulsar sobre una de ellas pasa a pertenecer a la evaluación y aparece en una nueva columna "Pŕacticas asignadas" dentro del <DataTable> de la evaluación seleccionada (desaparece de la sección donde estaba),
+  - al aparecer en el <DataTable> dispondrá de un boton para desasignar esa práctica de la tabla,
+- el <DataTable> de las evaluaciones no debe mostrar la paginación (nunca será necesaria).
+
+## 17 Acta de evaluación por RA
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar el informe oficial definitivo que detalla la calificación competencial de cada discente. Lee detalladamente el caso de uso en @docs/casos-de-uso/17-acta-evaluacion-ra.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 12.2 Acta de evaluación por trimestres
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar el informe tradicional de evaluación por trimestres de cada discente. Lee detalladamente el caso de uso en @docs/casos-de-uso/12-2-informe-actas.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 01 dashboard (revisión del existente)
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar el panel de control inicial para el docente. Lee detalladamente el caso de uso en @docs/casos-de-uso/01-dashboard.md. Esta funcionalidad ya existe, así que hay que eliminar todas las funcionalildades implementadas (código incluido) e implementar estas nuevas.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 07 Discentes
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar un informe integral (360º) del rendimiento de un estudiante. Lee detalladamente el caso de uso en @docs/casos-de-uso/07-informe-discente.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 07 revisión
+
+Hay que revisar cosas:
+
+- en el <DataTable> de Discentes inicial, añade los filtros de activado/desactivado y un <DropDown> para elegir la clase (las más recientes arriba del selector).
+- elimina la columna `Acciones` al pulsar sobre la fila se abrirá el informe del discente,
+- la columna `Activo` debe mostrar un <InputSwitch> que permita activar o desactivar al discente,
+- al entrar en el informe personalizado, el <DropDown> de cursos/clase no debe existir y en su lugar (en su misma posición), un botón por cada `Año académico` (obtenido de la tabla `Cursos`) mostrando para el año 2026 el texto `2026/2027`,
+- se debe generar un sistema de pestañas en las que cada una será las clases matriculadas en cada año académico
+
+Más cosas:
+
+- cambia el <DropDown> que filtra los `Estados` por tres botones: Todos, Activos e Inactivos (en la misma posición),
+- amplía un 50% el ancho del <Input> de búsqueda,
+- quita el texto `Haz click en una filapara...` situado a la derecha del indicador de total discentes,
+- en el listado de Discentes, en la columna `Activo` elimina el texto `Activo` situado a la derecha de cada Input en las columnas,
+
+## 12.1 Informe de cobertura CE
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar un informe de coberturas de CE para un curso/clase. Lee detalladamente el caso de uso en @docs/casos-de-uso/12-1-informe-coberturaCE.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 12.1 revisión
+
+Hay que cambiar cosas:
+
+- sustituye el <DropDown> de `Cursos` por uno que muestre `Año académico` que se obtiene de la tabla `Cursos` y que mostrá los datos como `2026/2027` para el año 2026,
+- al seleccioar el año académico, los curso/clases se mostrarán como botones en lugar del <DropDown> `Módulo formativo` (se mantiene el botón `Actualizar`,
+- los RA y los CE debe mostrarse como un acordeón incialmente colapsado, mantén los indicadores en los CE y añade otro para los RA del mismo modo.
+- el porcentaje de las `Actividades asociadas` se mostrará como un <Tag> de igual forma que se muestra al final de la línea de cada CE,
+- los RA y CE deben mostrarse del siguiente modo `nombre + despricpción` por ejemplo `RA1 Selecciona...`,
+- las prácticas/versiones deben mostrarse como tarjetas.
+
+Más cosas:
+
+- en las tarjetas de las versiones, no muestres en enunciado de la versión y quita la ponderación mostrada con un <Tag> junto al nombre. La ponderación ed la fila de abajo (junto al nombre de la versión) debe tener como color de texto verde si es 100, naranja si está entre 1 y 99 (incluidos) y rojo si es 0.
+- las tarjetas de las versiones se deben mostrar en una columna junto con el nombre del CE que cubren (el nombre aparecerá truncado y mostrado en tal caso desde title) sin necesidad de un doble acordeón (los CE no lo tienen, solo los RA),
+- el esilo del acordeón no se ajusta al estilo general de la app. Revísalo,
+- no es necesaria la vista tabulas, elimínala junto con los botones para seccionar vista (siempe de mostrará la vista de acordeón),
+- en el menú principal: la entrada `Informes` no tiene iconos y los iconos de `Evaluación` y `Planificación` son iguales. Cambia el de `Evaluación` por otro (¿una pizarra, calculadora...?).
+
+## 12.3 Calificaciónes pendientes
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar un informe de calificaciones pendientes. Lee detalladamente el caso de uso en @docs/casos-de-uso/12-3-informe-calificaciones-pendientes.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+Hay que cambiar cosas:
+
+- el infome debe mostrar las prácticas que no tengan nota en cualquier evaluación,
+- de los tres <DropDown> deja sólo el de año académico que filtrará las clases (desaparece el selector de evaluación),
+- se mostrará la infromación de dos maneras (de puee elegir con dos botones situados a la derecha sobre el listado):
+  - agrupados por prácticas y al desplegar la práctica (acordeón incialmente colapsado) un listado de discentes que todavía no tienen nota. Al final del listado enlace al calificador de esa práctica,
+  - agrupados por discentes pero ahora al desplegar salen las prácticas pendientes pare ese discente,
+
+Más cambios:
+
+- los acordeones no se adaptan al estilo general de la app. Revísalo,
+- en las prácticas no muestres en enunciado y, si no tiene evaluación asigada enviará a la sección adecuada para asignarla,
+- el tamaño de los <DporDown> es diferentes al resto de la app. Revisa su tamaño y ponlo igual al resto,
+- acorta los textos de los <Tag> a `Sin evaluación`, `Calificar`, `Discentes` y `Prácticas`,
+- no muestres la información de pendientes en `Desglose pendientes:` con un <Tag>, solo en texto destacado,
+- en los <Tag> por en fondo transparente.
+
+De nuevo, más cambios:
+
+- en los <Tag>  que muestran la información en los acordeones, por en fondo transparente,
+- el tamaño de los <DporDown> es diferentes al resto de la app. Revisa su tamaño y ponlo igual al resto,
+- quiero que añadas un botón al lado de este como el de `Asignar evaluación` pero con `Calificar` que conducirá al calificador,
+
+## 12.4 Dificultad en prácticas
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar un informe de calificaciones pendientes. Lee detalladamente el caso de uso en @docs/casos-de-uso/12-4-informe-dificultad.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 12.5 Radar competencial
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar un informe. Lee detalladamente el caso de uso en @docs/casos-de-uso/12-5-informe-radar-competencias.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+Hay que hacer ccambios:
+
+- no necesito el desglose numérico de competencias. Elimínalo del informe,
+- el nombre de los RA no es correcto (en a leyenda y el los atributos title), se muestra el nombre de este modo `RA1: RA1` cuando debería mostrar el nombre del RA más su descripción del siguiente modo `RA1: Sececciona las arquitecturas...`
+- el texto de la leyenda y los rótulos de los gráficos no se ve bien en el modo oscuro,
+
+## 12.6 Mapa de calor
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar un informe. Lee detalladamente el caso de uso en @docs/casos-de-uso/12-5-informe-mapa-de-calor.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 12.7 RA-Modulo
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar un informe. Lee detalladamente el caso de uso en @docs/casos-de-uso/12-7-informe-ra-modulo.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+Hay que hacer cambios:
+
+- elimina la vista `Árbol` y muestra siempre la vista `Acordeon`, así que puedes eliminar los botones de selcción,
+- elimina el texto `Descarga` de encima del botón `Exportar PDF`,
+- por cierto, el PDS no se genera aparece el error `columns is not defined`,
+- los RA ni los CE se muestra de forma correcta, deben mostrarse `nombre: descripción` por ejemplo `RA1: Seleccionalas arquitecturas...` en lugar de `RA1: RA1` como lo hace ahora. Se debe mostrar en una sola línea y truncado (si se trunca se muestra el tecto completo en title como un tooltip),
+- el estilo del acordeón no se ajusta al del resto de la app, revísalo,
+- no muestres los <Tag> con el número de CE en la barra del acordeón,
+- en el desplegable del acordeón, elimina la descripción del resultado de aprendizaje y muestra el contenido sin nombre de columnas, ta śolo el texto con el número ed CE asociados,

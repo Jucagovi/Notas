@@ -164,7 +164,13 @@ export const usePropuestaTemporizacion = () => {
         const listaRAs = rasModulo || [];
         const numRAs = listaRAs.length;
 
-        // Mapa de peso oficial de cada RA
+        // Mapa de datos informativos de cada RA
+        const mapaInfoRA = new Map();
+        listaRAs.forEach((ra) => {
+          mapaInfoRA.set(ra.id_ra, ra);
+        });
+
+        // Mapa de peso oficial de cada RA (obtenido de ra_curso o equitativo si no está definido)
         const mapaPesosRA = new Map();
         listaRAs.forEach((ra) => {
           const registroPeso = (pesosRaCurso || []).find((p) => p.id_ra === ra.id_ra);
@@ -175,7 +181,7 @@ export const usePropuestaTemporizacion = () => {
           );
         });
 
-        // Contabilización de cuántas UTs desarrollan cada RA
+        // Contabilización de cuántas UTs desarrollan cada RA (para fallback equitativo)
         const mapaConteoUtPorRa = new Map();
         (relacionesDesarrollan || []).forEach((rel) => {
           if (mapaPesosRA.has(rel.id_ra)) {
@@ -183,18 +189,31 @@ export const usePropuestaTemporizacion = () => {
           }
         });
 
-        // Asignación de peso bruto a cada UT según los RAs que desarrolla
+        // Asignación de peso bruto a cada UT según los RAs que desarrolla y sus porcentajes explícitos
         const pesosBrutosUT = new Map();
+        let totalUtsConRAs = 0;
+
         unidadesOrdenadas.forEach((temp) => {
           const idUt = temp.id_ut;
           const rasDeEstaUt = (relacionesDesarrollan || []).filter((rel) => rel.id_ut === idUt);
 
           let pesoAcumulado = 0;
-          rasDeEstaUt.forEach((rel) => {
-            const pesoTotalRa = mapaPesosRA.get(rel.id_ra) || 0;
-            const cantidadUts = mapaConteoUtPorRa.get(rel.id_ra) || 1;
-            pesoAcumulado += pesoTotalRa / cantidadUts;
-          });
+          if (rasDeEstaUt.length > 0) {
+            totalUtsConRAs += 1;
+            rasDeEstaUt.forEach((rel) => {
+              const pesoTotalRa = mapaPesosRA.get(rel.id_ra) || 0;
+              const pctEspecifico = Number(rel.porcentaje);
+
+              if (!isNaN(pctEspecifico) && pctEspecifico > 0) {
+                // Ponderación explícita según el porcentaje que la UT cubre de este RA
+                pesoAcumulado += pesoTotalRa * (pctEspecifico / 100);
+              } else {
+                // Fallback: prorrateo equitativo entre las UTs que lo desarrollan
+                const cantidadUts = mapaConteoUtPorRa.get(rel.id_ra) || 1;
+                pesoAcumulado += pesoTotalRa / cantidadUts;
+              }
+            });
+          }
 
           // Si una UT no tiene RAs asociados todavía en desarrollan, se le otorga un peso mínimo base.
           if (pesoAcumulado <= 0) {
@@ -258,6 +277,18 @@ export const usePropuestaTemporizacion = () => {
           const color = PALETA_COLORES_UT[idx % PALETA_COLORES_UT.length];
           const diasDeEstaUt = diasClase.slice(indiceDiaActual, indiceFin + 1);
 
+          const rasDeEstaUt = (relacionesDesarrollan || []).filter((rel) => rel.id_ut === temp.id_ut);
+          const rasDesarrollados = rasDeEstaUt.map((rel) => {
+            const infoRa = mapaInfoRA.get(rel.id_ra);
+            return {
+              id_ra: rel.id_ra,
+              numero: infoRa?.numero,
+              nombre: infoRa?.nombre,
+              porcentaje: rel.porcentaje !== null && rel.porcentaje !== undefined ? Number(rel.porcentaje) : 100,
+              pesoRa: mapaPesosRA.get(rel.id_ra) || 0
+            };
+          });
+
           const utMeta = {
             id_temporizacion: temp.id_temporizacion,
             id_ut: temp.id_ut,
@@ -268,7 +299,8 @@ export const usePropuestaTemporizacion = () => {
             fecha_ini_prevista: fechaIniPrevista,
             fecha_fin_prevista: fechaFinPrevista,
             color,
-            diasISO: diasDeEstaUt.map((d) => d.fechaISO)
+            diasISO: diasDeEstaUt.map((d) => d.fechaISO),
+            rasDesarrollados
           };
 
           unidadesPropuestas.push(utMeta);
@@ -297,7 +329,8 @@ export const usePropuestaTemporizacion = () => {
           unidadesPropuestas,
           mapaFechaUt,
           conjuntoNoLectivos,
-          diasClase
+          diasClase,
+          hayVinculosDesarrollan: totalUtsConRAs > 0
         };
 
         setPropuesta(resultado);

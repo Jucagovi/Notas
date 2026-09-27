@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LayoutPrincipal from './components/LayoutPrincipal.jsx';
 
 // Páginas de la aplicación
-import PanelControl from './pages/PanelControl.jsx';
+import DashboardPagina from './pages/DashboardPagina.jsx';
 import DiscentesPagina from './pages/DiscentesPagina.jsx';
 import ClasesPagina from './pages/ClasesPagina.jsx';
 import UnidadesPagina from './pages/UnidadesPagina.jsx';
@@ -11,16 +11,19 @@ import TemporizacionPagina from './pages/planificacion/TemporizacionPagina.jsx';
 import ProgramacionPagina from './pages/planificacion/ProgramacionPagina.jsx';
 import CuadernoPagina from './pages/evaluacion/CuadernoPagina.jsx';
 import CalificarPagina from './pages/CalificarPagina.jsx';
-import PracticasPagina from './pages/evaluacion/PracticasPagina.jsx';
 import TallerPracticas from './pages/TallerPracticas.jsx';
-import PesosPagina from './pages/PesosPagina.jsx';
 import PesosRAPagina from './pages/PesosRAPagina.jsx';
 import CriteriosPagina from './pages/CriteriosPagina.jsx';
+import GestionEvaluacionesPagina from './pages/evaluacion/GestionEvaluacionesPagina.jsx';
 import DiarioPagina from './pages/evaluacion/DiarioPagina.jsx';
-import InformesPagina from './pages/InformesPagina.jsx';
-import MemoriaPagina from './pages/informes/MemoriaPagina.jsx';
-import SeguimientoPagina from './pages/informes/SeguimientoPagina.jsx';
-import ProgresoPagina from './pages/informes/ProgresoPagina.jsx';
+import InformeEvaluacionRa from './pages/informes/InformeEvaluacionRa.jsx';
+import InformeActaTrimestres from './pages/informes/InformeActaTrimestres.jsx';
+import InformeCoberturaCE from './pages/informes/InformeCoberturaCE.jsx';
+import InformePendientes from './pages/informes/InformePendientes.jsx';
+import InformeDificultad from './pages/informes/InformeDificultad.jsx';
+import InformeCompetencia from './pages/informes/InformeCompetencia.jsx';
+import InformeMapaCalor from './pages/informes/InformeMapaCalor.jsx';
+import VisorCurricularPagina from './pages/VisorCurricularPagina.jsx';
 import HerramientasPagina from './pages/HerramientasPagina.jsx';
 import ExportadorPagina from './pages/herramientas/ExportadorPagina.jsx';
 import CalendarioPagina from "./pages/CalendarioPagina.jsx";
@@ -59,12 +62,13 @@ const App = () => {
           }
         >
           {/* Panel de control y Dashboard principal. */}
-          <Route index element={<PanelControl />} />
-          <Route path='dashboard' element={<PanelControl />} />
-          <Route path='panel-control' element={<PanelControl />} />
+          <Route index element={<DashboardPagina />} />
+          <Route path='dashboard' element={<DashboardPagina />} />
+          <Route path='panel-control' element={<DashboardPagina />} />
 
           {/* Discentes */}
           <Route path='discentes' element={<DiscentesPagina />} />
+          <Route path='discentes/:idDiscente' element={<DiscentesPagina />} />
 
           {/* Clases */}
           <Route path='clases' element={<ClasesPagina />} />
@@ -117,40 +121,76 @@ const App = () => {
           </Route>
 
           {/* Evaluación y Calificación */}
+          <Route path='gestion-evaluaciones' element={<Navigate to='/evaluacion/gestion' replace />} />
+          <Route path='evaluaciones' element={<GestionEvaluacionesPagina />} />
+          <Route path='asignacion' element={<Navigate to='/evaluacion/gestion' replace />} />
           <Route path='taller-practicas' element={<TallerPracticas />} />
           <Route path='taller' element={<Navigate to='/taller-practicas' replace />} />
           <Route path='calificar' element={<CalificarPagina />} />
-          <Route path='practicas' element={<PracticasPagina />} />
-          <Route path='pesos' element={<PesosPagina />} />
+          <Route path='practicas' element={<Navigate to='/evaluacion/gestion' replace />} />
+          <Route path='pesos' element={<Navigate to='/pesos-ra' replace />} />
           <Route path='pesos-ra' element={<PesosRAPagina />} />
           <Route path='criterios' element={<CriteriosPagina />} />
+          <Route path='mapeo' element={<Navigate to='/criterios' replace />} />
           <Route path='evaluacion'>
             <Route index element={<Navigate to='/calificar' replace />} />
+            <Route path='gestion' element={<GestionEvaluacionesPagina />} />
+            <Route path='evaluaciones' element={<GestionEvaluacionesPagina />} />
+            <Route path='asignacion' element={<Navigate to='/evaluacion/gestion' replace />} />
+            <Route path='calificar' element={<CalificarPagina />} />
             <Route path='taller-practicas' element={<TallerPracticas />} />
             <Route path='taller' element={<Navigate to='/taller-practicas' replace />} />
             <Route path='cuaderno' element={<CuadernoPagina />} />
             <Route path='diario' element={<DiarioPagina />} />
-            <Route path='practicas' element={<PracticasPagina />} />
-            <Route path='pesos' element={<PesosPagina />} />
+            <Route path='practicas' element={<Navigate to='/evaluacion/gestion' replace />} />
+            <Route path='pesos' element={<Navigate to='/pesos-ra' replace />} />
             <Route path='pesos-ra' element={<PesosRAPagina />} />
             <Route path='criterios' element={<CriteriosPagina />} />
+            <Route path='cobertura-ce' element={<InformeCoberturaCE />} />
+            <Route path='mapeo' element={<Navigate to='/criterios' replace />} />
+            <Route path='acta-ra' element={<InformeEvaluacionRa />} />
+            <Route path='acta-evaluacion-ra' element={<Navigate to='/evaluacion/acta-ra' replace />} />
+            <Route path='acta-trimestres' element={<InformeActaTrimestres />} />
+            <Route path='acta-por-trimestres' element={<Navigate to='/evaluacion/acta-trimestres' replace />} />
           </Route>
+
+          {/* Accesos directos a Actas e Informes */}
+          <Route path='visor-curricular' element={<Navigate to='/informes/visor-curricular' replace />} />
+          <Route path='cobertura-ce' element={<Navigate to='/informes/cobertura-ce' replace />} />
+          <Route path='acta-evaluacion-ra' element={<Navigate to='/evaluacion/acta-ra' replace />} />
+          <Route path='acta-ra' element={<Navigate to='/evaluacion/acta-ra' replace />} />
+          <Route path='acta-trimestres' element={<Navigate to='/evaluacion/acta-trimestres' replace />} />
+          <Route path='acta-por-trimestres' element={<Navigate to='/evaluacion/acta-trimestres' replace />} />
+          <Route path='calificaciones-pendientes' element={<Navigate to='/informes/pendientes' replace />} />
+          <Route path='analisis-dificultad' element={<Navigate to='/informes/dificultad' replace />} />
+          <Route path='informe-dificultad' element={<Navigate to='/informes/dificultad' replace />} />
+          <Route path='competencia-individual' element={<Navigate to='/informes/competencia' replace />} />
+          <Route path='radar-competencias' element={<Navigate to='/informes/competencia' replace />} />
+          <Route path='mapa-calor' element={<Navigate to='/informes/mapa-calor' replace />} />
+          <Route path='mapa-de-calor' element={<Navigate to='/informes/mapa-calor' replace />} />
+          <Route path='evaluaciones/calificar' element={<CalificarPagina />} />
 
           {/* Informes */}
           <Route path='informes'>
-            <Route index element={<InformesPagina />} />
-            <Route path='acta-evaluacion-ra' element={<InformesPagina />} />
-            <Route path='evaluacion-modulo' element={<InformesPagina />} />
-            <Route path='competencia' element={<InformesPagina />} />
-            <Route path='cobertura-ce' element={<InformesPagina />} />
-            <Route
-              path='calificaciones-pendientes'
-              element={<InformesPagina />}
-            />
-            <Route path='dificultad' element={<InformesPagina />} />
-            <Route path='memoria' element={<MemoriaPagina />} />
-            <Route path='seguimiento' element={<SeguimientoPagina />} />
-            <Route path='progreso' element={<ProgresoPagina />} />
+            <Route index element={<Navigate to='/informes/pendientes' replace />} />
+            <Route path='pendientes' element={<InformePendientes />} />
+            <Route path='calificaciones-pendientes' element={<Navigate to='/informes/pendientes' replace />} />
+            <Route path='dificultad' element={<InformeDificultad />} />
+            <Route path='analisis-dificultad' element={<Navigate to='/informes/dificultad' replace />} />
+            <Route path='competencia' element={<InformeCompetencia />} />
+            <Route path='competencia-individual' element={<Navigate to='/informes/competencia' replace />} />
+            <Route path='radar-competencias' element={<Navigate to='/informes/competencia' replace />} />
+            <Route path='mapa-calor' element={<InformeMapaCalor />} />
+            <Route path='mapa-de-calor' element={<Navigate to='/informes/mapa-calor' replace />} />
+            <Route path='visor-curricular' element={<VisorCurricularPagina />} />
+            <Route path='curriculo' element={<Navigate to='/informes/visor-curricular' replace />} />
+            <Route path='cobertura-ce' element={<InformeCoberturaCE />} />
+            <Route path='cobertura' element={<Navigate to='/informes/cobertura-ce' replace />} />
+            <Route path='acta-trimestres' element={<InformeActaTrimestres />} />
+            <Route path='acta-por-trimestres' element={<Navigate to='/evaluacion/acta-trimestres' replace />} />
+            <Route path='evaluacion-ra' element={<InformeEvaluacionRa />} />
+            <Route path='acta-ra' element={<InformeEvaluacionRa />} />
+            <Route path='*' element={<Navigate to='/informes/pendientes' replace />} />
           </Route>
 
           {/* Herramientas y Mantenimiento */}

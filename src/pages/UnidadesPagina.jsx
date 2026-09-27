@@ -59,6 +59,8 @@ const UnidadesPagina = () => {
   const {
     unidades,
     versiones,
+    listaRAs,
+    relacionesDesarrollan,
     actividadesHuerfanas,
     totalVersiones,
     cargando: cargandoCurriculo,
@@ -157,6 +159,8 @@ const UnidadesPagina = () => {
         <GestorCurriculo
           unidades={unidades}
           versiones={versiones}
+          listaRAs={listaRAs}
+          relacionesDesarrollan={relacionesDesarrollan}
           siguienteNumeroUT={siguienteNumeroUT}
           cargando={cargandoCurriculo}
           guardando={guardando}

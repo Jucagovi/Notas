@@ -38,3 +38,55 @@ Copia y pega este texto cuando quieras implementar esta funcionalidad:
 > 
 > 
 > Entrégame el código completo del Custom Hook y de la vista principal.
+
+## Consulta SQL
+
+-- 1. Creación de la tabla Diario de Aula
+CREATE TABLE diario_aula (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    id_curso UUID NOT NULL REFERENCES cursos(id) ON DELETE CASCADE,
+    id_modulo UUID NOT NULL REFERENCES modulos(id) ON DELETE CASCADE,
+    usuario_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    fecha DATE NOT NULL,
+    contenido TEXT NOT NULL,
+    observaciones TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+
+    -- Evitamos que un profesor cree dos diarios distintos para el mismo módulo y grupo el mismo día
+    CONSTRAINT diario_unico_por_dia UNIQUE (id_curso, id_modulo, fecha)
+);
+
+-- 2. Habilitar la Seguridad a Nivel de Fila (RLS)
+ALTER TABLE diario_aula ENABLE ROW LEVEL SECURITY;
+
+-- 3. Políticas de Seguridad (El docente solo ve y edita sus propios registros)
+CREATE POLICY "Los usuarios pueden ver sus propios registros del diario"
+ON diario_aula FOR SELECT
+USING (auth.uid() = usuario_id);
+
+CREATE POLICY "Los usuarios pueden insertar en su diario"
+ON diario_aula FOR INSERT
+WITH CHECK (auth.uid() = usuario_id);
+
+CREATE POLICY "Los usuarios pueden actualizar sus propios registros"
+ON diario_aula FOR UPDATE
+USING (auth.uid() = usuario_id);
+
+CREATE POLICY "Los usuarios pueden eliminar sus propios registros"
+ON diario_aula FOR DELETE
+USING (auth.uid() = usuario_id);
+
+-- 4. Trigger opcional para actualizar el campo updated_at automáticamente
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_diario_aula_updated_at
+    BEFORE UPDATE ON diario_aula
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();

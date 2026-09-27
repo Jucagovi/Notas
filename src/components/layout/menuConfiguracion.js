@@ -29,24 +29,25 @@ export const ELEMENTOS_PLANIFICACION = [
 
 // Elementos del submenú Evaluación
 export const ELEMENTOS_EVALUACION = [
+  { label: 'Calificar actividades', icon: 'pi pi-pencil', to: '/calificar' },
+  { label: 'Gestión de Evaluaciones', icon: 'pi pi-calendar-plus', to: '/evaluacion/gestion' },
   { label: 'Taller de prácticas', icon: 'pi pi-briefcase', to: '/taller-practicas' },
-  { label: 'Asignación RA', icon: 'pi pi-file-edit', to: '/practicas' },
-  { label: 'Asignación pesos', icon: 'pi pi-percentage', to: '/pesos' },
   { label: 'Pesos RA y CE', icon: 'pi pi-sliders-h', to: '/pesos-ra' },
-  { label: 'Asignación CE', icon: 'pi pi-check-square', to: '/criterios' },
-  { label: 'Acta evaluación RA', icon: 'pi pi-table', to: '/informes/acta-evaluacion-ra' },
-  { label: 'Acta por trimestres', icon: 'pi pi-file-edit', to: '/informes/evaluacion-modulo' }
+  { label: 'Cobertura CE', icon: 'pi pi-check-square', to: '/criterios' },
+  { label: 'Acta evaluación RA', icon: 'pi pi-file-check', to: '/evaluacion/acta-ra' },
+  { label: 'Acta por trimestres', icon: 'pi pi-file', to: '/evaluacion/acta-trimestres' }
 ];
 
 // Elementos del submenú Informes
 export const ELEMENTOS_INFORMES = [
-  { label: 'Listado de informes', icon: 'pi pi-list', to: '/informes' },
-  { label: 'Acta evaluación RA', icon: 'pi pi-table', to: '/informes/acta-evaluacion-ra' },
-  { label: 'Acta por trimestres', icon: 'pi pi-file-edit', to: '/informes/evaluacion-modulo' },
+  { label: 'Calificaciones pendientes', icon: 'pi pi-clock', to: '/informes/pendientes' },
+  { label: 'Análisis dificultad', icon: 'pi pi-chart-bar', to: '/informes/dificultad' },
   { label: 'Competencia individual', icon: 'pi pi-compass', to: '/informes/competencia' },
-  { label: 'Auditoría Cobertura CE', icon: 'pi pi-verified', to: '/informes/cobertura-ce' },
-  { label: 'Calificaciones pendientes', icon: 'pi pi-clock', to: '/informes/calificaciones-pendientes' },
-  { label: 'Análisis dificultad', icon: 'pi pi-chart-bar', to: '/informes/dificultad' }
+  { label: 'Cobertura de CE', icon: 'pi pi-check-square', to: '/informes/cobertura-ce' },
+  { label: 'Acta evaluación RA', icon: 'pi pi-file-check', to: '/evaluacion/acta-ra' },
+  { label: 'Acta por trimestres', icon: 'pi pi-file', to: '/evaluacion/acta-trimestres' },
+  { label: 'Mapa de Calor', icon: 'pi pi-th-large', to: '/informes/mapa-calor' },
+  { label: 'Visor Curricular', icon: 'pi pi-sitemap', to: '/informes/visor-curricular' }
 ];
 
 // Elementos de mantenimiento y utilidades dentro del submenú Herramientas
@@ -190,13 +191,11 @@ export const NAV_ITEMS = [
   },
   {
     label: 'Evaluación',
-    icon: 'pi pi-calendar-plus',
+    icon: 'pi pi-calculator',
     to: '/evaluacion',
     esDesplegable: true,
     subItems: ELEMENTOS_EVALUACION
   },
-  { label: 'Taller de prácticas', icon: 'pi pi-briefcase', to: '/taller-practicas' },
-  { label: 'Calificar', icon: 'pi pi-pencil', to: '/calificar' },
   {
     label: 'Informes',
     icon: 'pi pi-chart-bar',
@@ -204,6 +203,8 @@ export const NAV_ITEMS = [
     esDesplegable: true,
     subItems: ELEMENTOS_INFORMES
   },
+  { label: 'Taller de prácticas', icon: 'pi pi-briefcase', to: '/taller-practicas' },
+  { label: 'Calificar', icon: 'pi pi-pencil', to: '/calificar' },
   {
     label: 'Herramientas',
     icon: 'pi pi-wrench',
