@@ -73,6 +73,11 @@ const App = () => {
           {/* Clases */}
           <Route path='clases' element={<ClasesPagina />} />
 
+          {/* Agenda Escolar -> Redirige a Planificación -> Calendario Escolar */}
+          <Route path='agenda-escolar' element={<Navigate to='/planificacion/calendario-escolar' replace />} />
+          <Route path='agenda-curricular' element={<Navigate to='/planificacion/calendario-escolar' replace />} />
+          <Route path='agenda' element={<Navigate to='/planificacion/calendario-escolar' replace />} />
+
           {/* Planificación */}
           <Route
             path='calendario-escolar'

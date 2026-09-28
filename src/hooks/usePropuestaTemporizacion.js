@@ -38,12 +38,12 @@ export const usePropuestaTemporizacion = () => {
   const [error, setError] = useState(null);
   const [propuesta, setPropuesta] = useState(null);
 
-  const raHook = useDatos('RA');
-  const raCursoHook = useDatos('ra_curso');
-  const desarrollanHook = useDatos('desarrollan');
-  const calendarioHook = useDatos('Calendario_Eventos');
-  const horariosHook = useDatos('Horarios');
-  const cursosHook = useDatos('Cursos');
+  const { obtenerDatos: obtenerRA } = useDatos('RA');
+  const { obtenerDatos: obtenerRaCurso } = useDatos('ra_curso');
+  const { obtenerDatos: obtenerDesarrollan } = useDatos('desarrollan');
+  const { obtenerDatos: obtenerEventos } = useDatos('Calendario_Eventos');
+  const { obtenerDatos: obtenerHorarios } = useDatos('Horarios');
+  const { obtenerDatos: obtenerCursos } = useDatos('Cursos');
 
   /**
    * Genera la propuesta de fechas estimadas para las unidades de trabajo dadas.
@@ -72,12 +72,12 @@ export const usePropuestaTemporizacion = () => {
           horariosClase,
           datosCursos
         ] = await Promise.all([
-          raHook.obtenerDatos('*', (q) => q.eq('id_modulo', idModulo).order('numero', { ascending: true })),
-          raCursoHook.obtenerDatos('*', (q) => q.eq('id_curso', idCurso)),
-          desarrollanHook.obtenerDatos('*'),
-          calendarioHook.obtenerDatos('*'),
-          horariosHook.obtenerDatos('*', (q) => q.eq('id_modulo', idModulo)),
-          cursosHook.obtenerDatos('*', (q) => q.eq('id_curso', idCurso))
+          obtenerRA('*', (q) => q.eq('id_modulo', idModulo).order('numero', { ascending: true })),
+          obtenerRaCurso('*', (q) => q.eq('id_curso', idCurso)),
+          obtenerDesarrollan('*'),
+          obtenerEventos('*'),
+          obtenerHorarios('*', (q) => q.eq('id_modulo', idModulo)),
+          obtenerCursos('*', (q) => q.eq('id_curso', idCurso))
         ]);
 
         const cursoActual = (datosCursos || []).find((c) => c.id_curso === idCurso) || null;
@@ -344,7 +344,7 @@ export const usePropuestaTemporizacion = () => {
         setCargando(false);
       }
     },
-    [raHook, raCursoHook, desarrollanHook, calendarioHook, horariosHook, cursosHook]
+    [obtenerRA, obtenerRaCurso, obtenerDesarrollan, obtenerEventos, obtenerHorarios, obtenerCursos]
   );
 
   return {

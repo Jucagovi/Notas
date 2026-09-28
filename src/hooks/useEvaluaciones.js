@@ -237,7 +237,7 @@ const useEvaluaciones = (idCursoOAutoCargar = true) => {
         setGuardando(false);
       }
     },
-    [idCurso, hookVersiones]
+    [idCurso, hookVersiones.actualizar, hookVersiones.obtenerDatos]
   );
 
   // 6. Desasignación de una práctica de una evaluación (vuelve a la bandeja de pendientes).
@@ -274,7 +274,7 @@ const useEvaluaciones = (idCursoOAutoCargar = true) => {
         setGuardando(false);
       }
     },
-    [idCurso, hookVersiones]
+    [idCurso, hookVersiones.actualizar, hookVersiones.obtenerDatos]
   );
 
   const cargando =

@@ -27,18 +27,6 @@ export const obtenerAgendaHoy = (
   eventosCalendario = [],
   modulos = []
 ) => {
-  // Se identifican los eventos globales o del curso que coinciden con la fecha de hoy.
-  const eventosHoy = (eventosCalendario || []).filter((e) => {
-    const inicio = e.fecha_inicio;
-    const fin = e.fecha_fin || e.fecha_inicio;
-    return inicio <= fechaHoyStr && fin >= fechaHoyStr;
-  });
-
-  const esFestivo = eventosHoy.some((e) => e.es_lectivo === false);
-  const eventoEspecial = eventosHoy.length > 0
-    ? eventosHoy.map((e) => e.descripcion || e.tipo_evento).filter(Boolean).join(' | ')
-    : null;
-
   // Mapa asociativo de módulos para resolución inmediata de siglas y denominaciones.
   const mapaModulos = new Map();
   (modulos || []).forEach((m) => {
@@ -51,18 +39,20 @@ export const obtenerAgendaHoy = (
     mapaSesiones.set(s.id_sesion, s);
   });
 
-  // Se filtran las clases y tareas docentes asignadas para este día de la semana.
+  // Se filtran las horas asignadas al horario del docente para este día de la semana.
   const clasesDocente = (horarios || []).filter((h) => {
     if (Number(h.dia_semana) !== Number(diaSemana)) return false;
-    // Si no tiene curso asignado, es una tarea personal del docente (Guardia, Tutoría, Reunión).
-    if (!h.id_curso) return true;
-    // Si tiene profesor especificado, se verifica si es el docente titular.
+
+    // Si tiene profesor especificado y es de un compañero, se descarta.
     if (h.profesor && typeof h.profesor === 'string') {
       const p = h.profesor.trim().toLowerCase();
-      if (p.includes('docente') || p === 'yo' || p === 'titular') return true;
-      if (!p.includes('compañero')) return true;
+      if (p && !p.includes('docente') && p !== 'yo' && p !== 'titular') {
+        return false;
+      }
     }
-    return Boolean(h.id_modulo);
+
+    // Se consideran todas las horas de su horario (módulos lectivos o tareas/módulos alternativos).
+    return Boolean(h.id_modulo || h.modulo_alt || h.grupo || h.id_sesion);
   });
 
   // Se ordenan las sesiones cronológicamente según el número de tramo horario.
@@ -74,14 +64,7 @@ export const obtenerAgendaHoy = (
     return ordenA - ordenB;
   });
 
-  // Se determina si hay exámenes registrados hoy en el calendario escolar.
-  const hayExamenHoy = eventosHoy.some((e) => {
-    const tipo = (e.tipo_evento || '').toLowerCase();
-    const desc = (e.descripcion || '').toLowerCase();
-    return tipo.includes('examen') || tipo.includes('evalua') || desc.includes('examen') || desc.includes('prueba');
-  });
-
-  // Se estructuran los elementos para el componente Timeline de PrimeReact.
+  // Se estructuran los elementos del horario para el componente Timeline de PrimeReact.
   const items = clasesDocente.map((c) => {
     const sesion = mapaSesiones.get(c.id_sesion);
     const modulo = c.id_modulo ? mapaModulos.get(c.id_modulo) : null;
@@ -103,15 +86,13 @@ export const obtenerAgendaHoy = (
       grupo: c.grupo || '',
       aula: c.aula || '',
       esClaseCurricular,
-      esExamen: hayExamenHoy && esClaseCurricular,
-      cancelada: esFestivo,
-      icono: esFestivo ? 'pi pi-ban' : (hayExamenHoy && esClaseCurricular ? 'pi pi-file-edit' : (esClaseCurricular ? 'pi pi-book' : 'pi pi-clock'))
+      icono: esClaseCurricular ? 'pi pi-book' : 'pi pi-clock'
     };
   });
 
   return {
-    esFestivo,
-    eventoEspecial,
+    esFestivo: false,
+    eventoEspecial: null,
     items,
     totalSesionesHoy: items.length
   };

@@ -25,9 +25,9 @@ export const useCalendarioEscolar = (idCurso, idModulo, anioSeleccionado) => {
   const [fechaFinPeriodo, setFechaFinPeriodo] = useState(null);
   const [cargando, setCargando] = useState(false);
 
-  const calendarioHook = useDatos('Calendario_Eventos');
-  const horariosHook = useDatos('Horarios');
-  const cursosHook = useDatos('Cursos');
+  const { obtenerDatos: obtenerEventos } = useDatos('Calendario_Eventos');
+  const { obtenerDatos: obtenerHorarios } = useDatos('Horarios');
+  const { obtenerDatos: obtenerCursos } = useDatos('Cursos');
 
   const cargarCalendario = useCallback(async () => {
     if (!idCurso) {
@@ -42,9 +42,9 @@ export const useCalendarioEscolar = (idCurso, idModulo, anioSeleccionado) => {
     try {
       // Consulta concurrente de los eventos del calendario, horarios y datos del curso.
       const [eventosCalendario, horariosClase, datosCursos] = await Promise.all([
-        calendarioHook.obtenerDatos('*'),
-        idModulo ? horariosHook.obtenerDatos('*', (q) => q.eq('id_modulo', idModulo)) : Promise.resolve([]),
-        cursosHook.obtenerDatos('*', (q) => q.eq('id_curso', idCurso))
+        obtenerEventos('*'),
+        idModulo ? obtenerHorarios('*', (q) => q.eq('id_modulo', idModulo)) : Promise.resolve([]),
+        obtenerCursos('*', (q) => q.eq('id_curso', idCurso))
       ]);
 
       const cursoActual = (datosCursos || []).find((c) => c.id_curso === idCurso) || null;
@@ -117,7 +117,7 @@ export const useCalendarioEscolar = (idCurso, idModulo, anioSeleccionado) => {
     } finally {
       setCargando(false);
     }
-  }, [idCurso, idModulo, anioSeleccionado, calendarioHook, horariosHook, cursosHook]);
+  }, [idCurso, idModulo, anioSeleccionado, obtenerEventos, obtenerHorarios, obtenerCursos]);
 
   useEffect(() => {
     cargarCalendario();

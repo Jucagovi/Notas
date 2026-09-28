@@ -223,6 +223,114 @@ export const extraerAnioInicioCurso = (curso, fechaInicio = null) => {
   return hoy.getMonth() < 8 ? hoy.getFullYear() - 1 : hoy.getFullYear();
 };
 
+/**
+ * Calcula los límites de la semana (lunes y domingo) para una fecha dada,
+ * respetando el estándar en España donde la semana comienza el lunes.
+ *
+ * @param {Date|string} fecha - Fecha de referencia.
+ * @returns {Object} Objeto con las fechas de inicio (lunes) y fin (domingo) en Date, formato ISO y español.
+ */
+export const obtenerLimitesSemana = (fecha = new Date()) => {
+  const d = fecha instanceof Date ? new Date(fecha.getTime()) : parsearFechaISO(fecha) || new Date();
+  const diaSemana = d.getDay(); // 0: domingo, 1: lunes, ..., 6: sábado.
+  const diffLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
+
+  const lunes = new Date(d);
+  lunes.setDate(d.getDate() + diffLunes);
+  lunes.setHours(0, 0, 0, 0);
+
+  const domingo = new Date(lunes);
+  domingo.setDate(lunes.getDate() + 6);
+  domingo.setHours(23, 59, 59, 999);
+
+  return {
+    lunes,
+    domingo,
+    lunesISO: formatearFechaISO(lunes),
+    domingoISO: formatearFechaISO(domingo),
+    lunesEspanol: formatearFechaEspanol(lunes),
+    domingoEspanol: formatearFechaEspanol(domingo)
+  };
+};
+
+/**
+ * Comprueba si dos fechas pertenecen a la misma semana natural (de lunes a domingo).
+ *
+ * @param {Date|string} fecha1 - Primera fecha.
+ * @param {Date|string} fecha2 - Segunda fecha.
+ * @returns {boolean} Verdadero si ambas fechas se encuentran en la misma semana.
+ */
+export const sonMismaSemana = (fecha1, fecha2) => {
+  const lim1 = obtenerLimitesSemana(fecha1);
+  const lim2 = obtenerLimitesSemana(fecha2);
+  return lim1.lunesISO === lim2.lunesISO;
+};
+
+/**
+ * Divide un intervalo de fechas en segmentos continuos de lunes a viernes,
+ * excluyendo sábados y domingos para no representar la temporización en fines de semana.
+ *
+ * @param {string|Date} fechaInicio - Fecha de inicio del intervalo.
+ * @param {string|Date} fechaFin - Fecha de fin del intervalo (inclusiva).
+ * @returns {Array<{ start: string, end: string }>} Segmentos laborables con fecha de fin exclusiva (+1 día) para FullCalendar.
+ */
+export const obtenerSegmentosLaborables = (fechaInicio, fechaFin) => {
+  if (!fechaInicio) return [];
+  const finEfectivo = fechaFin || fechaInicio;
+  const dInicio = fechaInicio instanceof Date ? fechaInicio : parsearFechaISO(fechaInicio);
+  const dFin = finEfectivo instanceof Date ? finEfectivo : parsearFechaISO(finEfectivo);
+
+  if (!dInicio || !dFin || isNaN(dInicio.getTime()) || isNaN(dFin.getTime()) || dInicio > dFin) {
+    return [];
+  }
+
+  const segmentos = [];
+  let segmentoActual = null;
+
+  const actual = new Date(dInicio.getFullYear(), dInicio.getMonth(), dInicio.getDate());
+  const limite = new Date(dFin.getFullYear(), dFin.getMonth(), dFin.getDate());
+
+  while (actual <= limite) {
+    const diaSemana = actual.getDay(); // 0: domingo, 6: sábado.
+    const esLaborable = diaSemana !== 0 && diaSemana !== 6;
+
+    if (esLaborable) {
+      if (!segmentoActual) {
+        segmentoActual = {
+          inicio: new Date(actual)
+        };
+      }
+      segmentoActual.fin = new Date(actual);
+    } else {
+      if (segmentoActual) {
+        // En FullCalendar para eventos allDay la propiedad 'end' es exclusiva (+1 día).
+        const dFinExclusivo = new Date(segmentoActual.fin);
+        dFinExclusivo.setDate(dFinExclusivo.getDate() + 1);
+
+        segmentos.push({
+          start: formatearFechaISO(segmentoActual.inicio),
+          end: formatearFechaISO(dFinExclusivo)
+        });
+        segmentoActual = null;
+      }
+    }
+
+    actual.setDate(actual.getDate() + 1);
+  }
+
+  if (segmentoActual) {
+    const dFinExclusivo = new Date(segmentoActual.fin);
+    dFinExclusivo.setDate(dFinExclusivo.getDate() + 1);
+
+    segmentos.push({
+      start: formatearFechaISO(segmentoActual.inicio),
+      end: formatearFechaISO(dFinExclusivo)
+    });
+  }
+
+  return segmentos;
+};
+
 export default {
   formatearFechaISO,
   parsearFechaISO,
@@ -232,5 +340,10 @@ export default {
   sonMismaFecha,
   generarRangoFechas,
   calcularResumenLectivo,
-  extraerAnioInicioCurso
+  extraerAnioInicioCurso,
+  obtenerLimitesSemana,
+  sonMismaSemana,
+  obtenerSegmentosLaborables
 };
+
+

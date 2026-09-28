@@ -185,14 +185,20 @@ const useConfiguracionCurso = () => {
       }
     },
     [
-      cursosHook,
-      evaluacionesHook,
-      imparteHook,
-      raCursoHook,
-      ceCursoHook,
-      temporizacionHook,
-      versionesHook,
-      trabajanHook
+      cursosHook.insertar,
+      evaluacionesHook.obtenerDatos,
+      evaluacionesHook.insertar,
+      imparteHook.insertar,
+      raCursoHook.obtenerDatos,
+      raCursoHook.insertar,
+      ceCursoHook.obtenerDatos,
+      ceCursoHook.insertar,
+      temporizacionHook.obtenerDatos,
+      temporizacionHook.insertar,
+      versionesHook.obtenerDatos,
+      versionesHook.insertar,
+      trabajanHook.obtenerDatos,
+      trabajanHook.insertar
     ]
   );
 
@@ -261,18 +267,18 @@ const useConfiguracionCurso = () => {
       }
     },
     [
-      imparteHook,
-      raCursoHook,
-      ceCursoHook,
-      temporizacionHook,
-      evaluacionesHook,
-      evaluanHook,
-      versionesHook,
-      trabajanHook,
-      festivosHook,
-      horariosHook,
-      sesionesHook,
-      cursosHook
+      imparteHook.eliminar,
+      raCursoHook.eliminar,
+      ceCursoHook.eliminar,
+      temporizacionHook.eliminar,
+      evaluacionesHook.eliminar,
+      evaluanHook.eliminar,
+      versionesHook.eliminar,
+      trabajanHook.eliminar,
+      festivosHook.eliminar,
+      horariosHook.eliminar,
+      sesionesHook.eliminar,
+      cursosHook.eliminar
     ]
   );
 
@@ -331,7 +337,7 @@ const useConfiguracionCurso = () => {
         setCargando(false);
       }
     },
-    [imparteHook]
+    [imparteHook.obtenerDatos, imparteHook.insertar, imparteHook.eliminar]
   );
 
   return {

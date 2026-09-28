@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import HeaderPagina from '../../components/common/HeaderPagina.jsx';
 import EstadoVacio from '../../components/common/EstadoVacio.jsx';
 import FiltrosTemporizacion from '../../components/temporizacion/FiltrosTemporizacion.jsx';
@@ -20,6 +21,7 @@ import { confirmarBorrado } from '../../components/common/ModalConfirmacion.jsx'
  */
 const TemporizacionPagina = () => {
   const { mostrarExito, mostrarError } = useGlobalToast();
+  const location = useLocation();
 
   // Consulta y control del selector de años académicos con denominación completa (ej. 2026/2027).
   const {
@@ -40,9 +42,24 @@ const TemporizacionPagina = () => {
     recargar: recargarClases
   } = useClases(anioSeleccionado);
 
-  // Se autoselecciona la primera clase disponible cuando se actualiza el listado o cambia el año escolar.
+  // Se autoselecciona la clase recibida por navegación o la primera disponible cuando se actualiza el listado.
   useEffect(() => {
     if (clases && clases.length > 0) {
+      // Se comprueba si se ha recibido un módulo preseleccionado a través del estado de navegación.
+      const idModuloNav = location.state?.idModulo || location.state?.moduloId || location.state?.id_modulo;
+      const idCursoNav = location.state?.idCurso || location.state?.cursoId || location.state?.id_curso;
+
+      if (idModuloNav) {
+        const claseCoincidente = clases.find(
+          (c) => c.id_modulo === idModuloNav && (!idCursoNav || c.id_curso === idCursoNav)
+        ) || clases.find((c) => c.id_modulo === idModuloNav);
+
+        if (claseCoincidente) {
+          setClaseSeleccionadaId(claseCoincidente.id);
+          return;
+        }
+      }
+
       const existeClase = clases.some((c) => c.id === claseSeleccionadaId);
       if (!existeClase) {
         setClaseSeleccionadaId(clases[0].id);
@@ -50,7 +67,7 @@ const TemporizacionPagina = () => {
     } else {
       setClaseSeleccionadaId(null);
     }
-  }, [clases, claseSeleccionadaId]);
+  }, [clases, claseSeleccionadaId, location.state]);
 
   // Se identifica la clase activa y se extraen los identificadores de curso y módulo asociados.
   const claseActiva = useMemo(() => {

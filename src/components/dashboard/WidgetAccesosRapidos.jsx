@@ -75,24 +75,24 @@ export const WidgetAccesosRapidos = () => {
           </div>
         </div>
 
-        {/* Cuadrícula de tarjetas de acceso */}
+        {/* Cuadrícula de tarjetas de acceso en una sola línea */}
         <div className="grid">
           {accesos.map((item, index) => (
-            <div key={index} className="col-12 sm:col-6 lg:col-12 xl:col-6">
+            <div key={index} className="col-12 sm:col-6 md:col-4 lg:col-2 xl:col-2">
               <button
                 type="button"
                 onClick={() => navigate(item.ruta)}
-                className={`w-full p-3 border-round border-1 text-left cursor-pointer transition-colors transition-duration-150 flex align-items-center gap-3 ${item.colorFondo}`}
+                className={`w-full p-2 lg:p-3 border-round border-1 text-left cursor-pointer transition-colors transition-duration-150 flex align-items-center gap-2 lg:gap-3 ${item.colorFondo}`}
                 style={{ outline: 'none' }}
               >
                 <div className="surface-card p-2 border-round shadow-1 flex align-items-center justify-content-center flex-shrink-0">
-                  <i className={`${item.icono} ${item.iconoColor} text-xl`} />
+                  <i className={`${item.icono} ${item.iconoColor} text-lg lg:text-xl`} />
                 </div>
-                <div className="flex flex-column gap-1 overflow-hidden">
-                  <span className="font-bold text-sm text-900 line-height-2">
+                <div className="flex flex-column gap-1 overflow-hidden min-w-0">
+                  <span className="font-bold text-xs lg:text-sm text-900 line-height-2 truncate" title={item.titulo}>
                     {item.titulo}
                   </span>
-                  <span className="text-xs text-color-secondary truncate">
+                  <span className="text-xs text-color-secondary truncate" title={item.descripcion}>
                     {item.descripcion}
                   </span>
                 </div>

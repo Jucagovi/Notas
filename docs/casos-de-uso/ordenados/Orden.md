@@ -45,7 +45,7 @@ El núcleo interactivo donde se introducen las notas basadas en las prácticas y
 
 Seguimiento de lo que ocurre en las sesiones diarias.
 23. `26-diario-aula.md`
-24. `27-agenda-semanal.md`
+-24. `27-agenda-semanal.md`
 25. `21-agenda-curricular.md`
 
 ### Fase 6: Analítica y Dashboard

@@ -2,64 +2,47 @@ import React from "react";
 import { Button } from "primereact/button";
 import { Message } from "primereact/message";
 import useDashboard from "../hooks/useDashboard.js";
+import useModulos from "../hooks/useModulos.js";
 import HeaderPagina from "../components/common/HeaderPagina.jsx";
-import SelectorCurso from "../components/common/SelectorCurso.jsx";
 import CargadorSeccion from "../components/common/CargadorSeccion.jsx";
-import {
-  WidgetAgendaHoy,
-  WidgetMapaTactico,
-  WidgetRadarCobertura,
-  WidgetDetectorSobrecarga,
-  WidgetAlertas,
-  WidgetProgresoCurricular,
-  WidgetAccesosRapidos,
-  TarjetaKpiPendientes,
-} from "../components/dashboard/index.js";
+import WidgetAgendaHoy from "../components/dashboard/WidgetAgendaHoy.jsx";
+import WidgetAgendaEscolar from "../components/dashboard/WidgetAgendaEscolar.jsx";
+import WidgetAccesosRapidos from "../components/dashboard/WidgetAccesosRapidos.jsx";
 
 /**
- * DashboardPagina - Página contenedora y orquestadora del Centro de Mando Analítico del Docente.
+ * DashboardPagina - Página contenedora y orquestadora del Panel de Control.
  *
- * Responsabilidad Única: Actuar como orquestador de datos consumiendo el Custom Hook agregador
- * useDashboard y delegar el renderizado visual a los widgets presentacionales especializados
- * organizados en una cuadrícula responsiva PrimeFlex estilo bento box.
+ * Responsabilidad Única: Actuar como orquestador consumiendo los Custom Hooks
+ * optimizados (useDashboard y useModulos) y estructurar la vista en dos filas:
+ * una primera fila con dos columnas manteniendo los anchos de columna (Agenda de Hoy
+ * a la izquierda y Agenda Escolar a la derecha) y una segunda fila con el widget
+ * de Accesos Rápidos desplegado en una sola línea.
  */
 const DashboardPagina = () => {
-  const {
-    cursos,
-    cursoSeleccionadoId,
-    setCursoSeleccionadoId,
-    modulos,
-    moduloRadarId,
-    setModuloRadarId,
-    agendaHoy,
-    mapaTactico,
-    radarCobertura,
-    detectorSobrecarga,
-    alertas,
-    progresoCurricular,
-    conteoCalificacionesPendientes,
-    cargando,
-    error,
-    recargar,
-    fechaHoyStr,
-  } = useDashboard();
+  // Catálogo de módulos profesionales para enriquecer la agenda diaria.
+  const { datos: datosModulos } = useModulos();
 
-  // Bloque de acciones en la cabecera de la página: selector de curso y botón de refresco.
+  // Custom Hook para la agenda diaria operativa del docente.
+  const {
+    agendaHoy,
+    cargando: cargandoDashboard,
+    error: errorDashboard,
+    recargar: recargarDashboard,
+    fechaHoyStr,
+  } = useDashboard(datosModulos);
+
+  // Recarga manual de los datos del panel de control.
+  const manejarRecargar = async () => {
+    await recargarDashboard();
+  };
+
+  // Bloque de acciones en la cabecera de la página con botón de refresco.
   const accionesCabecera = (
-    <div className='flex align-items-center gap-2 flex-wrap w-full md:w-auto'>
-      <div className='w-14rem md:w-18rem'>
-        <SelectorCurso
-          value={cursoSeleccionadoId}
-          options={cursos}
-          onChange={(e) => setCursoSeleccionadoId(e.value)}
-          placeholder='Seleccionar curso activo...'
-          className='p-inputtext-sm w-full'
-        />
-      </div>
+    <div className='flex align-items-center gap-2'>
       <Button
         icon='pi pi-refresh'
-        onClick={recargar}
-        loading={cargando}
+        onClick={manejarRecargar}
+        loading={cargandoDashboard}
         rounded
         text
         severity='secondary'
@@ -75,66 +58,42 @@ const DashboardPagina = () => {
       {/* Cabecera estándar de la página */}
       <HeaderPagina
         titulo='Centro de Mando Analítico'
-        descripcion='Panel de control estratégico: agenda operativa, mapa táctico, balance de carga y auditoría legal.'
+        descripcion='Panel de control estratégico: agenda operativa diaria, planificación escolar semanal de todas las clases y accesos rápidos.'
         acciones={accionesCabecera}
       />
 
       {/* Notificación en caso de error en la sincronización */}
-      {error && (
+      {errorDashboard && (
         <Message
           severity='error'
-          text={error}
+          text={errorDashboard}
           className='w-full justify-content-start'
         />
       )}
 
-      {/* Renderizado condicional durante el estado de carga */}
-      {cargando ? (
+      {/* Renderizado condicional durante el estado de carga inicial */}
+      {cargandoDashboard ? (
         <div className='flex flex-column gap-3'>
-          <CargadorSeccion cargando={true} tipo='tarjetas' columnas={3} />
           <CargadorSeccion cargando={true} tipo='tarjetas' columnas={2} />
         </div>
       ) : (
-        /* Cuadrícula responsiva estilo bento box con PrimeFlex */
-        <div className='grid'>
-          {/* Fila 1: Operativa diaria, mapa táctico y alertas inmediatas */}
-          <div className='col-12 lg:col-4'>
-            {/* <WidgetAgendaHoy agenda={agendaHoy} fechaHoy={fechaHoyStr} /> */}
+        <div className='flex flex-column gap-3 w-full'>
+          {/* Fila 1: Dos columnas con los anchos establecidos (Agenda de Hoy a la izquierda y Agenda Escolar a la derecha) */}
+          <div className='grid'>
+            {/* Columna 1: Agenda de Hoy alineada a la izquierda */}
+            <div className='col-12 md:col-5 lg:col-4 xl:col-4'>
+              <WidgetAgendaHoy agenda={agendaHoy} fechaHoy={fechaHoyStr} />
+            </div>
+
+            {/* Columna 2: Agenda Escolar interactiva con FullCalendar mostrando la semana */}
+            <div className='col-12 md:col-7 lg:col-8 xl:col-8'>
+              <WidgetAgendaEscolar />
+            </div>
           </div>
 
-          <div className='col-12 md:col-6 lg:col-4'>
-            {/* <WidgetMapaTactico modulosTacticos={mapaTactico} /> */}
-          </div>
-
-          <div className='col-12 md:col-6 lg:col-4 flex flex-column gap-3'>
-            {/* <TarjetaKpiPendientes
-              conteo={conteoCalificacionesPendientes}
-              cargando={cargando}
-            /> */}
-            {/* <WidgetAlertas alertas={alertas} /> */}
-          </div>
-
-          {/* Fila 2: Auditoría legal (radar) y barras de progreso curricular */}
-          <div className='col-12 lg:col-6'>
-            {/* <WidgetRadarCobertura
-              radarData={radarCobertura}
-              modulos={modulos}
-              moduloSeleccionadoId={moduloRadarId}
-              onCambiarModulo={setModuloRadarId}
-            /> */}
-          </div>
-
-          <div className='col-12 lg:col-6'>
-            {/* <WidgetProgresoCurricular progresoModulos={progresoCurricular} /> */}
-          </div>
-
-          {/* Fila 3: Balanceador predictivo de sobrecarga y accesos directos */}
-          <div className='col-12 lg:col-7'>
-            {/* <WidgetDetectorSobrecarga detector={detectorSobrecarga} /> */}
-          </div>
-
-          <div className='col-12 lg:col-5'>
-            {/* <WidgetAccesosRapidos /> */}
+          {/* Fila 2: Widget Accesos Rápidos mostrando todas las tarjetas en una sola línea */}
+          <div className='w-full'>
+            <WidgetAccesosRapidos />
           </div>
         </div>
       )}

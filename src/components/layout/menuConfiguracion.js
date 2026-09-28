@@ -174,6 +174,7 @@ export const ELEMENTOS_HERRAMIENTAS = [
 // Elementos principales de la barra de navegación lateral
 export const NAV_ITEMS = [
   { label: 'Panel de control', icon: 'pi pi-home', to: '/panel-control' },
+  { label: 'Agenda escolar', icon: 'pi pi-calendar', to: '/planificacion/calendario-escolar' },
   { label: 'Discentes', icon: 'pi pi-users', to: '/discentes' },
   {
     label: 'Clases',
