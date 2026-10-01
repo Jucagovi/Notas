@@ -686,3 +686,13 @@ Genera el código necesario implementando los componentes de PrimeReact solicita
 Hay que cambiar cosas:
 
 - el widget de agenda semanal que se encuentra en el panel de control es muy parecido a la agenda que se acaba de crear, por lo que transforma este caso de uso en un widget que sustituya al de `Agenda semanal` del panel de control que se estructurará así: una primera fila con dos columnas (manten el ancho actual de cada columna): a la izquierda la `Agenda de hoy` y a la derecha `Agenda escolar` mostrando la semana con las tareas pendientes (se mantendrán todas las acaraterísticas de la `Agenda escolar` esto sólo es una reubicación). En la segunda fila se colocará el widget `Accesos rápidos` mostrando las tarjetas en una sola línea.
+
+## 24 informe de temporización
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es generar un informe para comprobar la temporización de los cursos. Lee detalladamente el caso de uso en @docs/casos-de-uso/24-informe-temporizacion.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.

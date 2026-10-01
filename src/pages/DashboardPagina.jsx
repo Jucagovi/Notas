@@ -3,20 +3,20 @@ import { Button } from "primereact/button";
 import { Message } from "primereact/message";
 import useDashboard from "../hooks/useDashboard.js";
 import useModulos from "../hooks/useModulos.js";
+import useMonitorCurricular from "../hooks/useMonitorCurricular.js";
 import HeaderPagina from "../components/common/HeaderPagina.jsx";
 import CargadorSeccion from "../components/common/CargadorSeccion.jsx";
 import WidgetAgendaHoy from "../components/dashboard/WidgetAgendaHoy.jsx";
 import WidgetAgendaEscolar from "../components/dashboard/WidgetAgendaEscolar.jsx";
+import WidgetTermometroCurricular from "../components/dashboard/WidgetTermometroCurricular.jsx";
 import WidgetAccesosRapidos from "../components/dashboard/WidgetAccesosRapidos.jsx";
 
 /**
  * DashboardPagina - Página contenedora y orquestadora del Panel de Control.
  *
  * Responsabilidad Única: Actuar como orquestador consumiendo los Custom Hooks
- * optimizados (useDashboard y useModulos) y estructurar la vista en dos filas:
- * una primera fila con dos columnas manteniendo los anchos de columna (Agenda de Hoy
- * a la izquierda y Agenda Escolar a la derecha) y una segunda fila con el widget
- * de Accesos Rápidos desplegado en una sola línea.
+ * optimizados (useDashboard, useModulos y useMonitorCurricular) y estructurar la vista
+ * integrando la agenda operativa, el termómetro curricular de desviaciones y los accesos rápidos.
  */
 const DashboardPagina = () => {
   // Catálogo de módulos profesionales para enriquecer la agenda diaria.
@@ -31,9 +31,16 @@ const DashboardPagina = () => {
     fechaHoyStr,
   } = useDashboard(datosModulos);
 
+  // Custom Hook para el monitor de desviación curricular (Caso de Uso 24).
+  const {
+    modulosMonitor,
+    cargando: cargandoMonitor,
+    recargar: recargarMonitor
+  } = useMonitorCurricular();
+
   // Recarga manual de los datos del panel de control.
   const manejarRecargar = async () => {
-    await recargarDashboard();
+    await Promise.all([recargarDashboard(), recargarMonitor()]);
   };
 
   // Bloque de acciones en la cabecera de la página con botón de refresco.
@@ -42,7 +49,7 @@ const DashboardPagina = () => {
       <Button
         icon='pi pi-refresh'
         onClick={manejarRecargar}
-        loading={cargandoDashboard}
+        loading={cargandoDashboard || cargandoMonitor}
         rounded
         text
         severity='secondary'
@@ -72,7 +79,7 @@ const DashboardPagina = () => {
       )}
 
       {/* Renderizado condicional durante el estado de carga inicial */}
-      {cargandoDashboard ? (
+      {cargandoDashboard && cargandoMonitor ? (
         <div className='flex flex-column gap-3'>
           <CargadorSeccion cargando={true} tipo='tarjetas' columnas={2} />
         </div>
@@ -91,7 +98,15 @@ const DashboardPagina = () => {
             </div>
           </div>
 
-          {/* Fila 2: Widget Accesos Rápidos mostrando todas las tarjetas en una sola línea */}
+          {/* Fila 2: Termómetro Curricular para monitorizar desviaciones de unidades (Caso de Uso 24) */}
+          <div className='w-full'>
+            <WidgetTermometroCurricular
+              modulos={modulosMonitor}
+              cargando={cargandoMonitor}
+            />
+          </div>
+
+          {/* Fila 3: Widget Accesos Rápidos mostrando todas las tarjetas en una sola línea */}
           <div className='w-full'>
             <WidgetAccesosRapidos />
           </div>

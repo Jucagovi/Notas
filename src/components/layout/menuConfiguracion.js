@@ -41,6 +41,7 @@ export const ELEMENTOS_EVALUACION = [
 // Elementos del submenú Informes
 export const ELEMENTOS_INFORMES = [
   { label: 'Calificaciones pendientes', icon: 'pi pi-clock', to: '/informes/pendientes' },
+  { label: 'Progreso Curricular', icon: 'pi pi-chart-line', to: '/informes/progreso' },
   { label: 'Análisis dificultad', icon: 'pi pi-chart-bar', to: '/informes/dificultad' },
   { label: 'Competencia individual', icon: 'pi pi-compass', to: '/informes/competencia' },
   { label: 'Cobertura de CE', icon: 'pi pi-check-square', to: '/informes/cobertura-ce' },

@@ -23,6 +23,7 @@ import InformePendientes from './pages/informes/InformePendientes.jsx';
 import InformeDificultad from './pages/informes/InformeDificultad.jsx';
 import InformeCompetencia from './pages/informes/InformeCompetencia.jsx';
 import InformeMapaCalor from './pages/informes/InformeMapaCalor.jsx';
+import InformeProgreso from './pages/informes/InformeProgreso.jsx';
 import VisorCurricularPagina from './pages/VisorCurricularPagina.jsx';
 import HerramientasPagina from './pages/HerramientasPagina.jsx';
 import ExportadorPagina from './pages/herramientas/ExportadorPagina.jsx';
@@ -173,6 +174,8 @@ const App = () => {
           <Route path='radar-competencias' element={<Navigate to='/informes/competencia' replace />} />
           <Route path='mapa-calor' element={<Navigate to='/informes/mapa-calor' replace />} />
           <Route path='mapa-de-calor' element={<Navigate to='/informes/mapa-calor' replace />} />
+          <Route path='progreso-curricular' element={<Navigate to='/informes/progreso' replace />} />
+          <Route path='informe-progreso' element={<Navigate to='/informes/progreso' replace />} />
           <Route path='evaluaciones/calificar' element={<CalificarPagina />} />
 
           {/* Informes */}
@@ -180,6 +183,8 @@ const App = () => {
             <Route index element={<Navigate to='/informes/pendientes' replace />} />
             <Route path='pendientes' element={<InformePendientes />} />
             <Route path='calificaciones-pendientes' element={<Navigate to='/informes/pendientes' replace />} />
+            <Route path='progreso' element={<InformeProgreso />} />
+            <Route path='progreso-curricular' element={<Navigate to='/informes/progreso' replace />} />
             <Route path='dificultad' element={<InformeDificultad />} />
             <Route path='analisis-dificultad' element={<Navigate to='/informes/dificultad' replace />} />
             <Route path='competencia' element={<InformeCompetencia />} />
