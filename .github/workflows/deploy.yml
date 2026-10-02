@@ -2,13 +2,15 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ['main']
+    branches: 'main' # Cambia a 'master' si usas esa rama
 
+# Otorgar permisos necesarios para el token de OIDC y GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Permite solo un despliegue concurrente para evitar conflictos
 concurrency:
   group: 'pages'
   cancel-in-progress: true
@@ -22,27 +24,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24 # Actualizado a Node 24 para evitar advertencias de obsolescencia
           cache: 'npm'
-          
+
       - name: Install dependencies
-        run: npm install
-        
+        run: npm ci
+
       - name: Build
         run: npm run build
-        
+
       - name: Setup Pages
-        uses: actions/configure-pages@v5
-        
+        uses: actions/configure-pages@v5 # Actualizado a la versión más reciente
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
-          
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
