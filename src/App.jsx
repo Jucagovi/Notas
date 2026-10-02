@@ -42,6 +42,7 @@ import RutaPrivada from './components/autenticacion/RutaPrivada.jsx';
 
 
 // Componente principal de la aplicación con configuración de rutas.
+// Ya ves.
 const App = () => {
   return (
     <BrowserRouter basename='/Notas/'>
