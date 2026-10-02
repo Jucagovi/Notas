@@ -31,12 +31,13 @@ jobs:
           
       - name: Install dependencies
         run: npm install
+
+      - name: Generar archivo de entorno
+        run:
+          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> .env.production
+          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env.production
         
       - name: Build
-        # Inyectamos los secretos de Supabase para Vite
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_KEY }}
         run: npm run build
         
       - name: Setup Pages
