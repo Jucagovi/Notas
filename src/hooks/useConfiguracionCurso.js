@@ -1,5 +1,34 @@
 import { useState, useCallback } from 'react';
+import { supabase } from '../services/supabaseClient.js';
 import useDatos from './useDatos.js';
+
+// Formatea un año académico al formato estándar YYYY/YYYY+1 si se introduce un año de 4 dígitos.
+export const formatearAnyoAcademico = (anyo) => {
+  if (!anyo) return '';
+  const str = String(anyo).trim();
+
+  // Coincidencia para rango con 4 dígitos en ambos lados: ej: 2026/2027 o 2026-2027
+  const matchCompleto = str.match(/^(\d{4})[\/\-](\d{4})$/);
+  if (matchCompleto) {
+    return `${matchCompleto[1]}/${matchCompleto[2]}`;
+  }
+
+  // Coincidencia para rango con sufijo de 2 dígitos: ej: 2026/27 o 2026-27
+  const matchCorto = str.match(/^(\d{4})[\/\-](\d{2})$/);
+  if (matchCorto) {
+    const siglo = matchCorto[1].substring(0, 2);
+    return `${matchCorto[1]}/${siglo}${matchCorto[2]}`;
+  }
+
+  // Coincidencia para año simple de 4 dígitos: ej: 2026 -> 2026/2027
+  const matchSimple = str.match(/^(\d{4})$/);
+  if (matchSimple) {
+    const inicio = parseInt(matchSimple[1], 10);
+    return `${inicio}/${inicio + 1}`;
+  }
+
+  return str;
+};
 
 // Custom Hook para orquestar la configuración completa de cursos, clases y sus relaciones en la base de datos.
 const useConfiguracionCurso = () => {
@@ -21,6 +50,7 @@ const useConfiguracionCurso = () => {
   const sesionesHook = useDatos('Sesiones');
 
   // Orquestación de la creación completa de un curso con módulo, evaluaciones, matrículas y clonado opcional.
+  // Soporta la flexibilización de dos módulos mediante inserciones cruzadas bidireccionales.
   const generarCursoCompleto = useCallback(
     async ({
       cursoId = null,
@@ -28,75 +58,214 @@ const useConfiguracionCurso = () => {
       moduloId,
       discentesSeleccionados = [],
       clonarProgramacion = false,
-      cursoOrigenId = null
+      cursoOrigenId = null,
+      esFlexibilizado = false,
+      moduloFlexibleId = null,
+      moduloFlexible = null
     }) => {
       setCargando(true);
       setError(null);
 
+      // Variables de control para rollback en caso de fallo en operaciones compuestas.
+      let idCursoPrincipal = cursoId;
+      let idCursoSecundario = null;
+
       try {
-        let idCursoFinal = cursoId;
-
-        // 1. Si no existe identificador de curso previo, se inserta el nuevo curso en la base de datos.
-        if (!idCursoFinal && cursoNuevo) {
-          const resultadoCurso = await cursosHook.insertar(cursoNuevo);
-          if (!resultadoCurso || resultadoCurso.length === 0) {
-            throw new Error('No se ha podido crear el curso académico en la base de datos.');
-          }
-          idCursoFinal = resultadoCurso[0].id_curso;
-        }
-
-        if (!idCursoFinal) {
-          throw new Error('Identificador de curso no válido para completar la operación.');
-        }
-
         if (!moduloId) {
           throw new Error('Debe seleccionarse un módulo para configurar la clase.');
         }
 
-        // 2. Creación silenciosa de las 5 evaluaciones reglamentarias para el módulo y curso.
-        const nombresEvaluaciones = ['Primera', 'Segunda', 'Tercera', 'Final', 'Extraordinaria'];
-        const evaluacionesExistentes = await evaluacionesHook.obtenerDatos(
-          'id_evaluacion, nombre',
-          (consulta) => consulta.eq('id_curso', idCursoFinal).eq('id_modulo', moduloId)
-        );
+        if (esFlexibilizado && !moduloFlexibleId) {
+          throw new Error('Debe seleccionarse el módulo secundario para completar la flexibilización.');
+        }
 
-        const nombresRegistrados = new Set((evaluacionesExistentes || []).map((ev) => ev.nombre));
-        const evaluacionesAInsertar = nombresEvaluaciones
-          .filter((nombre) => !nombresRegistrados.has(nombre))
-          .map((nombre) => ({
+        if (esFlexibilizado && moduloId === moduloFlexibleId) {
+          throw new Error('No es posible flexibilizar un módulo consigo mismo.');
+        }
+
+        const nombresEvaluaciones = ['Primera', 'Segunda', 'Tercera', 'Final', 'Extraordinaria'];
+
+        // =========================================================================
+        // ESCENARIO A: Creación de clase con flexibilización de dos módulos
+        // =========================================================================
+        if (esFlexibilizado && moduloFlexibleId) {
+          if (!cursoNuevo) {
+            throw new Error('Se requieren los datos del curso para crear la flexibilización.');
+          }
+
+          // 1. Inserción del curso del módulo principal con referencia al módulo flexible.
+          const payloadPrincipal = {
+            ...cursoNuevo,
+            id_modulo_flexible: moduloFlexibleId
+          };
+          const resultadoPrincipal = await cursosHook.insertar(payloadPrincipal);
+          if (!resultadoPrincipal || resultadoPrincipal.length === 0) {
+            throw new Error('No se ha podido crear el curso académico principal en la base de datos.');
+          }
+          idCursoPrincipal = resultadoPrincipal[0].id_curso;
+
+          // Obtención de siglas del módulo secundario flexibilizado para nombrar el curso secundario automático.
+          let siglasModuloSecundario = '';
+          if (moduloFlexible && (moduloFlexible.siglas || moduloFlexible.nombre)) {
+            siglasModuloSecundario = moduloFlexible.siglas || moduloFlexible.nombre;
+          } else {
+            const { data: datosModulo } = await supabase
+              .from('Modulos')
+              .select('siglas, nombre')
+              .eq('id_modulo', moduloFlexibleId)
+              .maybeSingle();
+
+            if (datosModulo) {
+              siglasModuloSecundario = datosModulo.siglas || datosModulo.nombre || '';
+            }
+          }
+
+          // Formateo del año académico (ej: si se introduce 2026, se convierte en 2026/2027).
+          const anyoAcademico = formatearAnyoAcademico(cursoNuevo.anyo);
+          const nombreCursoSecundario = siglasModuloSecundario
+            ? `${siglasModuloSecundario} ${anyoAcademico}`.trim()
+            : `${cursoNuevo.nombre} ${anyoAcademico}`.trim();
+
+          // 2. Inserción del curso del módulo secundario con referencia al módulo principal y nombre automático distintivo.
+          const payloadSecundario = {
+            ...cursoNuevo,
+            nombre: nombreCursoSecundario,
+            id_modulo_flexible: moduloId
+          };
+          const resultadoSecundario = await cursosHook.insertar(payloadSecundario);
+          if (!resultadoSecundario || resultadoSecundario.length === 0) {
+            // Se realiza la limpieza del curso principal creado previamente.
+            await cursosHook.eliminar('id_curso', idCursoPrincipal);
+            throw new Error('No se ha podido crear el curso secundario para la flexibilización.');
+          }
+          idCursoSecundario = resultadoSecundario[0].id_curso;
+
+          // 3. Generación secuencial de 5 evaluaciones independientes para el módulo principal.
+          const evsPrincipal = nombresEvaluaciones.map((nombre) => ({
             nombre,
-            id_curso: idCursoFinal,
+            id_curso: idCursoPrincipal,
             id_modulo: moduloId,
             descripcion: `Evaluación ${nombre}`
           }));
+          const resEvsPrincipal = await evaluacionesHook.insertar(evsPrincipal);
+          if (!resEvsPrincipal || resEvsPrincipal.length === 0) {
+            await cursosHook.eliminar('id_curso', idCursoPrincipal);
+            await cursosHook.eliminar('id_curso', idCursoSecundario);
+            throw new Error('Error al registrar las evaluaciones del módulo principal.');
+          }
 
-        if (evaluacionesAInsertar.length > 0) {
-          await evaluacionesHook.insertar(evaluacionesAInsertar);
-        }
+          // 4. Generación secuencial de 5 evaluaciones independientes para el módulo secundario.
+          const evsSecundario = nombresEvaluaciones.map((nombre) => ({
+            nombre,
+            id_curso: idCursoSecundario,
+            id_modulo: moduloFlexibleId,
+            descripcion: `Evaluación ${nombre}`
+          }));
+          const resEvsSecundario = await evaluacionesHook.insertar(evsSecundario);
+          if (!resEvsSecundario || resEvsSecundario.length === 0) {
+            await evaluacionesHook.eliminar('id_curso', idCursoPrincipal);
+            await cursosHook.eliminar('id_curso', idCursoPrincipal);
+            await cursosHook.eliminar('id_curso', idCursoSecundario);
+            throw new Error('Error al registrar las evaluaciones del módulo secundario flexibilizado.');
+          }
 
-        // 3. Matricular discentes en la tabla imparte vinculando curso, módulo y alumno.
-        if (discentesSeleccionados && discentesSeleccionados.length > 0) {
-          const matriculasPrevias = await imparteHook.obtenerDatos(
-            'id_discente',
-            (consulta) => consulta.eq('id_curso', idCursoFinal).eq('id_modulo', moduloId)
-          );
+          // 5. Matriculación cruzada de discentes en ambos cursos en la tabla imparte.
+          if (discentesSeleccionados && discentesSeleccionados.length > 0) {
+            const idsDiscentes = discentesSeleccionados.map((disc) =>
+              typeof disc === 'object' ? disc.id_discente : disc
+            );
 
-          const matriculadosSet = new Set((matriculasPrevias || []).map((m) => m.id_discente));
-          const matriculasAInsertar = discentesSeleccionados
-            .map((disc) => (typeof disc === 'object' ? disc.id_discente : disc))
-            .filter((idDisc) => !matriculadosSet.has(idDisc))
-            .map((idDiscente) => ({
-              id_curso: idCursoFinal,
+            const matriculasPrincipal = idsDiscentes.map((idDiscente) => ({
+              id_curso: idCursoPrincipal,
               id_modulo: moduloId,
               id_discente: idDiscente
             }));
 
-          if (matriculasAInsertar.length > 0) {
-            await imparteHook.insertar(matriculasAInsertar);
+            const matriculasSecundario = idsDiscentes.map((idDiscente) => ({
+              id_curso: idCursoSecundario,
+              id_modulo: moduloFlexibleId,
+              id_discente: idDiscente
+            }));
+
+            const resMatPrincipal = await imparteHook.insertar(matriculasPrincipal);
+            const resMatSecundario = await imparteHook.insertar(matriculasSecundario);
+
+            if (!resMatPrincipal || !resMatSecundario) {
+              await imparteHook.eliminar('id_curso', idCursoPrincipal);
+              await imparteHook.eliminar('id_curso', idCursoSecundario);
+              await evaluacionesHook.eliminar('id_curso', idCursoPrincipal);
+              await evaluacionesHook.eliminar('id_curso', idCursoSecundario);
+              await cursosHook.eliminar('id_curso', idCursoPrincipal);
+              await cursosHook.eliminar('id_curso', idCursoSecundario);
+              throw new Error('Error al matricular discentes en los cursos flexibilizados.');
+            }
+          }
+        } else {
+          // =========================================================================
+          // ESCENARIO B: Creación o configuración estándar de un único curso
+          // =========================================================================
+          if (!idCursoPrincipal && cursoNuevo) {
+            const payload = {
+              ...cursoNuevo,
+              id_modulo_flexible: null
+            };
+            const resultadoCurso = await cursosHook.insertar(payload);
+            if (!resultadoCurso || resultadoCurso.length === 0) {
+              throw new Error('No se ha podido crear el curso académico en la base de datos.');
+            }
+            idCursoPrincipal = resultadoCurso[0].id_curso;
+          }
+
+          if (!idCursoPrincipal) {
+            throw new Error('Identificador de curso no válido para completar la operación.');
+          }
+
+          // Creación de evaluaciones reglamentarias para el módulo principal.
+          const evaluacionesExistentes = await evaluacionesHook.obtenerDatos(
+            'id_evaluacion, nombre',
+            (consulta) => consulta.eq('id_curso', idCursoPrincipal).eq('id_modulo', moduloId)
+          );
+
+          const nombresRegistrados = new Set((evaluacionesExistentes || []).map((ev) => ev.nombre));
+          const evaluacionesAInsertar = nombresEvaluaciones
+            .filter((nombre) => !nombresRegistrados.has(nombre))
+            .map((nombre) => ({
+              nombre,
+              id_curso: idCursoPrincipal,
+              id_modulo: moduloId,
+              descripcion: `Evaluación ${nombre}`
+            }));
+
+          if (evaluacionesAInsertar.length > 0) {
+            await evaluacionesHook.insertar(evaluacionesAInsertar);
+          }
+
+          // Matricular discentes en la tabla imparte vinculando curso, módulo y alumno.
+          if (discentesSeleccionados && discentesSeleccionados.length > 0) {
+            const matriculasPrevias = await imparteHook.obtenerDatos(
+              'id_discente',
+              (consulta) => consulta.eq('id_curso', idCursoPrincipal).eq('id_modulo', moduloId)
+            );
+
+            const matriculadosSet = new Set((matriculasPrevias || []).map((m) => m.id_discente));
+            const matriculasAInsertar = discentesSeleccionados
+              .map((disc) => (typeof disc === 'object' ? disc.id_discente : disc))
+              .filter((idDisc) => !matriculadosSet.has(idDisc))
+              .map((idDiscente) => ({
+                id_curso: idCursoPrincipal,
+                id_modulo: moduloId,
+                id_discente: idDiscente
+              }));
+
+            if (matriculasAInsertar.length > 0) {
+              await imparteHook.insertar(matriculasAInsertar);
+            }
           }
         }
 
-        // 4. Clonación de la programación histórica de un curso anterior si se ha solicitado.
+        // =========================================================================
+        // Clonación de la programación histórica si se ha solicitado
+        // =========================================================================
         if (clonarProgramacion && cursoOrigenId) {
           // Se clonan los pesos de RA asociados al curso.
           const rasOrigen = await raCursoHook.obtenerDatos('*', (consulta) =>
@@ -106,7 +275,7 @@ const useConfiguracionCurso = () => {
             const rasClonados = rasOrigen.map((ra) => ({
               id_ra: ra.id_ra,
               peso: ra.peso,
-              id_curso: idCursoFinal
+              id_curso: idCursoPrincipal
             }));
             await raCursoHook.insertar(rasClonados);
           }
@@ -119,7 +288,7 @@ const useConfiguracionCurso = () => {
             const cesClonados = cesOrigen.map((ce) => ({
               id_ce: ce.id_ce,
               peso: ce.peso,
-              id_curso: idCursoFinal
+              id_curso: idCursoPrincipal
             }));
             await ceCursoHook.insertar(cesClonados);
           }
@@ -131,7 +300,7 @@ const useConfiguracionCurso = () => {
           if (temposOrigen && temposOrigen.length > 0) {
             const temposClonadas = temposOrigen.map((tempo) => ({
               id_ut: tempo.id_ut,
-              id_curso: idCursoFinal,
+              id_curso: idCursoPrincipal,
               orden: tempo.orden,
               nombre_alternativo: tempo.nombre_alternativo,
               estado: 'Pendiente',
@@ -152,7 +321,7 @@ const useConfiguracionCurso = () => {
                 enunciado: version.enunciado,
                 numero: version.numero,
                 id_practica: version.id_practica,
-                id_curso: idCursoFinal,
+                id_curso: idCursoPrincipal,
                 id_ut: version.id_ut,
                 peso_evaluacion: version.peso_evaluacion || 0
               };
@@ -175,11 +344,20 @@ const useConfiguracionCurso = () => {
           }
         }
 
-        return { exito: true, cursoId: idCursoFinal };
+        return {
+          exito: true,
+          cursoId: idCursoPrincipal,
+          cursoSecundarioId: idCursoSecundario,
+          esFlexibilizado
+        };
       } catch (err) {
         console.error('Error al generar la configuración completa del curso:', err);
-        setError(err.message || 'Error al generar el curso.');
-        return { exito: false, error: err.message };
+        const errorEstructurado = {
+          error: err.message || 'Error al generar la configuración del curso.',
+          status: 400
+        };
+        setError(errorEstructurado.error);
+        return { exito: false, ...errorEstructurado };
       } finally {
         setCargando(false);
       }

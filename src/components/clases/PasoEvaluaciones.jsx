@@ -13,22 +13,34 @@ const EVALUACIONES_ESTANDAR = [
   { orden: 5, nombre: 'Extraordinaria', descripcion: 'Convocatoria de evaluación extraordinaria' }
 ];
 
-// Paso 4: Presentación y preparación de las 5 evaluaciones automáticas para la clase y módulo.
-const PasoEvaluaciones = ({ claseNombre, cursoNombre, moduloNombre }) => {
+// Paso 4: Presentación y preparación de las evaluaciones automáticas para la clase y módulos.
+const PasoEvaluaciones = ({
+  claseNombre,
+  cursoNombre,
+  moduloNombre,
+  esFlexibilizado = false,
+  moduloFlexibleNombre = null
+}) => {
   const nombreClaseActiva = claseNombre || cursoNombre || 'seleccionada';
+
+  const textoInformativo = esFlexibilizado && moduloFlexibleNombre
+    ? `Al confirmar el asistente, se generarán 10 registros independientes en la tabla Evaluaciones (5 registros para el módulo principal "${moduloNombre || 'seleccionado'}" y otros 5 registros independientes para el módulo flexibilizado "${moduloFlexibleNombre}").`
+    : `Al confirmar el asistente, se generarán silenciosamente 5 registros en la tabla Evaluaciones vinculados a la clase "${nombreClaseActiva}" y módulo "${moduloNombre || 'seleccionado'}".`;
 
   return (
     <div className="flex flex-column gap-3 py-2">
       <div>
         <h3 className="m-0 text-xl font-bold text-800">Auto-Generación de Evaluaciones</h3>
         <p className="text-secondary text-sm m-0 mt-1">
-          El sistema prepara automáticamente los registros normativos de evaluación para el módulo seleccionado.
+          {esFlexibilizado
+            ? 'El sistema prepara evaluaciones reglamentarias independientes para ambos módulos flexibilizados.'
+            : 'El sistema prepara automáticamente los registros normativos de evaluación para el módulo seleccionado.'}
         </p>
       </div>
 
       <Message
         severity="info"
-        text={`Al confirmar el asistente, se generarán silenciosamente 5 registros en la tabla Evaluaciones vinculados a la clase "${nombreClaseActiva}" y módulo "${moduloNombre || 'seleccionado'}".`}
+        text={textoInformativo}
         className="w-full justify-content-start"
       />
 

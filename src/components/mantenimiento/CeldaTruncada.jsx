@@ -1,26 +1,26 @@
-import React, { useRef } from 'react';
+import React, { useId } from 'react';
 import { Tooltip } from 'primereact/tooltip';
 
 // Componente presentacional para truncar texto en una sola línea con Tooltip al posar el cursor.
 const CeldaTruncada = ({ valor, anchoMaximo = '100%' }) => {
-  const celdaRef = useRef(null);
+  const idUnico = useId().replace(/:/g, '');
   const texto = valor !== null && valor !== undefined ? String(valor) : '';
 
   if (!texto) {
     return <span className="text-400 font-italic">-</span>;
   }
 
-  // Genera un identificador único para asociar el tooltip de PrimeReact
-  const claseObjetivo = `tooltip-celda-${Math.random().toString(36).substring(2, 9)}`;
+  // Identificador estable para asociar el tooltip de PrimeReact sin fugas en re-renderizados
+  const claseObjetivo = `tooltip-celda-${idUnico}`;
 
   return (
     <>
       <Tooltip target={`.${claseObjetivo}`} position="top" content={texto} />
       <div
-        ref={celdaRef}
         className={`${claseObjetivo} cursor-pointer`}
         style={{
           maxWidth: anchoMaximo,
+          width: '100%',
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
@@ -34,3 +34,4 @@ const CeldaTruncada = ({ valor, anchoMaximo = '100%' }) => {
 };
 
 export default CeldaTruncada;
+

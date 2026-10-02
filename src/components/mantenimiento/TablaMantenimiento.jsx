@@ -44,16 +44,16 @@ const TablaMantenimiento = ({
       const opciones = opcionesReferencia[columna.tablaReferencia] || [];
       const encontrado = opciones.find((op) => op.value === valor);
       const textoAMostrar = encontrado ? encontrado.label : valor;
-      return <CeldaTruncada valor={textoAMostrar} anchoMaximo={columna.ancho || '250px'} />;
+      return <CeldaTruncada valor={textoAMostrar} anchoMaximo="100%" />;
     }
 
-    return <CeldaTruncada valor={valor} anchoMaximo={columna.ancho || '250px'} />;
+    return <CeldaTruncada valor={valor} anchoMaximo="100%" />;
   };
 
   // Plantilla para la columna de botones de acción por cada fila.
   const plantillaAcciones = (fila) => {
     return (
-      <div className="flex align-items-center justify-content-end gap-1">
+      <div className="flex align-items-center justify-content-center gap-1">
         <Button
           icon="pi pi-pencil"
           severity="primary"
@@ -105,6 +105,7 @@ const TablaMantenimiento = ({
         responsiveLayout="scroll"
         stripedRows
         showGridlines
+        tableStyle={{ minWidth: '100%' }}
       >
         {columnas.map((col) => (
           <Column
@@ -112,7 +113,7 @@ const TablaMantenimiento = ({
             field={col.campo}
             header={col.encabezado}
             sortable={col.ordenar !== false}
-            style={{ minWidth: col.ancho || '140px', maxWidth: col.ancho || 'auto' }}
+            style={{ width: col.ancho || 'auto', minWidth: col.ancho || '80px' }}
             body={(fila) => renderizarCelda(fila, col)}
           />
         ))}
@@ -121,7 +122,7 @@ const TablaMantenimiento = ({
           body={plantillaAcciones}
           header="Acciones"
           exportable={false}
-          style={{ minWidth: '100px', width: '100px', textAlign: 'center' }}
+          style={{ width: '80px', minWidth: '80px', textAlign: 'center' }}
         />
       </TablaBase>
     </div>

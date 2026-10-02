@@ -47,11 +47,13 @@ export const usePropuestaTemporizacion = () => {
 
   /**
    * Genera la propuesta de fechas estimadas para las unidades de trabajo dadas.
+   * Si la clase es flexibilizada, combina las sesiones de ambos módulos en Horarios.
    */
   const generarPropuesta = useCallback(
     async ({
       idCurso,
       idModulo,
+      idModuloFlexible = null,
       temporizaciones = [],
       anioSeleccionado = null
     }) => {
@@ -63,6 +65,22 @@ export const usePropuestaTemporizacion = () => {
       setError(null);
 
       try {
+        // Se determina si existe un módulo flexibilizado asociado al curso actual.
+        let flexibleId = idModuloFlexible;
+        if (!flexibleId) {
+          const cursosPrevios = await obtenerCursos('*', (q) => q.eq('id_curso', idCurso));
+          const cursoEncontrado = (cursosPrevios || []).find((c) => c.id_curso === idCurso);
+          flexibleId = cursoEncontrado?.id_modulo_flexible || null;
+        }
+
+        // Modificador condicional para consultar los horarios lectivos unificados de ambos módulos.
+        const filtroHorarios = (q) => {
+          if (flexibleId) {
+            return q.or(`id_modulo.eq.${idModulo},id_modulo.eq.${flexibleId}`);
+          }
+          return q.eq('id_modulo', idModulo);
+        };
+
         // 1. Consulta paralela de las fuentes de datos necesarias.
         const [
           rasModulo,
@@ -76,7 +94,7 @@ export const usePropuestaTemporizacion = () => {
           obtenerRaCurso('*', (q) => q.eq('id_curso', idCurso)),
           obtenerDesarrollan('*'),
           obtenerEventos('*'),
-          obtenerHorarios('*', (q) => q.eq('id_modulo', idModulo)),
+          obtenerHorarios('*', filtroHorarios),
           obtenerCursos('*', (q) => q.eq('id_curso', idCurso))
         ]);
 

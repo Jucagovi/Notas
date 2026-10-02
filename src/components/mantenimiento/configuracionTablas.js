@@ -29,16 +29,21 @@ export const TABLAS_MAESTRAS = {
     titulo: 'Cursos Académicos',
     singular: 'Curso',
     icono: 'pi pi-calendar',
-    descripcion: 'Años académicos y centros de impartición.',
+    descripcion: 'Años académicos, centros de impartición y flexibilización de módulos.',
     esRelacion: false,
     rutaBase: '/herramientas/mantenimiento/cursos',
+    tablasReferenciadas: [
+      { tabla: 'Modulos', clave: 'id_modulo', campoTexto: 'nombre', campoAlternativo: 'siglas' }
+    ],
     columnas: [
-      { campo: 'anyo', encabezado: 'Año Académico', ancho: '140px', ordenar: true, filtrar: true },
-      { campo: 'nombre', encabezado: 'Nombre', ancho: '220px', ordenar: true, filtrar: true },
-      { campo: 'centro', encabezado: 'Centro Educativo', ancho: '200px', ordenar: true, filtrar: true },
-      { campo: 'fecha_inicio', encabezado: 'Fecha Inicio', ancho: '140px', ordenar: true, tipo: 'fecha' },
-      { campo: 'fecha_fin', encabezado: 'Fecha Fin', ancho: '140px', ordenar: true, tipo: 'fecha' },
-      { campo: 'descripcion', encabezado: 'Descripción', ancho: '250px', ordenar: false }
+      { campo: 'anyo', encabezado: 'Año', ancho: '90px', ordenar: true, filtrar: true },
+      { campo: 'nombre', encabezado: 'Nombre', ancho: '130px', ordenar: true, filtrar: true },
+      { campo: 'centro', encabezado: 'Centro Educativo', ancho: '130px', ordenar: true, filtrar: true },
+      { campo: 'fecha_inicio', encabezado: 'F. Inicio', ancho: '90px', ordenar: true, tipo: 'fecha' },
+      { campo: 'fecha_fin', encabezado: 'F. Fin', ancho: '90px', ordenar: true, tipo: 'fecha' },
+      { campo: 'id_modulo_flexible', encabezado: 'Mód. Flexible', ancho: '140px', tipo: 'relacion', tablaReferencia: 'Modulos', ordenar: true, filtrar: true },
+      { campo: 'descripcion', encabezado: 'Descripción', ancho: '130px', ordenar: false },
+      { campo: 'created_at', encabezado: 'Creado', ancho: '90px', ordenar: true, tipo: 'fecha' }
     ],
     camposFormulario: [
       { campo: 'anyo', etiqueta: 'Año Académico', tipo: 'texto', requerido: true, marcador: 'Ej: 2024/2025' },
@@ -46,6 +51,7 @@ export const TABLAS_MAESTRAS = {
       { campo: 'centro', etiqueta: 'Centro Educativo', tipo: 'texto', requerido: true, marcador: 'Ej: IES Tecnológico' },
       { campo: 'fecha_inicio', etiqueta: 'Fecha Inicio', tipo: 'fecha', requerido: false },
       { campo: 'fecha_fin', etiqueta: 'Fecha Fin', tipo: 'fecha', requerido: false },
+      { campo: 'id_modulo_flexible', etiqueta: 'Módulo Flexibilizado', tipo: 'desplegable', requerido: false, tablaReferencia: 'Modulos' },
       { campo: 'descripcion', etiqueta: 'Descripción', tipo: 'area_texto', requerido: false }
     ]
   },

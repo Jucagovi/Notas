@@ -173,6 +173,9 @@ const useClases = (anioFiltro = null) => {
         const m = mapaModulos.get(id_modulo);
         if (c && m) {
           const anioInicio = extraerAnioInicioCurso(c);
+          const idModuloFlexible = c.id_modulo_flexible || null;
+          const moduloFlexibleObj = idModuloFlexible ? (mapaModulos.get(idModuloFlexible) || null) : null;
+
           mapaClases.set(clave, {
             id: clave,
             id_curso,
@@ -184,6 +187,12 @@ const useClases = (anioFiltro = null) => {
             moduloSiglas: m.siglas || '',
             moduloObj: m,
             cursoObj: c,
+            id_modulo_flexible: idModuloFlexible,
+            id_modulo_flexibilizado: idModuloFlexible,
+            moduloFlexibleObj,
+            moduloFlexibleNombre: moduloFlexibleObj?.nombre || null,
+            moduloFlexibleSiglas: moduloFlexibleObj?.siglas || null,
+            esFlexibilizado: Boolean(idModuloFlexible),
             anioInicio,
             anioCompleto: anioInicio ? `${anioInicio}/${anioInicio + 1}` : (c.anyo || ''),
             etiqueta: `${c.nombre} — ${m.siglas ? `${m.siglas}: ` : ''}${m.nombre}`

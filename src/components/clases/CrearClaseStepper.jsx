@@ -39,6 +39,8 @@ const CrearClaseStepper = ({
   const [datosClase, setDatosClase] = useState(DATOS_CLASE_INICIALES);
   const [cicloSeleccionadoId, setCicloSeleccionadoId] = useState(null);
   const [moduloSeleccionadoId, setModuloSeleccionadoId] = useState(null);
+  const [esFlexibilizado, setEsFlexibilizado] = useState(false);
+  const [moduloFlexibleId, setModuloFlexibleId] = useState(null);
   const [discentesSeleccionados, setDiscentesSeleccionados] = useState([]);
   const [clonarProgramacion, setClonarProgramacion] = useState(false);
   const [cursoOrigenId, setCursoOrigenId] = useState(null);
@@ -56,6 +58,7 @@ const CrearClaseStepper = ({
 
   const cicloSeleccionado = ciclos.find((c) => c.id_ciclo === cicloSeleccionadoId) || null;
   const moduloSeleccionado = modulos.find((m) => m.id_modulo === moduloSeleccionadoId) || null;
+  const moduloFlexibleSeleccionado = modulos.find((m) => m.id_modulo === moduloFlexibleId) || null;
   const cursoOrigenSeleccionado = cursos.find((c) => c.id_curso === cursoOrigenId) || null;
 
   // Actualización de campos individuales del formulario de la clase
@@ -91,6 +94,14 @@ const CrearClaseStepper = ({
         mostrarAviso('Debes seleccionar un módulo profesional antes de continuar.');
         return;
       }
+      if (esFlexibilizado && !moduloFlexibleId) {
+        mostrarAviso('Debes seleccionar el módulo secundario para completar la flexibilización.');
+        return;
+      }
+      if (esFlexibilizado && moduloSeleccionadoId === moduloFlexibleId) {
+        mostrarAviso('El módulo principal y secundario no pueden ser el mismo.');
+        return;
+      }
     }
 
     if (indiceActual === 4 && clonarProgramacion && !cursoOrigenId) {
@@ -115,6 +126,8 @@ const CrearClaseStepper = ({
     setDatosClase(DATOS_CLASE_INICIALES);
     setCicloSeleccionadoId(null);
     setModuloSeleccionadoId(null);
+    setEsFlexibilizado(false);
+    setModuloFlexibleId(null);
     setDiscentesSeleccionados([]);
     setClonarProgramacion(false);
     setCursoOrigenId(null);
@@ -132,7 +145,10 @@ const CrearClaseStepper = ({
       moduloId: moduloSeleccionadoId,
       discentesSeleccionados,
       clonarProgramacion,
-      cursoOrigenId: clonarProgramacion ? cursoOrigenId : null
+      cursoOrigenId: clonarProgramacion ? cursoOrigenId : null,
+      esFlexibilizado,
+      moduloFlexibleId: esFlexibilizado ? moduloFlexibleId : null,
+      moduloFlexible: esFlexibilizado ? moduloFlexibleSeleccionado : null
     };
 
     const exito = await onGuardarClaseCompleta(datos);
@@ -184,6 +200,10 @@ const CrearClaseStepper = ({
             onSeleccionarCicloId={setCicloSeleccionadoId}
             moduloSeleccionadoId={moduloSeleccionadoId}
             onSeleccionarModuloId={setModuloSeleccionadoId}
+            esFlexibilizado={esFlexibilizado}
+            onCambiarEsFlexibilizado={setEsFlexibilizado}
+            moduloFlexibleId={moduloFlexibleId}
+            onSeleccionarModuloFlexibleId={setModuloFlexibleId}
           />
           <div className="flex pt-4 justify-content-between">
             <Button
@@ -197,7 +217,7 @@ const CrearClaseStepper = ({
               icon="pi pi-arrow-right"
               iconPos="right"
               onClick={() => avanzarPaso(1)}
-              disabled={!moduloSeleccionadoId}
+              disabled={!moduloSeleccionadoId || (esFlexibilizado && !moduloFlexibleId)}
             />
           </div>
         </StepperPanel>
@@ -230,6 +250,8 @@ const CrearClaseStepper = ({
           <PasoEvaluaciones
             claseNombre={claseSeleccionada?.nombre}
             moduloNombre={moduloSeleccionado?.nombre}
+            esFlexibilizado={esFlexibilizado}
+            moduloFlexibleNombre={moduloFlexibleSeleccionado?.nombre}
           />
           <div className="flex pt-4 justify-content-between">
             <Button
@@ -280,6 +302,8 @@ const CrearClaseStepper = ({
             clase={claseSeleccionada}
             ciclo={cicloSeleccionado}
             modulo={moduloSeleccionado}
+            esFlexibilizado={esFlexibilizado}
+            moduloFlexible={moduloFlexibleSeleccionado}
             discentesSeleccionados={discentesSeleccionados}
             clonarProgramacion={clonarProgramacion}
             cursoOrigen={cursoOrigenSeleccionado}

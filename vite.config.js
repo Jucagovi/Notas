@@ -9,15 +9,19 @@ const __dirname = path.dirname(__filename);
 // Configuración de Vite para el proyecto de gestión de notas.
 export default defineConfig({
   plugins: [react()],
+  base: "/Notas/",
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@primereact/themes/nano': path.resolve(__dirname, './src/themes/nano.js'),
-      '@primereact/themes': path.resolve(__dirname, './src/themes/index.js')
-    }
+      "@": path.resolve(__dirname, "./src"),
+      "@primereact/themes/nano": path.resolve(
+        __dirname,
+        "./src/themes/nano.js",
+      ),
+      "@primereact/themes": path.resolve(__dirname, "./src/themes/index.js"),
+    },
   },
   server: {
     port: 5173,
-    open: false
-  }
+    open: false,
+  },
 });

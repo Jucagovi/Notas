@@ -11,3 +11,4 @@ export { DialogoPropuestaTemporizacion, default as DialogoPropuestaTemporizacion
 export { DiagramaGanttTemporizacion, default as DiagramaGanttTemporizacionDefault } from './DiagramaGanttTemporizacion.jsx';
 export { SeccionCalendarioTemporizacion, default as SeccionCalendarioTemporizacionDefault } from './SeccionCalendarioTemporizacion.jsx';
 export { GestorTemporizacion, default as GestorTemporizacionDefault } from './GestorTemporizacion.jsx';
+export { default as BadgeModuloFlexibilizado } from './BadgeModuloFlexibilizado.jsx';

@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from 'primereact/card';
 import { Divider } from 'primereact/divider';
 import BotonAccion from '../common/BotonAccion.jsx';
+import { formatearAnyoAcademico } from '../../hooks/useConfiguracionCurso.js';
 
 // Paso 6: Informe resumen previo a la confirmación de la clase (sin componentes Tag para año y siglas).
 const PasoConfirmacion = ({
@@ -9,6 +10,8 @@ const PasoConfirmacion = ({
   curso,
   ciclo,
   modulo,
+  esFlexibilizado = false,
+  moduloFlexible = null,
   discentesSeleccionados = [],
   clonarProgramacion = false,
   cursoOrigen = null,
@@ -18,6 +21,10 @@ const PasoConfirmacion = ({
 }) => {
   // Soportar tanto prop clase como curso para máxima resiliencia.
   const claseActual = clase || curso;
+  const anyoFormateado = formatearAnyoAcademico(claseActual?.anyo);
+  const nombreCursoSecundario = moduloFlexible
+    ? `${moduloFlexible.siglas || moduloFlexible.nombre} ${anyoFormateado}`.trim()
+    : '';
 
   return (
     <div className="flex flex-column gap-3 py-2">
@@ -52,7 +59,7 @@ const PasoConfirmacion = ({
               <Divider className="my-2" />
 
               <div>
-                <span className="text-500 font-semibold block">Módulo Profesional:</span>
+                <span className="text-500 font-semibold block">Módulo Profesional Principal:</span>
                 <span className="text-900 font-bold text-base">{modulo?.nombre || 'No seleccionado'}</span>
                 <div className="text-secondary mt-1">
                   Siglas del módulo: <strong className="text-900">{modulo?.siglas || '-'}</strong>
@@ -60,6 +67,19 @@ const PasoConfirmacion = ({
                 <div className="text-secondary mt-1">
                   Ciclo Formativo: <strong className="text-900">{ciclo?.nombre || '-'}</strong>
                 </div>
+
+                {esFlexibilizado && moduloFlexible && (
+                  <div className="mt-2 pt-2 border-top-1 surface-border">
+                    <span className="text-primary font-semibold block flex align-items-center gap-1">
+                      <i className="pi pi-link text-xs" />
+                      Módulo Secundario Flexibilizado:
+                    </span>
+                    <span className="text-900 font-bold text-base">{moduloFlexible.nombre}</span>
+                    <div className="text-secondary mt-1">
+                      Siglas: <strong className="text-900">{moduloFlexible.siglas || '-'}</strong>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </Card>
@@ -71,20 +91,51 @@ const PasoConfirmacion = ({
             <div className="flex flex-column gap-3 text-sm">
               <div className="flex align-items-center justify-content-between">
                 <div>
-                  <span className="font-semibold block text-900">Alumnos a Matricular:</span>
-                  <span className="text-secondary text-xs">Se registrarán en la tabla imparte</span>
+                  <span className="font-semibold block text-900">
+                    {esFlexibilizado ? 'Cursos a Crear (Dual):' : 'Curso a Crear:'}
+                  </span>
+                  <span className="text-secondary text-xs">
+                    {esFlexibilizado ? (
+                      <span className="flex flex-column gap-1 mt-1">
+                        <span>Principal: <strong className="text-900">{claseActual?.nombre}</strong></span>
+                        <span>Secundario (automático): <strong className="text-900">{nombreCursoSecundario}</strong></span>
+                      </span>
+                    ) : (
+                      '1 registro estándar en la tabla Cursos'
+                    )}
+                  </span>
                 </div>
                 <span className="font-bold text-primary text-base">
-                  {discentesSeleccionados.length} alumnos
+                  {esFlexibilizado ? '2 cursos' : '1 curso'}
+                </span>
+              </div>
+
+              <div className="flex align-items-center justify-content-between">
+                <div>
+                  <span className="font-semibold block text-900">Alumnos a Matricular:</span>
+                  <span className="text-secondary text-xs">
+                    {esFlexibilizado
+                      ? 'Matriculación idéntica en ambos cursos en imparte'
+                      : 'Se registrarán en la tabla imparte'}
+                  </span>
+                </div>
+                <span className="font-bold text-primary text-base">
+                  {discentesSeleccionados.length} alumnos {esFlexibilizado ? '(en ambos)' : ''}
                 </span>
               </div>
 
               <div className="flex align-items-center justify-content-between">
                 <div>
                   <span className="font-semibold block text-900">Evaluaciones Reglamentarias:</span>
-                  <span className="text-secondary text-xs">5 períodos oficiales en la tabla Evaluaciones</span>
+                  <span className="text-secondary text-xs">
+                    {esFlexibilizado
+                      ? '5 períodos independientes por módulo en Evaluaciones'
+                      : '5 períodos oficiales en la tabla Evaluaciones'}
+                  </span>
                 </div>
-                <span className="font-bold text-primary text-base">5 evaluaciones</span>
+                <span className="font-bold text-primary text-base">
+                  {esFlexibilizado ? '10 evaluaciones' : '5 evaluaciones'}
+                </span>
               </div>
 
               <div className="flex align-items-center justify-content-between">

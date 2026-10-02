@@ -17,7 +17,7 @@ import {
  * @param {string|null} idModulo - Identificador del módulo formativo asociado.
  * @param {number|string|null} anioSeleccionado - Año escolar seleccionado en los filtros.
  */
-export const useCalendarioEscolar = (idCurso, idModulo, anioSeleccionado) => {
+export const useCalendarioEscolar = (idCurso, idModulo, anioSeleccionado, idModuloFlexible = null) => {
   const [diasClase, setDiasClase] = useState([]);
   const [conjuntoNoLectivos, setConjuntoNoLectivos] = useState(new Set());
   const [anioInicio, setAnioInicio] = useState(2026);
@@ -40,10 +40,25 @@ export const useCalendarioEscolar = (idCurso, idModulo, anioSeleccionado) => {
 
     setCargando(true);
     try {
+      // Se determina si existe flexibilización para unificar la bolsa horaria.
+      let flexibleId = idModuloFlexible;
+      if (!flexibleId) {
+        const cursosPrevios = await obtenerCursos('*', (q) => q.eq('id_curso', idCurso));
+        const cursoEncontrado = (cursosPrevios || []).find((c) => c.id_curso === idCurso);
+        flexibleId = cursoEncontrado?.id_modulo_flexible || null;
+      }
+
+      const filtroHorarios = (q) => {
+        if (idModulo && flexibleId) {
+          return q.or(`id_modulo.eq.${idModulo},id_modulo.eq.${flexibleId}`);
+        }
+        return q.eq('id_modulo', idModulo);
+      };
+
       // Consulta concurrente de los eventos del calendario, horarios y datos del curso.
       const [eventosCalendario, horariosClase, datosCursos] = await Promise.all([
         obtenerEventos('*'),
-        idModulo ? obtenerHorarios('*', (q) => q.eq('id_modulo', idModulo)) : Promise.resolve([]),
+        idModulo ? obtenerHorarios('*', filtroHorarios) : Promise.resolve([]),
         obtenerCursos('*', (q) => q.eq('id_curso', idCurso))
       ]);
 
@@ -117,7 +132,7 @@ export const useCalendarioEscolar = (idCurso, idModulo, anioSeleccionado) => {
     } finally {
       setCargando(false);
     }
-  }, [idCurso, idModulo, anioSeleccionado, obtenerEventos, obtenerHorarios, obtenerCursos]);
+  }, [idCurso, idModulo, anioSeleccionado, idModuloFlexible, obtenerEventos, obtenerHorarios, obtenerCursos]);
 
   useEffect(() => {
     cargarCalendario();

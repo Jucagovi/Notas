@@ -84,6 +84,10 @@ const DialogoFormulario = ({
         const dia = String(d.getDate()).padStart(2, '0');
         datosNormalizados[campo.campo] = `${anyo}-${mes}-${dia}`;
       }
+      // Se asegura valor null para claves foráneas opcionales si quedan vacías.
+      if (campo.tipo === 'desplegable' && (!datosNormalizados[campo.campo] || datosNormalizados[campo.campo] === '')) {
+        datosNormalizados[campo.campo] = null;
+      }
     });
 
     onGuardar(datosNormalizados);
@@ -158,6 +162,7 @@ const DialogoFormulario = ({
             optionValue="value"
             placeholder="Seleccionar elemento..."
             filter
+            showClear={!campo.requerido}
             className={`w-full ${tieneError ? 'p-invalid' : ''}`}
           />
         );

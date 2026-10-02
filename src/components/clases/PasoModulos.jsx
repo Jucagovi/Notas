@@ -3,14 +3,20 @@ import { Card } from 'primereact/card';
 import SelectorCiclo from '../common/SelectorCiclo.jsx';
 import SelectorModulo from '../common/SelectorModulo.jsx';
 
-// Paso 2: Selección de Ciclo Formativo y Módulo Profesional con filtrado dependiente (sin componentes Tag).
+import SeccionFlexibilizacionModulo from './SeccionFlexibilizacionModulo.jsx';
+
+// Paso 2: Selección de Ciclo Formativo y Módulo Profesional con opción de flexibilización dual.
 const PasoModulos = ({
   ciclos = [],
   modulos = [],
   cicloSeleccionadoId,
   onSeleccionarCicloId,
   moduloSeleccionadoId,
-  onSeleccionarModuloId
+  onSeleccionarModuloId,
+  esFlexibilizado = false,
+  onCambiarEsFlexibilizado,
+  moduloFlexibleId = null,
+  onSeleccionarModuloFlexibleId
 }) => {
   // Filtrado reactivo de módulos pertenecientes exclusivamente al ciclo seleccionado.
   const modulosFiltrados = useMemo(() => {
@@ -43,6 +49,9 @@ const PasoModulos = ({
             onChange={(e) => {
               onSeleccionarCicloId(e.value);
               onSeleccionarModuloId(null);
+              if (onSeleccionarModuloFlexibleId) {
+                onSeleccionarModuloFlexibleId(null);
+              }
             }}
             placeholder="Selecciona un ciclo formativo..."
             className="w-full"
@@ -58,7 +67,12 @@ const PasoModulos = ({
             id="selectorModulo"
             value={moduloSeleccionadoId}
             options={modulosFiltrados}
-            onChange={(e) => onSeleccionarModuloId(e.value)}
+            onChange={(e) => {
+              onSeleccionarModuloId(e.value);
+              if (moduloFlexibleId === e.value && onSeleccionarModuloFlexibleId) {
+                onSeleccionarModuloFlexibleId(null);
+              }
+            }}
             placeholder={
               cicloSeleccionadoId
                 ? 'Selecciona un módulo del ciclo...'
@@ -92,6 +106,20 @@ const PasoModulos = ({
             )}
           </div>
         </Card>
+      )}
+
+      {/* Subcomponente para la flexibilización con un segundo módulo del mismo ciclo */}
+      {moduloActual && (
+        <SeccionFlexibilizacionModulo
+          esFlexibilizado={esFlexibilizado}
+          onCambiarEsFlexibilizado={onCambiarEsFlexibilizado}
+          moduloPrincipalId={moduloSeleccionadoId}
+          moduloFlexibleId={moduloFlexibleId}
+          onSeleccionarModuloFlexibleId={onSeleccionarModuloFlexibleId}
+          modulos={modulos}
+          cicloSeleccionadoId={cicloSeleccionadoId}
+          deshabilitado={!moduloSeleccionadoId}
+        />
       )}
     </div>
   );

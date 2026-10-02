@@ -696,3 +696,13 @@ Nuestra tarea de hoy es generar un informe para comprobar la temporización de l
 Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
 
 Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 32 Flexibilización
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es añadir la posibilidad de flexibilización de dos módulos en un mismo curso. Lee detalladamente el caso de uso en @docs/casos-de-uso/32-temporizacion.flex.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.

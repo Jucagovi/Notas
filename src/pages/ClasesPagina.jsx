@@ -65,6 +65,8 @@ const ClasesPagina = () => {
             cursoCentro: c.centro,
             moduloNombre: m.nombre,
             moduloSiglas: m.siglas,
+            id_modulo_flexible: c.id_modulo_flexible || null,
+            id_modulo_flexibilizado: c.id_modulo_flexible || null,
             etiqueta: `${c.nombre} (${c.anyo}) — ${m.siglas}: ${m.nombre}`
           });
         }
@@ -87,6 +89,8 @@ const ClasesPagina = () => {
             cursoCentro: c.centro,
             moduloNombre: m.nombre,
             moduloSiglas: m.siglas,
+            id_modulo_flexible: c.id_modulo_flexible || null,
+            id_modulo_flexibilizado: c.id_modulo_flexible || null,
             etiqueta: `${c.nombre} (${c.anyo}) — ${m.siglas}: ${m.nombre}`
           });
         }
@@ -154,7 +158,11 @@ const ClasesPagina = () => {
   const manejarGuardarClaseCompleta = async (datosConfiguracion) => {
     const res = await generarCursoCompleto(datosConfiguracion);
     if (res && res.exito) {
-      mostrarExito('¡Clase configurada con éxito! Se han registrado las evaluaciones y matriculaciones.');
+      if (datosConfiguracion.esFlexibilizado) {
+        mostrarExito('¡Clases flexibilizadas configuradas con éxito! Se han registrado ambos cursos con sus evaluaciones y matrículas.');
+      } else {
+        mostrarExito('¡Clase configurada con éxito! Se han registrado las evaluaciones y matriculaciones.');
+      }
       await Promise.all([
         cursos.recargar(),
         imparte.recargar(),

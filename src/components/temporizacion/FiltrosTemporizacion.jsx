@@ -2,6 +2,7 @@ import React from 'react';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import SelectorClase from '../common/SelectorClase.jsx';
+import BadgeModuloFlexibilizado from './BadgeModuloFlexibilizado.jsx';
 
 /**
  * FiltrosTemporizacion - Barra de selección y acciones para la temporización de la clase.
@@ -42,10 +43,16 @@ export const FiltrosTemporizacion = ({
   guardando = false,
   totalUnidades = 0
 }) => {
+  // Identificación de la clase activa para verificar su estado de flexibilización.
+  const claseActual = clases.find((c) => c.id === claseSeleccionadaId) || null;
+  const esFlexibilizado = Boolean(
+    claseActual?.id_modulo_flexible || claseActual?.id_modulo_flexibilizado
+  );
+
   return (
     <div className="surface-card p-3 border-round border-1 surface-border shadow-1 mb-4">
       {/* 1. Fila superior de selectores con dimensiones contenidas y estándar */}
-      <div className="flex flex-column sm:flex-row align-items-stretch sm:align-items-center gap-3">
+      <div className="flex flex-column sm:flex-row align-items-stretch sm:align-items-center gap-3 flex-wrap">
         {/* Selector de Año Académico con ancho contenido */}
         <div className="w-full sm:w-14rem">
           <label htmlFor="selector-anio" className="block text-xs font-semibold text-color-secondary mb-1">
@@ -81,6 +88,16 @@ export const FiltrosTemporizacion = ({
             className="w-full"
           />
         </div>
+
+        {/* Indicador visual destacado de flexibilización de módulos */}
+        {esFlexibilizado && (
+          <div className="flex align-items-end mt-1 sm:mt-3">
+            <BadgeModuloFlexibilizado
+              nombreModuloSecundario={claseActual?.moduloFlexibleNombre}
+              siglasModuloSecundario={claseActual?.moduloFlexibleSiglas}
+            />
+          </div>
+        )}
       </div>
 
       {/* 2. Fila inferior de botones con tamaño estándar y alineados a la derecha */}

@@ -77,6 +77,7 @@ const TemporizacionPagina = () => {
 
   const cursoSeleccionadoId = claseActiva?.id_curso || null;
   const moduloSeleccionadoId = claseActiva?.id_modulo || null;
+  const idModuloFlexible = claseActiva?.id_modulo_flexible || claseActiva?.id_modulo_flexibilizado || null;
 
   // Hook orquestador principal para la lógica de temporización y seguimiento de la clase.
   const {
@@ -102,7 +103,7 @@ const TemporizacionPagina = () => {
     generarPropuesta
   } = usePropuestaTemporizacion();
 
-  // Consulta especializada del calendario escolar del curso y cálculo de días lectivos.
+  // Consulta especializada del calendario escolar del curso y cálculo de días lectivos (soporta flexibilización).
   const {
     diasClase,
     conjuntoNoLectivos,
@@ -110,7 +111,7 @@ const TemporizacionPagina = () => {
     fechaInicioPeriodo,
     fechaFinPeriodo,
     recargar: recargarCalendario
-  } = useCalendarioEscolar(cursoSeleccionadoId, moduloSeleccionadoId, anioSeleccionado);
+  } = useCalendarioEscolar(cursoSeleccionadoId, moduloSeleccionadoId, anioSeleccionado, idModuloFlexible);
 
   // Control de apertura del diálogo modal de la propuesta de temporización.
   const [modalPropuestaVisible, setModalPropuestaVisible] = useState(false);
@@ -131,6 +132,7 @@ const TemporizacionPagina = () => {
     const resultado = await generarPropuesta({
       idCurso: cursoSeleccionadoId,
       idModulo: moduloSeleccionadoId,
+      idModuloFlexible,
       temporizaciones,
       anioSeleccionado
     });
