@@ -29,12 +29,13 @@ const ClasesPagina = () => {
   const imparte = useImparte();
   const evaluaciones = useEvaluaciones();
 
-  // Hook específico para orquestar la lógica de creación y borrado en cascada.
+  // Hook específico para orquestar la lógica de creación, modificación y borrado en cascada.
   const {
     cargando: procesandoConfiguracion,
     generarCursoCompleto,
     eliminarCurso,
-    actualizarMatriculaClase
+    actualizarMatriculaClase,
+    actualizarFlexibilizacionClase
   } = useConfiguracionCurso();
 
   // Estados locales para la sección de modificación de matrículas.
@@ -60,13 +61,17 @@ const ClasesPagina = () => {
             id: clave,
             id_curso: imp.id_curso,
             id_modulo: imp.id_modulo,
+            id_ciclo: m.id_ciclo,
             cursoNombre: c.nombre,
             cursoAnyo: c.anyo,
             cursoCentro: c.centro,
             moduloNombre: m.nombre,
             moduloSiglas: m.siglas,
+            moduloObj: m,
+            cursoObj: c,
             id_modulo_flexible: c.id_modulo_flexible || null,
             id_modulo_flexibilizado: c.id_modulo_flexible || null,
+            esFlexibilizado: Boolean(c.id_modulo_flexible),
             etiqueta: `${c.nombre} (${c.anyo}) — ${m.siglas}: ${m.nombre}`
           });
         }
@@ -84,13 +89,17 @@ const ClasesPagina = () => {
             id: clave,
             id_curso: ev.id_curso,
             id_modulo: ev.id_modulo,
+            id_ciclo: m.id_ciclo,
             cursoNombre: c.nombre,
             cursoAnyo: c.anyo,
             cursoCentro: c.centro,
             moduloNombre: m.nombre,
             moduloSiglas: m.siglas,
+            moduloObj: m,
+            cursoObj: c,
             id_modulo_flexible: c.id_modulo_flexible || null,
             id_modulo_flexibilizado: c.id_modulo_flexible || null,
+            esFlexibilizado: Boolean(c.id_modulo_flexible),
             etiqueta: `${c.nombre} (${c.anyo}) — ${m.siglas}: ${m.nombre}`
           });
         }
@@ -175,24 +184,58 @@ const ClasesPagina = () => {
     }
   };
 
-  // Guardado de modificaciones de matrícula mediante el PickList.
-  const manejarGuardarCambiosMatricula = async () => {
+  // Guardado de modificaciones de matrícula y flexibilización de la clase.
+  const manejarGuardarCambiosClase = async (datosFlexibilizacion) => {
     if (!claseSeleccionadaId) return;
     const claseActual = clasesDisponibles.find((c) => c.id === claseSeleccionadaId);
     if (!claseActual) return;
 
+    let flexibilizacionActualizada = false;
+
+    // 1. Guardar cambios en la flexibilización si procede
+    if (datosFlexibilizacion) {
+      const estadoPrevioFlex = Boolean(claseActual.id_modulo_flexible);
+      const estadoPrevioId = claseActual.id_modulo_flexible || null;
+      const cambioDetectado =
+        datosFlexibilizacion.esFlexibilizado !== estadoPrevioFlex ||
+        datosFlexibilizacion.moduloFlexibleId !== estadoPrevioId;
+
+      if (cambioDetectado) {
+        const resFlex = await actualizarFlexibilizacionClase(
+          claseActual.id_curso,
+          claseActual.id_modulo,
+          datosFlexibilizacion.esFlexibilizado,
+          datosFlexibilizacion.moduloFlexibleId
+        );
+
+        if (!resFlex || !resFlex.exito) {
+          mostrarError(resFlex?.error || 'Error al actualizar la flexibilización de la clase.');
+          return;
+        }
+        flexibilizacionActualizada = true;
+      }
+    }
+
+    // 2. Guardar modificaciones de matrícula mediante el PickList
     const idsMatriculadosFinales = discentesMatriculados.map((d) => d.id_discente);
-    const res = await actualizarMatriculaClase(
+    const resMat = await actualizarMatriculaClase(
       claseActual.id_curso,
       claseActual.id_modulo,
       idsMatriculadosFinales
     );
 
-    if (res && res.exito) {
-      mostrarExito(`Matrícula actualizada: ${res.insertados} altas y ${res.eliminados} bajas.`);
-      await imparte.recargar();
+    if (resMat && resMat.exito) {
+      let mensaje = `Matrícula actualizada: ${resMat.insertados} altas y ${resMat.eliminados} bajas.`;
+      if (flexibilizacionActualizada) {
+        mensaje = `Clase actualizada con éxito: flexibilización modificada y matrícula actualizada (${resMat.insertados} altas, ${resMat.eliminados} bajas).`;
+      }
+      mostrarExito(mensaje);
+      await Promise.all([
+        cursos.recargar(),
+        imparte.recargar()
+      ]);
     } else {
-      mostrarError(res?.error || 'No se pudieron actualizar los registros de matrícula.');
+      mostrarError(resMat?.error || 'No se pudieron actualizar los registros de matrícula.');
     }
   };
 
@@ -231,17 +274,20 @@ const ClasesPagina = () => {
         />
       )}
 
-      {/* 3. Vista de Modificación de Clase (Gestión de matrículas con PickList) */}
+      {/* 3. Vista de Modificación de Clase (Gestión de matrículas con PickList y flexibilización) */}
       {pestanyaActiva === 'modificar' && (
         <ModificarClasePanel
           clases={clasesDisponibles}
           claseSeleccionadaId={claseSeleccionadaId}
           onSeleccionarClaseId={setClaseSeleccionadaId}
+          modulos={modulos.datos}
+          ciclos={ciclos.datos}
           discentesDisponibles={discentesDisponibles}
           discentesMatriculados={discentesMatriculados}
           onCambiarPickList={manejarCambioPickList}
           guardando={procesandoConfiguracion}
-          onGuardarCambios={manejarGuardarCambiosMatricula}
+          onGuardarCambios={manejarGuardarCambiosClase}
+          mostrarAviso={mostrarAdvertencia}
         />
       )}
 

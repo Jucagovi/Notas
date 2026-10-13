@@ -48,7 +48,8 @@ export const ELEMENTOS_INFORMES = [
   { label: 'Acta evaluación RA', icon: 'pi pi-file-check', to: '/evaluacion/acta-ra' },
   { label: 'Acta por trimestres', icon: 'pi pi-file', to: '/evaluacion/acta-trimestres' },
   { label: 'Mapa de Calor', icon: 'pi pi-th-large', to: '/informes/mapa-calor' },
-  { label: 'Visor Curricular', icon: 'pi pi-sitemap', to: '/informes/visor-curricular' }
+  { label: 'Visor Curricular', icon: 'pi pi-sitemap', to: '/informes/visor-curricular' },
+  { label: 'Seguimiento Programación', icon: 'pi pi-file-edit', to: '/informes/seguimiento' }
 ];
 
 // Elementos de mantenimiento y utilidades dentro del submenú Herramientas

@@ -25,6 +25,7 @@ import InformeCompetencia from './pages/informes/InformeCompetencia.jsx';
 import InformeMapaCalor from './pages/informes/InformeMapaCalor.jsx';
 import InformeProgreso from './pages/informes/InformeProgreso.jsx';
 import VisorCurricularPagina from './pages/VisorCurricularPagina.jsx';
+import InformeSeguimiento from './pages/informes/InformeSeguimiento.jsx';
 import HerramientasPagina from './pages/HerramientasPagina.jsx';
 import ExportadorPagina from './pages/herramientas/ExportadorPagina.jsx';
 import CalendarioPagina from "./pages/CalendarioPagina.jsx";
@@ -267,6 +268,14 @@ const App = () => {
             path='informe-progreso'
             element={<Navigate to='/informes/progreso' replace />}
           />
+          <Route
+            path='seguimiento-programacion'
+            element={<Navigate to='/informes/seguimiento' replace />}
+          />
+          <Route
+            path='seguimiento'
+            element={<Navigate to='/informes/seguimiento' replace />}
+          />
           <Route path='evaluaciones/calificar' element={<CalificarPagina />} />
 
           {/* Informes */}
@@ -324,6 +333,15 @@ const App = () => {
             />
             <Route path='evaluacion-ra' element={<InformeEvaluacionRa />} />
             <Route path='acta-ra' element={<InformeEvaluacionRa />} />
+            <Route path='seguimiento' element={<InformeSeguimiento />} />
+            <Route
+              path='seguimiento-programacion'
+              element={<Navigate to='/informes/seguimiento' replace />}
+            />
+            <Route
+              path='informe-seguimiento'
+              element={<Navigate to='/informes/seguimiento' replace />}
+            />
             <Route
               path='*'
               element={<Navigate to='/informes/pendientes' replace />}

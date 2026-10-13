@@ -417,11 +417,20 @@ const useConfiguracionCurso = () => {
         if (versiones && versiones.length > 0) {
           for (const v of versiones) {
             await evaluanHook.eliminar('id_version', v.id_version);
-            await trabajanHook.eliminar('id_version', v.id_version);
+          }
+
+          // Se desvinculan las versiones del curso y de sus evaluaciones estableciendo id_curso e id_evaluacion a null.
+          // De esta manera se preservan en la tabla Versiones y sus criterios asociados (trabajan) para reutilizarlas en cursos venideros.
+          const resActualizar = await versionesHook.actualizar('id_curso', cursoId, {
+            id_curso: null,
+            id_evaluacion: null,
+            peso_evaluacion: 0
+          });
+          if (resActualizar === null) {
+            throw new Error('No se pudieron desvincular las versiones del curso.');
           }
         }
 
-        await versionesHook.eliminar('id_curso', cursoId);
         await evaluacionesHook.eliminar('id_curso', cursoId);
 
         // 5. Se eliminan registros en tablas de horarios, sesiones y festivos si existieran.
@@ -449,10 +458,11 @@ const useConfiguracionCurso = () => {
       raCursoHook.eliminar,
       ceCursoHook.eliminar,
       temporizacionHook.eliminar,
+      evaluacionesHook.obtenerDatos,
       evaluacionesHook.eliminar,
       evaluanHook.eliminar,
-      versionesHook.eliminar,
-      trabajanHook.eliminar,
+      versionesHook.obtenerDatos,
+      versionesHook.actualizar,
       festivosHook.eliminar,
       horariosHook.eliminar,
       sesionesHook.eliminar,
@@ -518,12 +528,105 @@ const useConfiguracionCurso = () => {
     [imparteHook.obtenerDatos, imparteHook.insertar, imparteHook.eliminar]
   );
 
+  // Actualización de la flexibilización de un curso académico existente con soporte de reciprocidad.
+  const actualizarFlexibilizacionClase = useCallback(
+    async (cursoId, moduloPrincipalId, esFlexibilizado, moduloFlexibleId) => {
+      setCargando(true);
+      setError(null);
+
+      try {
+        if (!cursoId) {
+          throw new Error('Identificador de curso no proporcionado para actualizar flexibilización.');
+        }
+
+        if (esFlexibilizado && !moduloFlexibleId) {
+          throw new Error('Debe seleccionarse un módulo secundario para activar la flexibilización.');
+        }
+
+        if (esFlexibilizado && moduloPrincipalId === moduloFlexibleId) {
+          throw new Error('No es posible flexibilizar un módulo consigo mismo.');
+        }
+
+        const nuevoFlexibleId = esFlexibilizado ? moduloFlexibleId : null;
+
+        // 1. Obtención de datos actuales del curso para conocer su año y el módulo flexible previo.
+        const { data: cursoActual, error: errorCurso } = await supabase
+          .from('Cursos')
+          .select('id_curso, anyo, id_modulo_flexible')
+          .eq('id_curso', cursoId)
+          .single();
+
+        if (errorCurso) {
+          throw errorCurso;
+        }
+
+        const antiguoFlexibleId = cursoActual.id_modulo_flexible;
+
+        // 2. Actualización del campo id_modulo_flexible en el curso principal.
+        const { error: errorUpdatePrincipal } = await supabase
+          .from('Cursos')
+          .update({ id_modulo_flexible: nuevoFlexibleId })
+          .eq('id_curso', cursoId);
+
+        if (errorUpdatePrincipal) {
+          throw errorUpdatePrincipal;
+        }
+
+        // 3. Gestión de la reciprocidad en cursos secundarios si existen en el mismo año lectivo:
+        // Si antes estaba vinculado con un módulo que ya no está, desvincular el curso recíproco anterior.
+        if (antiguoFlexibleId && antiguoFlexibleId !== nuevoFlexibleId) {
+          await supabase
+            .from('Cursos')
+            .update({ id_modulo_flexible: null })
+            .eq('anyo', cursoActual.anyo)
+            .eq('id_modulo_flexible', moduloPrincipalId);
+        }
+
+        // Si ahora está flexibilizado con un nuevo módulo secundario, vincular el curso secundario si ya existe en ese año.
+        if (nuevoFlexibleId) {
+          const { data: cursosCandidatos } = await supabase
+            .from('Cursos')
+            .select('id_curso')
+            .eq('anyo', cursoActual.anyo)
+            .neq('id_curso', cursoId);
+
+          if (cursosCandidatos && cursosCandidatos.length > 0) {
+            const { data: impartenSecundario } = await supabase
+              .from('imparte')
+              .select('id_curso')
+              .eq('id_modulo', nuevoFlexibleId)
+              .in('id_curso', cursosCandidatos.map((c) => c.id_curso));
+
+            const idsCursosSecundarios = (impartenSecundario || []).map((i) => i.id_curso);
+            if (idsCursosSecundarios.length > 0) {
+              await supabase
+                .from('Cursos')
+                .update({ id_modulo_flexible: moduloPrincipalId })
+                .in('id_curso', idsCursosSecundarios);
+            }
+          }
+        }
+
+        return { exito: true };
+      } catch (err) {
+        console.error('Error al actualizar la flexibilización de la clase:', err);
+        const errorMsg = err.message || 'Error al actualizar la flexibilización.';
+        setError(errorMsg);
+        return { exito: false, error: errorMsg };
+      } finally {
+        setCargando(false);
+      }
+    },
+    []
+  );
+
   return {
     cargando,
     error,
     generarCursoCompleto,
     eliminarCurso,
-    actualizarMatriculaClase
+    actualizarMatriculaClase,
+    actualizarFlexibilizacionClase
   };
 };
 

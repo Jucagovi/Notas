@@ -76,7 +76,7 @@ const EliminarClasePanel = ({
                   <li>Matrículas de alumnos en la tabla <span className="font-mono font-bold">imparte</span></li>
                   <li>Períodos y fechas de la tabla <span className="font-mono font-bold">Evaluaciones</span></li>
                   <li>Calificaciones y actas registradas en la tabla <span className="font-mono font-bold">evaluan</span></li>
-                  <li>Prácticas, enunciados y criterios en <span className="font-mono font-bold">Versiones</span> y <span className="font-mono font-bold">trabajan</span></li>
+                  <li>Desvinculación de actividades en <span className="font-mono font-bold">Versiones</span> (se preservan con id_curso a null para su reutilización futura, manteniendo <span className="font-mono font-bold">trabajan</span>)</li>
                   <li>Planificación temporal de unidades en la tabla <span className="font-mono font-bold">Temporizacion</span></li>
                   <li>Ponderaciones de resultados y criterios en <span className="font-mono font-bold">ra_curso</span> y <span className="font-mono font-bold">ce_curso</span></li>
                   <li>Horarios, sesiones y festivos vinculados a este curso académico</li>

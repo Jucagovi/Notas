@@ -9,4 +9,4 @@ export { default as WidgetProgresoCurricular } from './WidgetProgresoCurricular.
 export { default as WidgetTermometroCurricular } from './WidgetTermometroCurricular.jsx';
 export { default as WidgetAccesosRapidos } from './WidgetAccesosRapidos.jsx';
 export { default as TarjetaKpiPendientes } from './TarjetaKpiPendientes.jsx';
-
+export { default as AvisoSeguimientoMensual } from './AvisoSeguimientoMensual.jsx';

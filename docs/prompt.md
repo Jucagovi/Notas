@@ -706,3 +706,31 @@ Nuestra tarea de hoy es añadir la posibilidad de flexibilización de dos módul
 Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
 
 Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+## 32 Informe seguimiento
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es añadir la generación de informes se seguimiento mensuales. Lee detalladamente el caso de uso en @docs/casos-de-uso/22-seguimiento-programaciones.md.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Genera el código necesario implementando los componentes de PrimeReact solicitados y creando los Custom Hooks necesarios para Supabase. Hazlo paso a paso y explícame los cambios. Recuerda comentar el código que consideres complejo en castellano, redactado en impersonal y terminando las frases con un punto.
+
+---
+
+Hay que hacer cambios:
+
+- en la selcción del módulo, sólo hay que mostrar el año académico que filtrará el curso (el resto de los <DropDown> no son necesarios ya que el curso está asociado a un módulo).
+- en el fichero PDF que se genera:
+  - el tamaño de la tabla debe ajustarse al tamaño de la página para que los datos puedan verse de forma correcta manteniendo el tamaño y disposición de la página.
+  - en la cabecera del infrome, cambia la frase `Grupo DGPP 2026/2027` y muestra el año académico. Mantén el resto de texto igual.
+- el informe editable debe exportarse en formato ODT y no en un formato propietario de Micrsoft.
+
+Más cambios (por hacer):
+
+- La tabla del informe del PDF sigue sin verse completa y el tamaño de la tabla (verticalmente) debe adaptarse al contenido, no a la página (actualmente ocupa toda la página).
+
+## 32 cambios en el informe
+
+El informe debe mostrar un seguimiento anual de la programación desde el día que se solicita hacia atrás hasta el incio del curso manteniendo los comentarios que se han realizado en los meses anteriores. ¿Qué cambios tengo que hacer en la base de datos para hacer esto? ¿Se puede implementar sin modificar la base de datos? ¿Tal vez subiendo un archivo para modificar su contenido?

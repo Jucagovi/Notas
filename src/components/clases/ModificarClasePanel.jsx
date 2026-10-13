@@ -1,21 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PickList } from 'primereact/picklist';
 import { Card } from 'primereact/card';
 import SelectorClase from '../common/SelectorClase.jsx';
 import BotonAccion from '../common/BotonAccion.jsx';
+import ModificarFlexibilizacionSeccion from './ModificarFlexibilizacionSeccion.jsx';
 
-// Panel para modificar las matrículas de una clase existente mediante PickList estilizado.
+// Panel para modificar las matrículas y la flexibilización de una clase existente.
 const ModificarClasePanel = ({
   clases = [],
   claseSeleccionadaId,
   onSeleccionarClaseId,
+  modulos = [],
+  ciclos = [],
   discentesDisponibles = [],
   discentesMatriculados = [],
   onCambiarPickList,
   guardando = false,
-  onGuardarCambios
+  onGuardarCambios,
+  mostrarAviso
 }) => {
   const claseActual = clases.find((c) => c.id === claseSeleccionadaId) || null;
+
+  // Estados locales para la gestión reactiva de la flexibilización de la clase.
+  const [esFlexibilizado, setEsFlexibilizado] = useState(false);
+  const [moduloFlexibleId, setModuloFlexibleId] = useState(null);
+
+  // Sincronización del estado de flexibilización al cambiar de clase seleccionada.
+  useEffect(() => {
+    if (claseActual) {
+      setEsFlexibilizado(Boolean(claseActual.id_modulo_flexible));
+      setModuloFlexibleId(claseActual.id_modulo_flexible || null);
+    } else {
+      setEsFlexibilizado(false);
+      setModuloFlexibleId(null);
+    }
+  }, [claseActual?.id, claseActual?.id_modulo_flexible]);
+
+  // Manejador del guardado conjunto de matrícula y flexibilización.
+  const manejarGuardar = () => {
+    if (esFlexibilizado && !moduloFlexibleId) {
+      if (mostrarAviso) {
+        mostrarAviso('Debes seleccionar el módulo secundario para poder guardar la flexibilización.');
+      }
+      return;
+    }
+
+    if (onGuardarCambios) {
+      onGuardarCambios({
+        esFlexibilizado,
+        moduloFlexibleId: esFlexibilizado ? moduloFlexibleId : null
+      });
+    }
+  };
 
   // Plantilla visual para cada alumno con espaciado amplio y jerarquía tipográfica limpia.
   const plantillaDiscente = (discente) => {
@@ -47,9 +83,9 @@ const ModificarClasePanel = ({
   return (
     <div className="surface-card border-round shadow-1 p-4 border-1 surface-border flex flex-column gap-3">
       <div>
-        <h3 className="m-0 text-xl font-bold text-800">Modificar Matrícula de Clase</h3>
+        <h3 className="m-0 text-xl font-bold text-800">Modificar Clase y Matrícula</h3>
         <p className="text-secondary text-sm m-0 mt-1">
-          Selecciona una clase para gestionar visualmente las altas y bajas de alumnos mediante el panel de transferencia.
+          Selecciona una clase para gestionar su flexibilización curricular y administrar las altas y bajas de alumnos.
         </p>
       </div>
 
@@ -69,6 +105,7 @@ const ModificarClasePanel = ({
 
       {claseActual && (
         <>
+          {/* Recuadro con el nombre del módulo y número de discentes matriculados */}
           <Card className="surface-50 border-1 surface-border shadow-none mt-1">
             <div className="flex flex-column md:flex-row md:align-items-center md:justify-content-between gap-3">
               <div>
@@ -90,6 +127,19 @@ const ModificarClasePanel = ({
             </div>
           </Card>
 
+          {/* Subcomponente para consultar y modificar la flexibilización: justo debajo del recuadro del módulo y encima de discentes */}
+          <ModificarFlexibilizacionSeccion
+            claseActual={claseActual}
+            modulos={modulos}
+            ciclos={ciclos}
+            esFlexibilizado={esFlexibilizado}
+            onCambiarEsFlexibilizado={setEsFlexibilizado}
+            moduloFlexibleId={moduloFlexibleId}
+            onSeleccionarModuloFlexibleId={setModuloFlexibleId}
+            deshabilitado={guardando}
+          />
+
+          {/* Listado de discentes con panel de transferencia PickList */}
           <div className="mt-3">
             <PickList
               source={discentesDisponibles}
@@ -114,8 +164,8 @@ const ModificarClasePanel = ({
           <div className="flex justify-content-end gap-3 mt-3 pt-3 border-top-1 surface-border">
             <BotonAccion
               tipo="guardar"
-              label="Guardar Cambios en Matrícula"
-              onClick={onGuardarCambios}
+              label="Guardar Cambios"
+              onClick={manejarGuardar}
               loading={guardando}
             />
           </div>

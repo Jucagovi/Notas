@@ -162,7 +162,7 @@ CREATE TABLE public.Versiones (
   enunciado text,
   numero text,
 id_practica uuid NOT NULL,
-id_curso uuid NOT NULL,
+id_curso uuid,
 id_ut uuid,
 id_evaluacion uuid,
 peso_evaluacion smallint DEFAULT 0,

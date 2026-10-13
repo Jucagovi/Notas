@@ -10,6 +10,7 @@ import WidgetAgendaHoy from "../components/dashboard/WidgetAgendaHoy.jsx";
 import WidgetAgendaEscolar from "../components/dashboard/WidgetAgendaEscolar.jsx";
 import WidgetTermometroCurricular from "../components/dashboard/WidgetTermometroCurricular.jsx";
 import WidgetAccesosRapidos from "../components/dashboard/WidgetAccesosRapidos.jsx";
+import AvisoSeguimientoMensual from "../components/dashboard/AvisoSeguimientoMensual.jsx";
 
 /**
  * DashboardPagina - Página contenedora y orquestadora del Panel de Control.
@@ -77,6 +78,9 @@ const DashboardPagina = () => {
           className='w-full justify-content-start'
         />
       )}
+
+      {/* Recordatorio a inicio de mes para entrega del Informe de Seguimiento de Programaciones (Caso de Uso 22) */}
+      <AvisoSeguimientoMensual />
 
       {/* Renderizado condicional durante el estado de carga inicial */}
       {cargandoDashboard && cargandoMonitor ? (
