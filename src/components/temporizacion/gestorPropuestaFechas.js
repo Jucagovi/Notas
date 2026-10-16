@@ -52,8 +52,12 @@ export function recalcularPropuestaDesdeFronteras(boundaries, unidadesBase = [],
     const fechaIni = diasClase[0].fechaISO;
     const fechaFin = diasClase[M - 1].fechaISO;
     const diasISO = diasClase.map((d) => d.fechaISO);
+    const siglaU = u.moduloSiglas || u.unidad_trabajo?.moduloSiglas || '';
+    const nombreModU = u.moduloNombre || u.unidad_trabajo?.moduloNombre || '';
     const utFinal = {
       ...u,
+      moduloSiglas: siglaU,
+      moduloNombre: nombreModU,
       numDias: M,
       porcentaje: 100,
       fecha_ini_prevista: fechaIni,
@@ -67,6 +71,8 @@ export function recalcularPropuestaDesdeFronteras(boundaries, unidadesBase = [],
         orden: u.orden,
         numero: formatearNumeroUT(u.unidad_trabajo?.numero || u.orden),
         nombre: u.unidad_trabajo?.nombre || 'Unidad de Trabajo',
+        moduloSiglas: siglaU,
+        moduloNombre: nombreModU,
         color: u.color,
         fecha_ini_prevista: fechaIni,
         fecha_fin_prevista: fechaFin
@@ -107,6 +113,8 @@ export function recalcularPropuestaDesdeFronteras(boundaries, unidadesBase = [],
 
   for (let i = 0; i < N; i += 1) {
     const base = unidadesBase[i];
+    const siglaBase = base.moduloSiglas || base.unidad_trabajo?.moduloSiglas || '';
+    const nombreModBase = base.moduloNombre || base.unidad_trabajo?.moduloNombre || '';
     const startIdx = i === 0 ? 0 : limitesValidos[i - 1] + 1;
     const endIdx = i === N - 1 ? M - 1 : limitesValidos[i];
 
@@ -118,6 +126,8 @@ export function recalcularPropuestaDesdeFronteras(boundaries, unidadesBase = [],
 
     const utObj = {
       ...base,
+      moduloSiglas: siglaBase,
+      moduloNombre: nombreModBase,
       numDias,
       porcentaje,
       fecha_ini_prevista: fechaIni,
@@ -132,6 +142,8 @@ export function recalcularPropuestaDesdeFronteras(boundaries, unidadesBase = [],
         orden: base.orden,
         numero: formatearNumeroUT(base.unidad_trabajo?.numero || base.orden),
         nombre: base.unidad_trabajo?.nombre || 'Unidad de Trabajo',
+        moduloSiglas: siglaBase,
+        moduloNombre: nombreModBase,
         color: base.color,
         fecha_ini_prevista: fechaIni,
         fecha_fin_prevista: fechaFin

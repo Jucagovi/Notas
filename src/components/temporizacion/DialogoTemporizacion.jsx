@@ -104,10 +104,15 @@ export const DialogoTemporizacion = ({
     </div>
   );
 
+  const siglasMod = temporizacion?.moduloSiglas || ut?.moduloSiglas || '';
+  const tituloHeader = siglasMod
+    ? `Temporización: [${siglasMod}] ${numFormateado} - ${ut?.nombre || 'Unidad de Trabajo'}`
+    : `Temporización: ${numFormateado} - ${ut?.nombre || 'Unidad de Trabajo'}`;
+
   return (
     <Dialog
       visible={visible}
-      header={`Temporización: ${numFormateado} - ${ut?.nombre || 'Unidad de Trabajo'}`}
+      header={tituloHeader}
       footer={pieDialogo}
       onHide={onOcultar}
       style={{ width: '90vw', maxWidth: '650px' }}
@@ -129,6 +134,7 @@ export const DialogoTemporizacion = ({
             Currículo Base Oficial
           </label>
           <div className="p-2 surface-100 border-round text-800 text-sm">
+            {siglasMod && <span className="font-bold text-primary mr-1">[{siglasMod}]</span>}
             <strong>{numFormateado}:</strong> {ut?.nombre}
           </div>
         </div>

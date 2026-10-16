@@ -22,6 +22,7 @@ import DialogoObservaciones from './DialogoObservaciones.jsx';
  * @param {Date|null} [props.fechaFinPeriodo] - Fecha de fin del curso escolar.
  * @param {number} [props.anioInicio=2026] - Año académico inicial.
  * @param {boolean} [props.cargando=false] - Indicador de consulta de datos en progreso.
+ * @param {boolean} [props.esFlexibilizado=false] - Indicador de clase con flexibilización activa.
  * @param {boolean} [props.guardando=false] - Indicador de persistencia o reordenación en curso.
  * @param {Function} props.onReordenar - Callback para reordenar la secuencia de unidades.
  * @param {Function} props.onActualizarCampo - Callback para actualizar un campo específico en línea.
@@ -36,6 +37,7 @@ export const GestorTemporizacion = ({
   fechaInicioPeriodo = null,
   fechaFinPeriodo = null,
   anioInicio = 2026,
+  esFlexibilizado = false,
   cargando = false,
   guardando = false,
   onReordenar,
@@ -119,6 +121,7 @@ export const GestorTemporizacion = ({
       {/* 4. Listado de UT con las fechas de planificación (sólo fechas previstas) */}
       <TablaTemporizacion
         temporizaciones={temporizaciones}
+        esFlexibilizado={esFlexibilizado}
         cargando={cargando}
         guardando={guardando}
         onReordenar={onReordenar}

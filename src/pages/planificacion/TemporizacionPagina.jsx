@@ -78,8 +78,20 @@ const TemporizacionPagina = () => {
   const cursoSeleccionadoId = claseActiva?.id_curso || null;
   const moduloSeleccionadoId = claseActiva?.id_modulo || null;
   const idModuloFlexible = claseActiva?.id_modulo_flexible || claseActiva?.id_modulo_flexibilizado || null;
+  const esFlexibilizado = Boolean(idModuloFlexible);
 
-  // Hook orquestador principal para la lógica de temporización y seguimiento de la clase.
+  // Identificación del curso escolar secundario si la clase está flexibilizada en el año lectivo.
+  const idCursoSecundario = useMemo(() => {
+    if (!idModuloFlexible || !clases) return null;
+    const claseSecundaria = clases.find(
+      (c) =>
+        c.id_modulo === idModuloFlexible &&
+        (c.id_modulo_flexible === moduloSeleccionadoId || c.id_curso !== cursoSeleccionadoId)
+    );
+    return claseSecundaria?.id_curso || null;
+  }, [idModuloFlexible, clases, moduloSeleccionadoId, cursoSeleccionadoId]);
+
+  // Hook orquestador principal para la lógica de temporización conjunta y seguimiento de la clase.
   const {
     temporizaciones,
     setTemporizaciones,
@@ -92,8 +104,16 @@ const TemporizacionPagina = () => {
     reordenarTemporizaciones,
     restablecerOrdenOriginal,
     aplicarPropuestaFechas,
-    borrarTemporizacionCompleta
-  } = useTemporizacion(cursoSeleccionadoId, moduloSeleccionadoId);
+    borrarTemporizacionCompleta,
+    esFlexibilizado: esFlexibilizadoHook,
+    idModuloFlexible: idModuloFlexibleHook,
+    moduloFlexibleObj
+  } = useTemporizacion(cursoSeleccionadoId, moduloSeleccionadoId, idModuloFlexible, idCursoSecundario);
+
+  const esFlexibilizadoEfectivo = esFlexibilizado || Boolean(esFlexibilizadoHook);
+  const idModuloFlexibleEfectivo = idModuloFlexible || idModuloFlexibleHook;
+  const moduloFlexibleNombreEfectivo = claseActiva?.moduloFlexibleNombre || moduloFlexibleObj?.nombre || null;
+  const moduloFlexibleSiglasEfectivo = claseActiva?.moduloFlexibleSiglas || moduloFlexibleObj?.siglas || null;
 
   // Hook especializado para la propuesta automática de temporización según pesos de RA y calendario.
   const {
@@ -111,7 +131,7 @@ const TemporizacionPagina = () => {
     fechaInicioPeriodo,
     fechaFinPeriodo,
     recargar: recargarCalendario
-  } = useCalendarioEscolar(cursoSeleccionadoId, moduloSeleccionadoId, anioSeleccionado, idModuloFlexible);
+  } = useCalendarioEscolar(cursoSeleccionadoId, moduloSeleccionadoId, anioSeleccionado, idModuloFlexibleEfectivo);
 
   // Control de apertura del diálogo modal de la propuesta de temporización.
   const [modalPropuestaVisible, setModalPropuestaVisible] = useState(false);
@@ -126,13 +146,14 @@ const TemporizacionPagina = () => {
     }
   };
 
-  // Manejo de la apertura y cálculo de la propuesta de temporización.
+  // Manejo de la apertura y cálculo de la propuesta de temporización unificada.
   const manejarAbrirPropuesta = async () => {
     setModalPropuestaVisible(true);
     const resultado = await generarPropuesta({
       idCurso: cursoSeleccionadoId,
       idModulo: moduloSeleccionadoId,
-      idModuloFlexible,
+      idModuloFlexible: idModuloFlexibleEfectivo,
+      idCursoSecundario,
       temporizaciones,
       anioSeleccionado
     });
@@ -272,6 +293,9 @@ const TemporizacionPagina = () => {
         onClaseChange={setClaseSeleccionadaId}
         clases={clases}
         cargandoClases={cargandoClases}
+        esFlexibilizado={esFlexibilizadoEfectivo}
+        moduloFlexibleNombre={moduloFlexibleNombreEfectivo}
+        moduloFlexibleSiglas={moduloFlexibleSiglasEfectivo}
         onRecargar={manejarRecargar}
         onRestablecerOrden={manejarRestablecerOrden}
         onAbrirPropuesta={manejarAbrirPropuesta}
@@ -305,6 +329,7 @@ const TemporizacionPagina = () => {
           fechaInicioPeriodo={fechaInicioPeriodo}
           fechaFinPeriodo={fechaFinPeriodo}
           anioInicio={anioInicio}
+          esFlexibilizado={esFlexibilizadoEfectivo}
           cargando={cargandoTemporizacion}
           guardando={guardando}
           onReordenar={manejarReordenar}

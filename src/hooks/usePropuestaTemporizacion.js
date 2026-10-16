@@ -47,13 +47,16 @@ export const usePropuestaTemporizacion = () => {
 
   /**
    * Genera la propuesta de fechas estimadas para las unidades de trabajo dadas.
-   * Si la clase es flexibilizada, combina las sesiones de ambos módulos en Horarios.
+  /**
+   * Genera la propuesta de fechas estimadas para las unidades de trabajo dadas.
+   * Si la clase es flexibilizada, combina las sesiones de ambos módulos en Horarios y cuenta todas las horas semanales.
    */
   const generarPropuesta = useCallback(
     async ({
       idCurso,
       idModulo,
       idModuloFlexible = null,
+      idCursoSecundario = null,
       temporizaciones = [],
       anioSeleccionado = null
     }) => {
@@ -65,21 +68,35 @@ export const usePropuestaTemporizacion = () => {
       setError(null);
 
       try {
-        // Se determina si existe un módulo flexibilizado asociado al curso actual.
-        let flexibleId = idModuloFlexible;
-        if (!flexibleId) {
-          const cursosPrevios = await obtenerCursos('*', (q) => q.eq('id_curso', idCurso));
-          const cursoEncontrado = (cursosPrevios || []).find((c) => c.id_curso === idCurso);
-          flexibleId = cursoEncontrado?.id_modulo_flexible || null;
+        // Se determina si existe un módulo flexibilizado consultando la tabla Cursos en la columna "id_modulo_flexible".
+        const cursosPrevios = await obtenerCursos('*', (q) => q.eq('id_curso', idCurso));
+        const cursoEncontrado = (cursosPrevios || []).find((c) => c.id_curso === idCurso);
+        const flexibleId = cursoEncontrado?.id_modulo_flexible || idModuloFlexible || null;
+        let idCursoSec = idCursoSecundario;
+
+        const idsModulos = [idModulo];
+        if (flexibleId && !idsModulos.includes(flexibleId)) {
+          idsModulos.push(flexibleId);
         }
+        (temporizaciones || []).forEach((t) => {
+          const modId = t.id_modulo || t.unidad_trabajo?.id_modulo;
+          if (modId && !idsModulos.includes(modId)) {
+            idsModulos.push(modId);
+          }
+        });
 
         // Modificador condicional para consultar los horarios lectivos unificados de ambos módulos.
         const filtroHorarios = (q) => {
-          if (flexibleId) {
-            return q.or(`id_modulo.eq.${idModulo},id_modulo.eq.${flexibleId}`);
+          if (idsModulos.length > 1) {
+            return q.or(idsModulos.map((m) => `id_modulo.eq.${m}`).join(','));
           }
           return q.eq('id_modulo', idModulo);
         };
+
+        const idsCursos = [idCurso];
+        if (idCursoSec && idCursoSec !== idCurso) {
+          idsCursos.push(idCursoSec);
+        }
 
         // 1. Consulta paralela de las fuentes de datos necesarias.
         const [
@@ -90,15 +107,15 @@ export const usePropuestaTemporizacion = () => {
           horariosClase,
           datosCursos
         ] = await Promise.all([
-          obtenerRA('*', (q) => q.eq('id_modulo', idModulo).order('numero', { ascending: true })),
-          obtenerRaCurso('*', (q) => q.eq('id_curso', idCurso)),
+          obtenerRA('*', (q) => q.in('id_modulo', idsModulos).order('numero', { ascending: true })),
+          obtenerRaCurso('*', (q) => q.in('id_curso', idsCursos)),
           obtenerDesarrollan('*'),
           obtenerEventos('*'),
           obtenerHorarios('*', filtroHorarios),
-          obtenerCursos('*', (q) => q.eq('id_curso', idCurso))
+          obtenerCursos('*', (q) => q.in('id_curso', idsCursos))
         ]);
 
-        const cursoActual = (datosCursos || []).find((c) => c.id_curso === idCurso) || null;
+        const cursoActual = (datosCursos || []).find((c) => c.id_curso === idCurso) || (datosCursos || [])[0] || null;
         const anioInicio = anioSeleccionado ? Number(anioSeleccionado) : extraerAnioInicioCurso(cursoActual);
 
         // 2. Determinación de las fechas límites oficiales del período escolar.
@@ -133,7 +150,16 @@ export const usePropuestaTemporizacion = () => {
           }
         });
 
-        // 4. Determinación de los días de la semana con clase según Horarios.
+        // 4. Determinación de los días de la semana con clase según Horarios y cómputo de horas semanales.
+        const horariosModuloA = (horariosClase || []).filter((h) => h.id_modulo === idModulo);
+        const horariosModuloB = flexibleId
+          ? (horariosClase || []).filter((h) => h.id_modulo === flexibleId)
+          : [];
+
+        const horasSemanaA = horariosModuloA.length;
+        const horasSemanaB = horariosModuloB.length;
+        const totalHorasSemana = horasSemanaA + horasSemanaB;
+
         const diasSemanaConClase = new Set();
         (horariosClase || []).forEach((h) => {
           if (h.dia_semana) {
@@ -146,7 +172,7 @@ export const usePropuestaTemporizacion = () => {
           [1, 2, 3, 4, 5].forEach((d) => diasSemanaConClase.add(d));
         }
 
-        // 5. Cálculo del listado completo de fechas lectivas del curso.
+        // 5. Cálculo del listado completo de fechas lectivas del curso unificando los días de ambos módulos.
         const diasClase = [];
         const iterFecha = new Date(fechaInicioPeriodo);
 
@@ -180,7 +206,6 @@ export const usePropuestaTemporizacion = () => {
         // 6. Ponderación de pesos por Unidad de Trabajo según los Resultados de Aprendizaje.
         const unidadesOrdenadas = [...temporizaciones].sort((a, b) => a.orden - b.orden);
         const listaRAs = rasModulo || [];
-        const numRAs = listaRAs.length;
 
         // Mapa de datos informativos de cada RA
         const mapaInfoRA = new Map();
@@ -190,16 +215,20 @@ export const usePropuestaTemporizacion = () => {
 
         // Mapa de peso oficial de cada RA (obtenido de ra_curso o equitativo si no está definido)
         const mapaPesosRA = new Map();
-        listaRAs.forEach((ra) => {
-          const registroPeso = (pesosRaCurso || []).find((p) => p.id_ra === ra.id_ra);
-          const pesoDefinido = Number(registroPeso?.peso);
-          mapaPesosRA.set(
-            ra.id_ra,
-            !isNaN(pesoDefinido) && pesoDefinido > 0 ? pesoDefinido : numRAs > 0 ? 100 / numRAs : 10
-          );
+        idsModulos.forEach((modId) => {
+          const rasDelMod = listaRAs.filter((r) => r.id_modulo === modId);
+          const numRAsMod = rasDelMod.length;
+          rasDelMod.forEach((ra) => {
+            const registroPeso = (pesosRaCurso || []).find((p) => p.id_ra === ra.id_ra);
+            const pesoDefinido = Number(registroPeso?.peso);
+            mapaPesosRA.set(
+              ra.id_ra,
+              !isNaN(pesoDefinido) && pesoDefinido > 0 ? pesoDefinido : numRAsMod > 0 ? 100 / numRAsMod : 10
+            );
+          });
         });
 
-        // Contabilización de cuántas UTs desarrollan cada RA (para fallback equitativo)
+        // Contabilización de cuántas UTs desarrollan cada RA
         const mapaConteoUtPorRa = new Map();
         (relacionesDesarrollan || []).forEach((rel) => {
           if (mapaPesosRA.has(rel.id_ra)) {
@@ -207,53 +236,106 @@ export const usePropuestaTemporizacion = () => {
           }
         });
 
-        // Asignación de peso bruto a cada UT según los RAs que desarrolla y sus porcentajes explícitos
+        // Separación de unidades por módulo para cálculo proporcional de horas
+        const utsModuloA = unidadesOrdenadas.filter(
+          (t) => (t.id_modulo || t.unidad_trabajo?.id_modulo) === idModulo
+        );
+        const utsModuloB = flexibleId
+          ? unidadesOrdenadas.filter(
+              (t) => (t.id_modulo || t.unidad_trabajo?.id_modulo) === flexibleId
+            )
+          : [];
+
+        const esDobleModulo = flexibleId && utsModuloA.length > 0 && utsModuloB.length > 0;
+
+        // Proporción de la carga horaria global entre los dos módulos según sus horas semanales en Horarios
+        let proporcionA = 1;
+        let proporcionB = 0;
+        if (esDobleModulo) {
+          if (horasSemanaA > 0 && horasSemanaB > 0) {
+            proporcionA = horasSemanaA / totalHorasSemana;
+            proporcionB = horasSemanaB / totalHorasSemana;
+          } else {
+            // Reparto equitativo al 50% si no constan horarios específicos aún
+            proporcionA = 0.5;
+            proporcionB = 0.5;
+          }
+        }
+
+        // Asignación de peso bruto y cálculo porcentual relativo a cada UT
         const pesosBrutosUT = new Map();
         let totalUtsConRAs = 0;
 
-        unidadesOrdenadas.forEach((temp) => {
-          const idUt = temp.id_ut;
-          const rasDeEstaUt = (relacionesDesarrollan || []).filter((rel) => rel.id_ut === idUt);
+        const calcularPesosModulo = (listaUts, modId, propModulo) => {
+          if (!listaUts || listaUts.length === 0) return;
+          const rasDelMod = listaRAs.filter((r) => r.id_modulo === modId);
+          const numRAsMod = rasDelMod.length;
 
-          let pesoAcumulado = 0;
-          if (rasDeEstaUt.length > 0) {
-            totalUtsConRAs += 1;
-            rasDeEstaUt.forEach((rel) => {
-              const pesoTotalRa = mapaPesosRA.get(rel.id_ra) || 0;
-              const pctEspecifico = Number(rel.porcentaje);
+          listaUts.forEach((temp) => {
+            const idUt = temp.id_ut;
+            const rasDeEstaUt = (relacionesDesarrollan || []).filter((rel) => rel.id_ut === idUt);
 
-              if (!isNaN(pctEspecifico) && pctEspecifico > 0) {
-                // Ponderación explícita según el porcentaje que la UT cubre de este RA
-                pesoAcumulado += pesoTotalRa * (pctEspecifico / 100);
-              } else {
-                // Fallback: prorrateo equitativo entre las UTs que lo desarrollan
-                const cantidadUts = mapaConteoUtPorRa.get(rel.id_ra) || 1;
-                pesoAcumulado += pesoTotalRa / cantidadUts;
-              }
-            });
-          }
+            let pesoAcumulado = 0;
+            if (rasDeEstaUt.length > 0) {
+              totalUtsConRAs += 1;
+              rasDeEstaUt.forEach((rel) => {
+                const pesoTotalRa = mapaPesosRA.get(rel.id_ra) || 0;
+                const pctEspecifico = Number(rel.porcentaje);
 
-          // Si una UT no tiene RAs asociados todavía en desarrollan, se le otorga un peso mínimo base.
-          if (pesoAcumulado <= 0) {
-            pesoAcumulado = numRAs > 0 ? 100 / unidadesOrdenadas.length : 10;
-          }
+                if (!isNaN(pctEspecifico) && pctEspecifico > 0) {
+                  pesoAcumulado += pesoTotalRa * (pctEspecifico / 100);
+                } else {
+                  const cantidadUts = mapaConteoUtPorRa.get(rel.id_ra) || 1;
+                  pesoAcumulado += pesoTotalRa / cantidadUts;
+                }
+              });
+            }
 
-          pesosBrutosUT.set(idUt, pesoAcumulado);
-        });
+            if (pesoAcumulado <= 0) {
+              pesoAcumulado = numRAsMod > 0 ? 100 / listaUts.length : 10;
+            }
 
-        // Normalización matemática para que la suma total sea exactamente 100%
-        const sumaBruta = Array.from(pesosBrutosUT.values()).reduce((acc, v) => acc + v, 0);
+            pesosBrutosUT.set(idUt, pesoAcumulado);
+          });
+        };
+
+        if (esDobleModulo) {
+          calcularPesosModulo(utsModuloA, idModulo, proporcionA);
+          calcularPesosModulo(utsModuloB, flexibleId, proporcionB);
+        } else {
+          calcularPesosModulo(unidadesOrdenadas, idModulo, 1);
+        }
+
+        // Normalización matemática respetando la bolsa horaria semanal de cada módulo
         const porcentajesFinales = new Map();
-        let sumaPorcentajes = 0;
 
+        const normalizarModulo = (listaUts, propModulo) => {
+          if (!listaUts || listaUts.length === 0) return;
+          const sumaBrutaModulo = listaUts.reduce(
+            (acc, temp) => acc + (pesosBrutosUT.get(temp.id_ut) || 1),
+            0
+          );
+
+          listaUts.forEach((temp) => {
+            const bruto = pesosBrutosUT.get(temp.id_ut) || 1;
+            const pct = Math.max(1, Math.round((bruto / sumaBrutaModulo) * (propModulo * 100)));
+            porcentajesFinales.set(temp.id_ut, pct);
+          });
+        };
+
+        if (esDobleModulo) {
+          normalizarModulo(utsModuloA, proporcionA);
+          normalizarModulo(utsModuloB, proporcionB);
+        } else {
+          normalizarModulo(unidadesOrdenadas, 1);
+        }
+
+        // Ajuste fino del porcentaje para cuadrar exactamente en 100%
+        let sumaPorcentajes = 0;
         unidadesOrdenadas.forEach((temp) => {
-          const bruto = pesosBrutosUT.get(temp.id_ut) || 1;
-          const pct = Math.max(1, Math.round((bruto / sumaBruta) * 100));
-          porcentajesFinales.set(temp.id_ut, pct);
-          sumaPorcentajes += pct;
+          sumaPorcentajes += porcentajesFinales.get(temp.id_ut) || 1;
         });
 
-        // Ajuste fino del porcentaje para cuadrar exactamente en 100
         const diferenciaPorcentaje = 100 - sumaPorcentajes;
         if (diferenciaPorcentaje !== 0 && unidadesOrdenadas.length > 0) {
           const ultimaUt = unidadesOrdenadas[unidadesOrdenadas.length - 1];
@@ -280,7 +362,7 @@ export const usePropuestaTemporizacion = () => {
           diasPorUt.set(ultimaUt.id_ut, Math.max(1, diasPrevios + diferenciaDias));
         }
 
-        // 8. Asignación de rangos de fechas y colores a cada Unidad de Trabajo.
+        // 8. Asignación de rangos de fechas y colores a cada Unidad de Trabajo en secuencia lectiva.
         let indiceDiaActual = 0;
         const unidadesPropuestas = [];
         const mapaFechaUt = new Map();
@@ -307,9 +389,17 @@ export const usePropuestaTemporizacion = () => {
             };
           });
 
+          const moduloSiglas = temp.moduloSiglas || temp.unidad_trabajo?.moduloSiglas || '';
+          const moduloNombre = temp.moduloNombre || temp.unidad_trabajo?.moduloNombre || '';
+          const esModuloSecundario = Boolean(temp.esModuloSecundario || temp.unidad_trabajo?.esModuloSecundario);
+
           const utMeta = {
             id_temporizacion: temp.id_temporizacion,
             id_ut: temp.id_ut,
+            id_modulo: temp.id_modulo || temp.unidad_trabajo?.id_modulo,
+            moduloSiglas,
+            moduloNombre,
+            esModuloSecundario,
             orden: temp.orden,
             unidad_trabajo: temp.unidad_trabajo,
             porcentaje: porcentajesFinales.get(temp.id_ut) || 0,
@@ -330,6 +420,8 @@ export const usePropuestaTemporizacion = () => {
               orden: temp.orden,
               numero: temp.unidad_trabajo?.numero || temp.orden,
               nombre: temp.unidad_trabajo?.nombre || 'Unidad de Trabajo',
+              moduloSiglas,
+              moduloNombre,
               color,
               fecha_ini_prevista: fechaIniPrevista,
               fecha_fin_prevista: fechaFinPrevista
@@ -344,6 +436,10 @@ export const usePropuestaTemporizacion = () => {
           fechaInicioPeriodo: formatearFechaISO(fechaInicioPeriodo),
           fechaFinPeriodo: formatearFechaISO(fechaFinPeriodo),
           totalDiasLectivos,
+          horasSemanaA,
+          horasSemanaB,
+          totalHorasSemana,
+          esFlexibilizado: Boolean(flexibleId),
           unidadesPropuestas,
           mapaFechaUt,
           conjuntoNoLectivos,

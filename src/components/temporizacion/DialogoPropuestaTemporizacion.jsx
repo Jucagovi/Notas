@@ -261,6 +261,14 @@ export const DialogoPropuestaTemporizacion = ({
                 </span>
               </span>
 
+              {propuesta.esFlexibilizado && propuesta.totalHorasSemana > 0 && (
+                <span className="flex align-items-center gap-1 font-semibold text-800">
+                  <i className="pi pi-bolt text-purple-600" />
+                  <span>Horas semanales conjuntas:</span>
+                  <span className="font-bold text-900">{propuesta.totalHorasSemana} h/sem</span>
+                </span>
+              )}
+
               {modificado && (
                 <span className="inline-flex align-items-center gap-1 text-xs font-semibold px-2 py-1 border-round bg-blue-100 text-blue-800 border-1 border-blue-200">
                   <i className="pi pi-pencil text-xs" />
@@ -300,6 +308,11 @@ export const DialogoPropuestaTemporizacion = ({
                       className="inline-flex align-items-center gap-2 px-3 py-1 border-round-lg text-xs font-bold text-white shadow-1"
                       style={{ backgroundColor: utActiva.color?.fondo || '#2563eb' }}
                     >
+                      {utActiva.moduloSiglas && (
+                        <span className="bg-white-alpha-20 px-1 border-round">
+                          [{utActiva.moduloSiglas}]
+                        </span>
+                      )}
                       <span>{formatearNumeroUT(utActiva.unidad_trabajo?.numero || utActiva.orden)}</span>
                       <span className="font-normal opacity-90">• {utActiva.unidad_trabajo?.nombre || 'Unidad'}</span>
                       <Badge value={`${utActiva.numDias} días`} severity="info" className="ml-1" />
@@ -372,6 +385,7 @@ export const DialogoPropuestaTemporizacion = ({
               {unidadesEditadas.map((u) => {
                 const esActiva = String(u.id_ut) === String(utActivaId);
                 const nombreCorto = u.unidad_trabajo?.nombre || 'UT';
+                const siglaTxt = u.moduloSiglas ? `[${u.moduloSiglas}] ` : '';
                 const rangoTexto = `${formatearFechaEspanol(u.fecha_ini_prevista)} - ${formatearFechaEspanol(u.fecha_fin_prevista)}`;
 
                 return (
@@ -388,14 +402,14 @@ export const DialogoPropuestaTemporizacion = ({
                       boxShadow: esActiva ? '0 0 0 2px #ffffff, 0 0 0 4px #10b981' : undefined,
                       transform: esActiva ? 'scale(1.04)' : undefined
                     }}
-                    title={`Hacer clic para activar UT ${u.unidad_trabajo?.numero || u.orden}: ${nombreCorto} (${u.numDias} días lectivos, ${u.porcentaje}%)${
+                    title={`Hacer clic para activar ${siglaTxt}UT ${u.unidad_trabajo?.numero || u.orden}: ${nombreCorto} (${u.numDias} días lectivos, ${u.porcentaje}%)${
                       u.rasDesarrollados && u.rasDesarrollados.length > 0
                         ? ' • RAs: ' + u.rasDesarrollados.map((r) => `RA${r.numero} (${r.porcentaje}%)`).join(', ')
                         : ''
                     }`}
                   >
                     {esActiva && <i className="pi pi-check-circle text-xs" />}
-                    <span>{formatearNumeroUT(u.unidad_trabajo?.numero || u.orden)}</span>
+                    <span>{siglaTxt}{formatearNumeroUT(u.unidad_trabajo?.numero || u.orden)}</span>
                     <span className="opacity-80">({u.porcentaje}%)</span>
                     <span className="font-normal opacity-90">• {rangoTexto}</span>
                     <span className="ml-1 opacity-75">({u.numDias} d)</span>

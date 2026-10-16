@@ -6,77 +6,149 @@ import useDatos from './useDatos.js';
  *
  * Responsabilidad Única: Centralizar la consulta, ordenación secuencial, sincronización de
  * instancias de temporización y mutaciones de fechas y estados, consumiendo el hook genérico useDatos.
+ * Si el curso tiene configurado un módulo flexible en la columna "id_modulo_flexible" de la tabla Cursos,
+ * unifica las Unidades de Trabajo de ambos módulos para su temporización conjunta.
  *
  * @param {string|null} idCurso - Identificador único de la clase / curso escolar.
  * @param {string|null} idModulo - Identificador único del módulo profesional.
+ * @param {string|null} [idModuloFlexibleProp=null] - Identificador único del módulo flexibilizado secundario (opcional).
+ * @param {string|null} [idCursoSecundarioProp=null] - Identificador único del curso escolar secundario (opcional).
  */
-const useTemporizacion = (idCurso = null, idModulo = null) => {
+const useTemporizacion = (
+  idCurso = null,
+  idModulo = null,
+  idModuloFlexibleProp = null,
+  idCursoSecundarioProp = null
+) => {
   // Se inicializa el hook genérico useDatos para la tabla de relación Temporizacion.
   const {
-    datos: datosTemporizacion,
-    cargando: cargandoTemporizacion,
-    error: errorTemporizacion,
     obtenerDatos: obtenerTemporizacion,
     insertar: insertarTemporizacion,
-    actualizar: actualizarTemporizacionEnHook,
-    setDatos: setDatosTemporizacion
+    actualizar: actualizarTemporizacionEnHook
   } = useDatos('Temporizacion');
 
   // Se inicializa el hook genérico useDatos para consultar las Unidades de Trabajo del módulo.
   const {
-    datos: datosUTs,
-    cargando: cargandoUTs,
-    error: errorUTs,
     obtenerDatos: obtenerUTs
   } = useDatos('Unidades_Trabajo');
 
+  // Se inicializa el hook genérico useDatos para consultar los datos de los módulos.
+  const {
+    obtenerDatos: obtenerModulos
+  } = useDatos('Modulos');
+
+  // Se inicializa el hook genérico useDatos para consultar los datos del curso (incluyendo id_modulo_flexible).
+  const {
+    obtenerDatos: obtenerCursos
+  } = useDatos('Cursos');
+
   const [temporizaciones, setTemporizaciones] = useState([]);
+  const [esFlexibilizado, setEsFlexibilizado] = useState(false);
+  const [idModuloFlexible, setIdModuloFlexible] = useState(null);
+  const [moduloFlexibleObj, setModuloFlexibleObj] = useState(null);
   const [guardando, setGuardando] = useState(false);
+  const [cargando, setCargando] = useState(false);
   const [errorOperacion, setErrorOperacion] = useState(null);
 
-  // Consulta de las Unidades de Trabajo base correspondientes al módulo seleccionado.
-  const cargarUnidadesBase = useCallback(async () => {
-    if (!idModulo) return [];
-    return await obtenerUTs('*', (consulta) =>
-      consulta.eq('id_modulo', idModulo).order('numero', { ascending: true })
-    );
-  }, [idModulo, obtenerUTs]);
-
-  // Consulta y sincronización de las instancias de temporización vinculando la clase y el módulo.
+  // Consulta y sincronización de las instancias de temporización vinculando la clase y los módulos.
   const cargarDatos = useCallback(async () => {
-    if (!idCurso || !idModulo) {
+    if (!idCurso) {
       setTemporizaciones([]);
+      setEsFlexibilizado(false);
+      setIdModuloFlexible(null);
+      setModuloFlexibleObj(null);
       setErrorOperacion(null);
       return [];
     }
 
-    try {
-      setErrorOperacion(null);
+    setCargando(true);
+    setErrorOperacion(null);
 
-      // 1. Se obtienen las unidades de trabajo curriculares del módulo.
-      const unidades = await cargarUnidadesBase();
-      if (!unidades || unidades.length === 0) {
+    try {
+      // 1. Se comprueba si el curso está flexibilizado consultando la tabla Cursos en la columna "id_modulo_flexible".
+      let flexibleId = idModuloFlexibleProp;
+      const cursosEncontrados = await obtenerCursos('*', (q) => q.eq('id_curso', idCurso));
+      const cursoActual = (cursosEncontrados || []).find((c) => c.id_curso === idCurso);
+      if (cursoActual?.id_modulo_flexible) {
+        flexibleId = cursoActual.id_modulo_flexible;
+      }
+
+      // Se determinan los identificadores de los módulos a considerar en la temporización conjunta.
+      const idsModulos = [];
+      if (idModulo) {
+        idsModulos.push(idModulo);
+      }
+      if (flexibleId && !idsModulos.includes(flexibleId)) {
+        idsModulos.push(flexibleId);
+      }
+
+      if (idsModulos.length === 0) {
+        setTemporizaciones([]);
+        setEsFlexibilizado(false);
+        setIdModuloFlexible(null);
+        setModuloFlexibleObj(null);
+        return [];
+      }
+
+      // 2. Se consultan las Unidades de Trabajo y los datos de los módulos involucrados.
+      const [unidadesEncontradas, modulosEncontrados] = await Promise.all([
+        obtenerUTs('*', (consulta) =>
+          consulta.in('id_modulo', idsModulos).order('numero', { ascending: true })
+        ),
+        obtenerModulos('*', (consulta) =>
+          consulta.in('id_modulo', idsModulos)
+        )
+      ]);
+
+      const modulosMap = new Map();
+      (modulosEncontrados || []).forEach((m) => {
+        modulosMap.set(m.id_modulo, m);
+      });
+
+      const esFlex = Boolean(flexibleId && idsModulos.length > 1);
+      setEsFlexibilizado(esFlex);
+      setIdModuloFlexible(flexibleId);
+      setModuloFlexibleObj(flexibleId ? modulosMap.get(flexibleId) || null : null);
+
+      if (!unidadesEncontradas || unidadesEncontradas.length === 0) {
         setTemporizaciones([]);
         return [];
       }
 
-      const listaIdsUT = unidades.map((u) => u.id_ut);
+      const unidadesConModulo = unidadesEncontradas.map((ut) => {
+        const infoMod = modulosMap.get(ut.id_modulo);
+        const esSecundario = Boolean(flexibleId && ut.id_modulo === flexibleId);
+        return {
+          ...ut,
+          moduloSiglas: infoMod?.siglas || '',
+          moduloNombre: infoMod?.nombre || '',
+          esModuloSecundario: esSecundario
+        };
+      });
 
-      // 2. Se obtienen los registros existentes de temporización para la clase activa.
+      const listaIdsUT = unidadesConModulo.map((u) => u.id_ut);
+
+      // 3. Se obtienen los registros existentes de temporización para el curso asociado.
+      const idsCursos = [idCurso];
+      if (idCursoSecundarioProp && idCursoSecundarioProp !== idCurso) {
+        idsCursos.push(idCursoSecundarioProp);
+      }
+
       const registrosTemporizacion = await obtenerTemporizacion('*', (consulta) =>
-        consulta.eq('id_curso', idCurso).in('id_ut', listaIdsUT).order('orden', { ascending: true })
+        consulta.in('id_curso', idsCursos).in('id_ut', listaIdsUT).order('orden', { ascending: true })
       );
 
       const mapaTemporizacionPorUt = new Map();
       (registrosTemporizacion || []).forEach((reg) => {
-        mapaTemporizacionPorUt.set(reg.id_ut, reg);
+        if (!mapaTemporizacionPorUt.has(reg.id_ut) || reg.id_curso === idCurso) {
+          mapaTemporizacionPorUt.set(reg.id_ut, reg);
+        }
       });
 
-      // 3. Se identifican unidades curriculares que carezcan de registro en la clase para crearlas.
-      const unidadesFaltantes = unidades.filter((u) => !mapaTemporizacionPorUt.has(u.id_ut));
+      // 4. Se identifican unidades curriculares que carezcan de registro en la clase para crearlas.
+      const unidadesFaltantes = unidadesConModulo.filter((u) => !mapaTemporizacionPorUt.has(u.id_ut));
 
       if (unidadesFaltantes.length > 0) {
-        // Se calcula el orden consecutivo para las nuevas inserciones.
         const maxOrdenActual = (registrosTemporizacion || []).reduce(
           (max, reg) => Math.max(max, Number(reg.orden) || 0),
           0
@@ -104,13 +176,22 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
         }
       }
 
-      // 4. Se construye la estructura consolidada fusionando los datos curriculares y temporales.
-      const resultadoConsolidado = unidades.map((ut) => {
+      // 5. Se construye la estructura consolidada fusionando los datos curriculares y temporales.
+      const resultadoConsolidado = unidadesConModulo.map((ut) => {
         const temp = mapaTemporizacionPorUt.get(ut.id_ut) || {};
+        const infoMod = modulosMap.get(ut.id_modulo);
+        const moduloSiglas = infoMod?.siglas || ut.moduloSiglas || '';
+        const moduloNombre = infoMod?.nombre || ut.moduloNombre || '';
+        const esSecundario = Boolean(flexibleId && ut.id_modulo === flexibleId);
+
         return {
           id_temporizacion: temp.id_temporizacion || null,
           id_ut: ut.id_ut,
-          id_curso: idCurso,
+          id_curso: temp.id_curso || idCurso,
+          id_modulo: ut.id_modulo,
+          moduloSiglas,
+          moduloNombre,
+          esModuloSecundario: esSecundario,
           orden: Number(temp.orden) || Number(ut.numero) || 1,
           nombre_alternativo: temp.nombre_alternativo || '',
           fecha_ini_prevista: temp.fecha_ini_prevista || null,
@@ -119,12 +200,44 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
           fecha_fin_real: temp.fecha_fin_real || null,
           estado: temp.estado || 'Pendiente',
           observaciones: temp.observaciones || '',
-          unidad_trabajo: ut
+          unidad_trabajo: {
+            ...ut,
+            moduloSiglas,
+            moduloNombre,
+            esModuloSecundario: esSecundario
+          }
         };
       });
 
       // Se ordena la lista por el campo de orden de impartición.
-      resultadoConsolidado.sort((a, b) => a.orden - b.orden);
+      resultadoConsolidado.sort((a, b) => {
+        if (a.orden !== b.orden) return a.orden - b.orden;
+        if (a.id_modulo !== b.id_modulo) return a.id_modulo === idModulo ? -1 : 1;
+        return Number(a.unidad_trabajo?.numero || 0) - Number(b.unidad_trabajo?.numero || 0);
+      });
+
+      // Se detectan y resuelven posibles colisiones de orden duplicado asegurando secuencia correlativa.
+      const ordenesUnicos = new Set();
+      let hayDuplicados = false;
+      for (const item of resultadoConsolidado) {
+        if (ordenesUnicos.has(item.orden)) {
+          hayDuplicados = true;
+          break;
+        }
+        ordenesUnicos.add(item.orden);
+      }
+      if (hayDuplicados) {
+        resultadoConsolidado.forEach((item, idx) => {
+          item.orden = idx + 1;
+        });
+        Promise.all(
+          resultadoConsolidado.map((item) =>
+            item.id_temporizacion
+              ? actualizarTemporizacionEnHook('id_temporizacion', item.id_temporizacion, { orden: item.orden })
+              : Promise.resolve(null)
+          )
+        ).catch((e) => console.warn('Advertencia al persistir orden corregido:', e));
+      }
 
       setTemporizaciones(resultadoConsolidado);
       return resultadoConsolidado;
@@ -133,8 +246,21 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
       const mensaje = err?.message || 'Error al obtener los datos de temporización.';
       setErrorOperacion(mensaje);
       return [];
+    } finally {
+      setCargando(false);
     }
-  }, [idCurso, idModulo, cargarUnidadesBase, obtenerTemporizacion, insertarTemporizacion]);
+  }, [
+    idCurso,
+    idModulo,
+    idModuloFlexibleProp,
+    idCursoSecundarioProp,
+    obtenerCursos,
+    obtenerUTs,
+    obtenerModulos,
+    obtenerTemporizacion,
+    insertarTemporizacion,
+    actualizarTemporizacionEnHook
+  ]);
 
   // Recarga reactiva de datos al modificar los filtros de la clase.
   useEffect(() => {
@@ -254,12 +380,17 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
       return { error: 'No hay unidades para restablecer su orden.', status: 400 };
     }
 
-    const ordenadasPorCurriculo = [...temporizaciones].sort(
-      (a, b) => Number(a.unidad_trabajo?.numero || 0) - Number(b.unidad_trabajo?.numero || 0)
-    );
+    const ordenadasPorCurriculo = [...temporizaciones].sort((a, b) => {
+      const modA = a.unidad_trabajo?.id_modulo || a.id_modulo;
+      const modB = b.unidad_trabajo?.id_modulo || b.id_modulo;
+      if (modA !== modB) {
+        return modA === idModulo ? -1 : 1;
+      }
+      return Number(a.unidad_trabajo?.numero || 0) - Number(b.unidad_trabajo?.numero || 0);
+    });
 
     return await reordenarTemporizaciones(ordenadasPorCurriculo);
-  }, [temporizaciones, reordenarTemporizaciones]);
+  }, [temporizaciones, idModulo, reordenarTemporizaciones]);
 
   // Resumen estadístico reactivo sobre el progreso del módulo.
   const estadisticas = useMemo(() => {
@@ -380,16 +511,19 @@ const useTemporizacion = (idCurso = null, idModulo = null) => {
     temporizaciones,
     setTemporizaciones,
     estadisticas,
-    cargando: cargandoTemporizacion || cargandoUTs,
+    cargando,
     guardando,
-    error: errorTemporizacion || errorUTs || errorOperacion,
+    error: errorOperacion,
     recargar: cargarDatos,
     actualizarTemporizacion,
     actualizarCampoEnLinea,
     reordenarTemporizaciones,
     restablecerOrdenOriginal,
     aplicarPropuestaFechas,
-    borrarTemporizacionCompleta
+    borrarTemporizacionCompleta,
+    esFlexibilizado,
+    idModuloFlexible,
+    moduloFlexibleObj
   };
 };
 

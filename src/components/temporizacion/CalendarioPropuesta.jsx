@@ -259,7 +259,8 @@ export const CalendarioPropuesta = ({
                     const estaEnRangoArrastre = rangoMin !== null && rangoMax !== null && diaClaseIdx >= rangoMin && diaClaseIdx <= rangoMax;
 
                     const numUT = formatearNumeroUT(asignacionUt.numero || asignacionUt.orden);
-                    const textoTooltip = `${numUT}: ${asignacionUt.nombre} (${formatearFechaEspanol(asignacionUt.fecha_ini_prevista)} - ${formatearFechaEspanol(asignacionUt.fecha_fin_prevista)}) • Arrastra o haz clic para reasignar fechas`;
+                    const siglaMod = asignacionUt.moduloSiglas ? `[${asignacionUt.moduloSiglas}] ` : '';
+                    const textoTooltip = `${siglaMod}${numUT}: ${asignacionUt.nombre} (${formatearFechaEspanol(asignacionUt.fecha_ini_prevista)} - ${formatearFechaEspanol(asignacionUt.fecha_fin_prevista)}) • Arrastra o haz clic para reasignar fechas`;
 
                     return (
                       <div

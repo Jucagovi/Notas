@@ -35,6 +35,9 @@ export const FiltrosTemporizacion = ({
   onClaseChange,
   clases = [],
   cargandoClases = false,
+  esFlexibilizado: esFlexibilizadoProp,
+  moduloFlexibleNombre: moduloFlexibleNombreProp,
+  moduloFlexibleSiglas: moduloFlexibleSiglasProp,
   onRecargar,
   onRestablecerOrden,
   onAbrirPropuesta,
@@ -45,9 +48,11 @@ export const FiltrosTemporizacion = ({
 }) => {
   // Identificación de la clase activa para verificar su estado de flexibilización.
   const claseActual = clases.find((c) => c.id === claseSeleccionadaId) || null;
-  const esFlexibilizado = Boolean(
-    claseActual?.id_modulo_flexible || claseActual?.id_modulo_flexibilizado
-  );
+  const esFlexibilizado = esFlexibilizadoProp !== undefined
+    ? Boolean(esFlexibilizadoProp)
+    : Boolean(claseActual?.id_modulo_flexible || claseActual?.id_modulo_flexibilizado);
+  const nombreModuloSec = moduloFlexibleNombreProp || claseActual?.moduloFlexibleNombre;
+  const siglasModuloSec = moduloFlexibleSiglasProp || claseActual?.moduloFlexibleSiglas;
 
   return (
     <div className="surface-card p-3 border-round border-1 surface-border shadow-1 mb-4">
@@ -93,8 +98,8 @@ export const FiltrosTemporizacion = ({
         {esFlexibilizado && (
           <div className="flex align-items-end mt-1 sm:mt-3">
             <BadgeModuloFlexibilizado
-              nombreModuloSecundario={claseActual?.moduloFlexibleNombre}
-              siglasModuloSecundario={claseActual?.moduloFlexibleSiglas}
+              nombreModuloSecundario={nombreModuloSec}
+              siglasModuloSecundario={siglasModuloSec}
             />
           </div>
         )}

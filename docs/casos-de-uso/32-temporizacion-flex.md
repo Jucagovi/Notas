@@ -16,7 +16,7 @@ Permitir al docente configurar la flexibilización temporal de dos módulos dura
 * **Modificación en "Temporización":**
 * En la cabecera de la página (`FiltrosTemporizacion.jsx`), si se selecciona una clase que tiene el campo `id_modulo_flexibilizado` con datos, se mostrará un componente `<BadgeEstado>` o `Tag` informativo indicando visualmente: *"Módulo flexibilizado con [Nombre del módulo secundario]"*.
 
-* Las secciones del Calendario Escolar, Diagrama de Gantt y listado de Unidades de Trabajo mostrarán las unidades del módulo actual, pero su distribución visual abarcará los huecos horarios de ambos módulos fusionados.
+* Las secciones del Calendario Escolar, Diagrama de Gantt y listado de Unidades de Trabajo mostrarán las unidades de trabajo de ambos módulos flexibilizados de forma conjunta, permitiendo ordenarlas secuencialmente en una sola lista unificada y distinguiéndolas mediante las siglas de cada módulo.
 
 ## 3. Reglas de Negocio y Validación
 
@@ -31,11 +31,12 @@ Permitir al docente configurar la flexibilización temporal de dos módulos dura
 * **Auto-Evaluaciones Separadas:**
 * Durante el Paso 4, el sistema respetará la arquitectura generando 5 registros ('Primera', 'Segunda', 'Tercera', 'Final', 'Extraordinaria') en la tabla `Evaluaciones` para el módulo principal, y **otros 5 registros independientes** para el módulo secundario.
 
-* **Cálculo de la Temporización Flexibilizada:**
-* Al pulsar el botón "Propuesta" en la pantalla de Temporización, el asistente de cálculo verificará si la clase tiene un `id_modulo_flexibilizado`.
+* **Cálculo de la Temporización Flexibilizada Conjunta:**
+* Al pulsar el botón "Propuesta" en la pantalla de Temporización, el asistente de cálculo verificará si la clase tiene un `id_modulo_flexibilizado` (o `id_modulo_flexible`).
 
-* Si lo tiene, el motor extraerá los días y horas de la tabla `Horarios` correspondientes al módulo actual y también los correspondientes al módulo flexibilizado, combinándolos en un solo calendario lectivo.
-* Las `fecha_ini_prevista` y `fecha_fin_prevista` de las Unidades de Trabajo se calcularán consumiendo las horas totales de esa bolsa conjunta.
+* Si lo tiene, el motor extraerá los días y horas de la tabla `Horarios` correspondientes al módulo actual y también los correspondientes al módulo flexibilizado, combinándolos en un solo calendario lectivo y contando todas las horas semanales (de ambos módulos) para la UT en curso.
+* La propuesta distribuirá el tiempo total de forma proporcional a la carga horaria semanal de cada módulo y a los pesos de sus respectivos Resultados de Aprendizaje (RA).
+* Las `fecha_ini_prevista` y `fecha_fin_prevista` de todas las Unidades de Trabajo de ambos módulos se calcularán en la secuencia ordenada por el docente, consumiendo las horas totales de esa bolsa horaria conjunta.
 
 ## 4. Datos y Arquitectura (React y Supabase)
 

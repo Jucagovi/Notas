@@ -130,9 +130,12 @@ export const DiagramaGanttTemporizacion = ({
         }
       }
 
+      const moduloSiglas = temp.moduloSiglas || ut?.moduloSiglas || '';
+
       return {
         id: temp.id_temporizacion,
         numUT,
+        moduloSiglas,
         nombre: ut?.nombre || 'Unidad de Trabajo',
         estado: temp.estado || 'Pendiente',
         color,
@@ -208,7 +211,8 @@ export const DiagramaGanttTemporizacion = ({
           {/* Filas de unidades del cronograma */}
           <div className="flex flex-column gap-2">
             {barrasUnidades.map((item) => {
-              const tooltipTexto = `${item.numUT}: ${item.nombre}\n` +
+              const prefijoMod = item.moduloSiglas ? `[${item.moduloSiglas}] ` : '';
+              const tooltipTexto = `${prefijoMod}${item.numUT}: ${item.nombre}\n` +
                 (item.barraPrevista
                   ? `• Previsto: ${formatearFechaEspanol(item.barraPrevista.fechaIni)} - ${formatearFechaEspanol(item.barraPrevista.fechaFin)}\n`
                   : '• Sin fechas previstas\n') +
@@ -230,8 +234,11 @@ export const DiagramaGanttTemporizacion = ({
                   >
                     <span
                       className="font-semibold text-xs text-900 white-space-nowrap overflow-hidden text-overflow-ellipsis"
-                      title={`${item.numUT}: ${item.nombre}`}
+                      title={`${prefijoMod}${item.numUT}: ${item.nombre}`}
                     >
+                      {item.moduloSiglas && (
+                        <span className="font-bold text-primary mr-1">[{item.moduloSiglas}]</span>
+                      )}
                       {item.numUT}: {item.nombre}
                     </span>
                     <Tag

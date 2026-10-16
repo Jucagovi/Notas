@@ -734,3 +734,17 @@ Más cambios (por hacer):
 ## 32 cambios en el informe
 
 El informe debe mostrar un seguimiento anual de la programación desde el día que se solicita hacia atrás hasta el incio del curso manteniendo los comentarios que se han realizado en los meses anteriores. ¿Qué cambios tengo que hacer en la base de datos para hacer esto? ¿Se puede implementar sin modificar la base de datos? ¿Tal vez subiendo un archivo para modificar su contenido?
+
+## 32 flexibilización arraglar (UT no se muestran juntas en los módulos flexibilizados)
+
+¡Hola! Vamos a continuar con el desarrollo de nuestra aplicación. Por favor, lee las reglas globales en @docs/CONVENCIONES.md y el esquema de la base de datos en @docs/ESQUEMA.sql.
+
+Nuestra tarea de hoy es hacer un cambio en la carcaterística, ya implementada, de flexibilización de dos módulos en un mismo curso. Lee detalladamente el caso de uso en @docs/casos-de-uso/32-temporizacion.flex.md para saber qué se ha hecho. Además también te interesa consultar el fichero @docs/casos-de-uso/19-temporizacion.md para saber cómo está construida esta parte.
+
+Regla estricta de Componentización: no escribas toda la interfaz en el archivo de la página. Divide la vista creando subcomponentes en la carpeta `src/components` separándolos en carpetas según su fucnionalidad (por ejemplo, separa el DataTable en un componente y el Dialog del formulario en otro) y únelos en la página principal pasándoles las props necesarias. Recuerda qua debes utilizar los componentes de la carpeta `src/components/common` cada vez que necesites un componente que se ajuste a uno de ellos (NUNCA se modificarán estos componentes).
+
+Lo que hay que arreglar es qu cuando un módulo está flexibilizado con otro, cuando se realiza su temporización debe hacerse de forma conjunta, es decir, el apartadado de temporización debe mostrar las unidades de trabajo de los dos módulos para ordenarlas y , cuando pides una propuesta de temporoización la calcula en base al horario de los dos módulos contando todas las horas semanales (de ambos módulos) para la UT en curso. Esa temporización debe incluir a los dos módulos que estñan flexibilizados.
+
+Hay que cambiar cosas:
+
+en la página de "Temporización" donde se calcula la temporización de las UT, si el módulo está flexibilizado, el listado de las UT que debe mostrar es tanto el del módulo principal como el felxibilizado para poder ordenar las UT y hacer una propuesta de temporización compuesta. Te en cuenta que la información de si un módulo está o no flexibilizado se encuentra en la tabla Curso en la columna "id_modulo_flexible". Si el curso tiene valor en esa columna, ese es el módulo junto con el que se debe mostrar en el apartado de temporización.

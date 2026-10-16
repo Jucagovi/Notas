@@ -17,6 +17,7 @@ import { formatearNumeroUT } from '../../utils/formatoUT.js';
  * @param {Array<Object>} props.temporizaciones - Conjunto ordenado de unidades temporizadas.
  * @param {boolean} [props.cargando=false] - Indicador de carga de datos.
  * @param {boolean} [props.guardando=false] - Indicador de persistencia o reordenación en curso.
+ * @param {boolean} [props.esFlexibilizado=false] - Indicador de si la clase actual está flexibilizada con otro módulo.
  * @param {Function} props.onReordenar - Callback disparado al soltar una fila reordenada.
  * @param {Function} props.onActualizarCampo - Callback para mutar un campo específico en línea.
  * @param {Function} props.onEditar - Callback para abrir el diálogo modal de edición completa.
@@ -24,6 +25,7 @@ import { formatearNumeroUT } from '../../utils/formatoUT.js';
  */
 export const TablaTemporizacion = ({
   temporizaciones = [],
+  esFlexibilizado = false,
   cargando = false,
   guardando = false,
   onReordenar,
@@ -31,18 +33,24 @@ export const TablaTemporizacion = ({
   onEditar,
   onAbrirObservaciones
 }) => {
+  // Comprobación de si existen unidades de múltiples módulos en la temporización.
+  const hayModulosFlex = esFlexibilizado || temporizaciones.some(
+    (t) => Boolean(t.moduloSiglas || t.unidad_trabajo?.moduloSiglas)
+  );
+
   // Plantilla para la columna de número y nombre oficial de la Unidad de Trabajo.
   const plantillaUnidadTrabajo = (fila) => {
     const ut = fila.unidad_trabajo;
     const numUT = formatearNumeroUT(ut?.numero || fila.orden);
-    const texto = `${numUT}: ${ut?.nombre || 'Sin título'}`;
+    const siglas = fila.moduloSiglas || ut?.moduloSiglas || '';
+    const texto = `${numUT}: ${ut?.nombre || 'Sin título'}${siglas ? ` (${siglas})` : ''}`;
     return (
       <div className="flex align-items-center gap-2">
         <span
           className="white-space-nowrap overflow-hidden text-overflow-ellipsis font-semibold text-900 inline-block max-w-24rem"
           data-pr-tooltip={texto}
         >
-          {texto}
+          {numUT}: {ut?.nombre || 'Sin título'}
         </span>
       </div>
     );
@@ -121,6 +129,31 @@ export const TablaTemporizacion = ({
             <span className="font-bold text-primary text-sm">#{fila.orden}</span>
           )}
         />
+
+        {/* Columna de Módulo profesional en caso de flexibilización */}
+        {hayModulosFlex && (
+          <Column
+            header="Módulo"
+            style={{ width: '6.5rem', minWidth: '6.5rem', textAlign: 'center' }}
+            body={(fila) => {
+              const siglas = fila.moduloSiglas || fila.unidad_trabajo?.moduloSiglas || '';
+              const nombre = fila.moduloNombre || fila.unidad_trabajo?.moduloNombre || '';
+              const esSecundario = Boolean(fila.esModuloSecundario || fila.unidad_trabajo?.esModuloSecundario);
+              return (
+                <span
+                  className={`inline-block px-2 py-1 text-xs font-bold border-round ${
+                    esSecundario
+                      ? 'surface-200 text-purple-700 border-1 border-purple-300'
+                      : 'surface-100 text-blue-700 border-1 border-blue-300'
+                  }`}
+                  data-pr-tooltip={nombre || siglas}
+                >
+                  {siglas || (esSecundario ? 'Secundario' : 'Principal')}
+                </span>
+              );
+            }}
+          />
+        )}
 
         {/* Columna de Unidad de Trabajo oficial */}
         <Column
